@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:17.6-alpine3.22
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./dev-db:/var/lib/postgresql/data

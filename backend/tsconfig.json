@@ -9,5 +9,5 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "migrations/**/*.ts"]
 }

@@ -5,7 +5,10 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "dev": "tsx --watch --env-file .env ./src/index.ts"
+    "dev": "tsx --watch --env-file .env ./src/index.ts",
+    "dev:dbup": "docker compose -p chatstierlist-devdb -f ./docker/dev-db.compose.yml up -d",
+    "dev:dbdown": "docker compose -p chatstierlist-devdb down",
+    "migrate": "node-pg-migrate --migration-file-language ts"
   },
   "dependencies": {
     "@fastify/autoload": "^6.3.1",
@@ -13,13 +16,16 @@
     "@fastify/secure-session": "^8.2.0",
     "fastify": "^5.6.0",
     "fastify-plugin": "^5.0.1",
-    "passport-twitch-strategy": "^2.2.0"
+    "node-pg-migrate": "^9.0.0-alpha.1",
+    "passport-twitch-strategy": "^2.2.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
     "@eslint/json": "^0.13.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/node": "^24.3.1",
+    "@types/pg": "^8.15.5",
     "eslint": "^9.35.0",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
