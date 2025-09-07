@@ -1,17 +1,23 @@
 import Fastify from 'fastify';
-import autoload from '@fastify/autoload';
+import Autoload from '@fastify/autoload';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import Auth from './plugins/auth.js';
 
 const fastify = Fastify({
   logger: true,
 });
 
-fastify.register(autoload, {
-  dir: join(__dirname, 'routes'),
+fastify.register(Auth);
+
+fastify.register(Autoload, {
+  dir: join(
+    (() => {
+      const __filename = fileURLToPath(import.meta.url);
+      return dirname(__filename);
+    })(),
+    'routes'
+  ),
 });
 
 fastify.listen({ port: 3000 }, function (err, address) {
