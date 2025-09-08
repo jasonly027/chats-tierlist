@@ -3,11 +3,13 @@ import Autoload from '@fastify/autoload';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Auth from './plugins/auth.js';
+import Database from './plugins/database.js';
 
 const fastify = Fastify({
   logger: true,
 });
 
+fastify.register(Database);
 fastify.register(Auth);
 
 fastify.register(Autoload, {
