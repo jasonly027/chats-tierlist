@@ -1,4 +1,4 @@
-import { ColumnDefinitions, MigrationBuilder } from 'node-pg-migrate';
+import { type ColumnDefinitions, MigrationBuilder } from 'node-pg-migrate';
 
 export const shorthands: ColumnDefinitions | undefined = {
   id: {
@@ -11,8 +11,6 @@ export const shorthands: ColumnDefinitions | undefined = {
 };
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.createExtension('pgcrypto');
-
   pgm.createTable('users', {
     id: 'id',
     twitch_id: {
@@ -20,29 +18,18 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       notNull: true,
       unique: true,
     },
-    access_token: {
-      type: 'BYTEA',
-    },
-    refresh_token: {
-      type: 'BYTEA',
-    },
-    last_validate: {
-      type: 'TIMESTAMPTZ',
+    voting: {
+      type: 'BOOLEAN',
       notNull: true,
+      default: false,
     },
-  });
-
-  pgm.createTable('tierlists', {
-    id: 'id',
-    user_id: {
-      type: 'INT',
-      references: 'users(id)',
-      notNull: true,
-      onDelete: 'CASCADE',
+    tiers: {
+      type: 'TEXT[]',
+      check: 'array_length(tiers, 1) <= 50',
     },
-    data: {
-      type: 'TEXT',
-      notNull: true,
+    items: {
+      type: 'TEXT[]',
+      check: 'array_length(items, 1) <= 1000',
     },
   });
 }

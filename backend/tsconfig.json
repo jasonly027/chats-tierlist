@@ -1,13 +1,17 @@
 {
-  "extends": "@tsconfig/strictest/tsconfig.json",
+  "extends": [
+    "@tsconfig/strictest/tsconfig.json",
+    "@tsconfig/node22/tsconfig.json",
+    "@tsconfig/node-ts/tsconfig.json"
+  ],
   "compilerOptions": {
-    "outDir": "dist",
-
-    "module": "nodenext",
-    "target": "esnext",
-
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force"
+    "baseUrl": "./src",
+    "paths": {
+      "@plugins/*": ["./plugins/*"],
+      "@lib/*": ["./lib/*"],
+    },
+    "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "migrations/**/*.ts"]
+  "include": ["./**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }
