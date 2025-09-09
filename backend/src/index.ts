@@ -2,12 +2,18 @@ import Fastify from 'fastify';
 import Autoload from '@fastify/autoload';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Auth from './plugins/auth.js';
+import Repo from '@plugins/repo.js';
+import Twitch from '@plugins/twitch.js';
+import Auth from '@plugins/auth.js';
+import fastifySensible from '@fastify/sensible';
 
 const fastify = Fastify({
   logger: true,
 });
 
+fastify.register(fastifySensible);
+fastify.register(Repo);
+fastify.register(Twitch);
 fastify.register(Auth);
 
 fastify.register(Autoload, {

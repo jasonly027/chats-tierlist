@@ -6,23 +6,31 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --watch --env-file .env ./src/index.ts",
-    "dev:dbup": "docker compose -p chatstierlist-devdb -f ./docker/dev-db.compose.yml up -d",
+    "dev:dbup": "docker compose -p chatstierlist-devdb -f ./docker/compose.dev.yml up -d",
     "dev:dbdown": "docker compose -p chatstierlist-devdb down",
     "migrate": "node-pg-migrate --migration-file-language ts"
   },
   "dependencies": {
     "@fastify/autoload": "^6.3.1",
-    "@fastify/passport": "^3.0.2",
-    "@fastify/secure-session": "^8.2.0",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/oauth2": "^8.1.2",
+    "@fastify/postgres": "^6.0.2",
+    "@fastify/sensible": "^6.0.3",
+    "@fastify/session": "^11.1.0",
+    "agentkeepalive": "^4.6.0",
+    "axios": "^1.11.0",
+    "connect-redis": "^9.0.0",
     "fastify": "^5.6.0",
     "fastify-plugin": "^5.0.1",
     "node-pg-migrate": "^9.0.0-alpha.1",
-    "passport-twitch-strategy": "^2.2.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "redis": "^5.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
     "@eslint/json": "^0.13.2",
+    "@tsconfig/node-ts": "^23.6.1",
+    "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/node": "^24.3.1",
     "@types/pg": "^8.15.5",
