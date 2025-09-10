@@ -1,10 +1,9 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import * as util from '../lib/util.ts';
+import * as util from '@lib/util.js';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
-import type { SessionProfile } from '../types.ts';
 import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
 
@@ -20,6 +19,12 @@ declare module 'fastify' {
   interface Session {
     user: SessionProfile;
   }
+}
+
+export interface SessionProfile {
+  twitch_id: string;
+  name: string;
+  profileImageUrl: string;
 }
 
 const auth: FastifyPluginAsync = async (fastify) => {
@@ -90,7 +95,7 @@ async function registerAuth(fastify: FastifyInstance) {
     const tw = fastify.twitchOAuth2;
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    const user = await fastify.twitch.getUser(token.access_token);
+    const user = await fastify.twitch.userFromToken(token.access_token);
     fastify.twitch.revoke(token.access_token);
 
     const createUser = fastify.repo.createUserIfNotExists(user.id);

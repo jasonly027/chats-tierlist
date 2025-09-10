@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import type { TwitchProfile } from '../types.ts';
+import * as tw from '@lib/twitch/twitchTypes.js';
 
 interface TwitchClientOptions {
   twitchHelixUrl?: string;
@@ -22,27 +22,27 @@ export class TwitchClient {
     });
   }
 
-  async validate(accessToken: string): Promise<AxiosResponse> {
+  async validate(token: string): Promise<AxiosResponse> {
     return this.http.get('https://id.twitch.tv/oauth2/validate', {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   }
 
-  async revoke(accessToken: string): Promise<AxiosResponse> {
+  async revoke(token: string): Promise<AxiosResponse> {
     const params = new URLSearchParams({
       ['client_id']: this.clientId,
-      token: accessToken,
+      token: token,
     });
     return this.http.post('https://id.twitch.tv/oauth2/revoke', params);
   }
 
-  async getUser(accessToken: string): Promise<TwitchProfile> {
+  async userFromToken(token: string): Promise<tw.User> {
     return this.http
       .get(`${this.twitchHelixUrl}/users`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((resp) => {
@@ -57,4 +57,15 @@ export class TwitchClient {
         return resp.data.data[0];
       });
   }
+
+  // async searchChannel(token: string, query: string): Promise<tw.SearchChannel> {
+  //   const res = await this.http.get(`${this.twitchHelixUrl}/search/channels`, {
+  //     params: {
+  //       query,
+  //       first: 1,
+  //     },
+  //   });
+
+  //   // res.data
+  // }
 }

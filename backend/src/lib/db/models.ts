@@ -1,6 +1,4 @@
-// Database models
-
-import type { TierListItem, TierListTier } from 'types.js';
+import type { TierListItem, TierListTier } from '@src/types.js';
 
 export interface User {
   id: number;

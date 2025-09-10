@@ -9,6 +9,7 @@ import fastifySensible from '@fastify/sensible';
 
 const fastify = Fastify({
   logger: true,
+  disableRequestLogging: true
 });
 
 fastify.register(fastifySensible);
@@ -26,10 +27,9 @@ fastify.register(Autoload, {
   ),
 });
 
-fastify.listen({ port: 3000 }, function (err, address) {
+fastify.listen({ port: 3000 }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
   }
-  console.log(`Server listening on ${address}`);
 });

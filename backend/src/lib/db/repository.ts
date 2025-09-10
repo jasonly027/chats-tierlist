@@ -1,5 +1,5 @@
 import * as pg from 'pg';
-import * as model from '@lib/models.js';
+import * as model from '@lib/db/models.js';
 
 export class Repository {
   private readonly pool: pg.Pool;
@@ -48,24 +48,24 @@ interface _User {
   items: string[] | null;
 }
 
-function mapUser(user: model.User): _User {
-  const tiers =
-    user.tiers.length !== 0
-      ? user.tiers.map((tier) => JSON.stringify(tier))
-      : null;
-  const items =
-    user.tiers.length !== 0
-      ? user.items.map((item) => JSON.stringify(item))
-      : null;
+// function mapUser(user: model.User): _User {
+//   const tiers =
+//     user.tiers.length !== 0
+//       ? user.tiers.map((tier) => JSON.stringify(tier))
+//       : null;
+//   const items =
+//     user.tiers.length !== 0
+//       ? user.items.map((item) => JSON.stringify(item))
+//       : null;
 
-  return {
-    id: user.id,
-    twitch_id: user.twitch_id,
-    voting: user.voting,
-    tiers,
-    items,
-  };
-}
+//   return {
+//     id: user.id,
+//     twitch_id: user.twitch_id,
+//     voting: user.voting,
+//     tiers,
+//     items,
+//   };
+// }
 
 function mapRawUser(raw: _User): model.User {
   return {

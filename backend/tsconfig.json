@@ -5,10 +5,11 @@
     "@tsconfig/node-ts/tsconfig.json"
   ],
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@plugins/*": ["./plugins/*"],
-      "@lib/*": ["./lib/*"],
+      "@src/*": ["src/*"],
+      "@plugins/*": ["src/plugins/*"],
+      "@lib/*": ["src/lib/*"],
     },
     "outDir": "dist"
   },
