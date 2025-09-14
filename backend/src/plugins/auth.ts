@@ -28,18 +28,17 @@ export interface SessionProfile {
 }
 
 const auth: FastifyPluginAsync = async (fastify) => {
-  if (!fastify.hasDecorator('twitch')) {
-    throw new Error('Required plugin "twitch" is not registered');
-  }
-  if (!fastify.hasDecorator('repo')) {
-    throw new Error('Required plugin "repo" is not registered');
-  }
-
   await registerSession(fastify);
   await registerAuth(fastify);
 };
 
-export default fastifyPlugin(auth);
+export default fastifyPlugin(auth, {
+  name: 'auth',
+  decorators: {
+    fastify: ['twitch', 'repo'],
+  },
+  dependencies: ['twitch', 'repo'],
+});
 
 async function registerSession(fastify: FastifyInstance) {
   const REDIS_URL = util.envVar('REDIS_URL');
@@ -95,8 +94,13 @@ async function registerAuth(fastify: FastifyInstance) {
     const tw = fastify.twitchOAuth2;
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    const user = await fastify.twitch.userFromToken(token.access_token);
-    fastify.twitch.revoke(token.access_token);
+    const user = await fastify.twitch
+      .userFromToken(token.access_token)
+      .finally(() => {
+        fastify.twitch.revoke(token.access_token).catch((err) => {
+          req.log.warn({ err }, 'failed to revoke token');
+        });
+      });
 
     const createUser = fastify.repo.createUserIfNotExists(user.id);
     req.session.set('user', {

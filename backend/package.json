@@ -8,26 +8,31 @@
     "build": "tsc && tsc-alias",
     "start": "node --env-file .env dist/src/index.js",
     "check": "tsc --noEmit && prettier --check . && eslint .",
-    "dev": "tsx --watch --env-file .env ./src/index.ts",
+    "test": "mocha --require tsx \"./test/**/*.{ts,js,cjs,mjs}\"",
+    "dev": "tsx --env-file .env ./src/index.ts | pino-pretty",
+    "dev:watch": "tsx --watch --env-file .env ./src/index.ts | pino-pretty",
     "dev:dbup": "docker compose -p chatstierlist-devdb -f ./docker/compose.dev.yml up -d",
     "dev:dbdown": "docker compose -p chatstierlist-devdb down",
     "migrate": "node-pg-migrate --migration-file-language ts"
   },
   "dependencies": {
-    "@fastify/autoload": "^6.3.1",
     "@fastify/cookie": "^11.0.2",
     "@fastify/oauth2": "^8.1.2",
     "@fastify/postgres": "^6.0.2",
     "@fastify/sensible": "^6.0.3",
     "@fastify/session": "^11.1.0",
     "agentkeepalive": "^4.6.0",
+    "async-mutex": "^0.5.0",
     "axios": "^1.11.0",
     "connect-redis": "^9.0.0",
     "fastify": "^5.6.0",
     "fastify-plugin": "^5.0.1",
     "node-pg-migrate": "^9.0.0-alpha.1",
     "pg": "^8.16.3",
-    "redis": "^5.8.2"
+    "pino": "^9.9.5",
+    "redis": "^5.8.2",
+    "ws": "^8.18.3",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
@@ -35,14 +40,22 @@
     "@tsconfig/node-ts": "^23.6.1",
     "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.3.1",
     "@types/pg": "^8.15.5",
+    "@types/ws": "^8.18.1",
     "eslint": "^9.35.0",
     "globals": "^16.3.0",
+    "mocha": "^11.7.2",
+    "pino-pretty": "^13.1.1",
     "prettier": "^3.6.2",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.42.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.9",
+    "utf-8-validate": "^6.0.5"
   }
 }

@@ -14,4 +14,6 @@ const repo: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('repo', repo);
 };
 
-export default fastifyPlugin(repo);
+export default fastifyPlugin(repo, {
+  name: 'repo',
+});

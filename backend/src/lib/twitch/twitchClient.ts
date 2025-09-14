@@ -1,28 +1,30 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import * as tw from '@lib/twitch/twitchTypes.js';
+import * as tw from '@src/lib/twitch/types/api.js';
+import { HttpAgent, HttpsAgent } from 'agentkeepalive';
 
 interface TwitchClientOptions {
-  twitchHelixUrl?: string;
+  url?: string;
 }
 
 export class TwitchClient {
-  private readonly twitchHelixUrl: string;
+  private readonly helixUrl: string;
   private readonly clientId: string;
   private http: AxiosInstance;
 
   constructor(clientId: string, options?: TwitchClientOptions) {
-    this.twitchHelixUrl =
-      options?.twitchHelixUrl ?? 'https://api.twitch.tv/helix';
+    this.helixUrl = options?.url ?? 'https://api.twitch.tv/helix';
     this.clientId = clientId;
 
     this.http = axios.create({
       headers: {
         ['Client-Id']: this.clientId,
       },
+      httpAgent: new HttpAgent(),
+      httpsAgent: new HttpsAgent(),
     });
   }
 
-  async validate(token: string): Promise<AxiosResponse> {
+  validate(token: string): Promise<AxiosResponse> {
     return this.http.get('https://id.twitch.tv/oauth2/validate', {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -30,42 +32,109 @@ export class TwitchClient {
     });
   }
 
-  async revoke(token: string): Promise<AxiosResponse> {
-    const params = new URLSearchParams({
-      ['client_id']: this.clientId,
-      token: token,
-    });
-    return this.http.post('https://id.twitch.tv/oauth2/revoke', params);
+  revoke(token: string): Promise<AxiosResponse> {
+    return this.http.post(
+      'https://id.twitch.tv/oauth2/revoke',
+      {
+        ['client_id']: this.clientId,
+        token: token,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
   }
 
-  async userFromToken(token: string): Promise<tw.User> {
+  userFromToken(token: string): Promise<tw.User> {
     return this.http
-      .get(`${this.twitchHelixUrl}/users`, {
+      .get(`${this.helixUrl}/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       .then((resp) => {
-        if (resp.status === 200) {
-          return resp;
-        }
-        throw new Error(
-          `Failed to fetch user ${resp.status}: ${resp.statusText}`
-        );
-      })
-      .then((resp) => {
-        return resp.data.data[0];
+        const users = tw.UserResponseSchema.parse(resp.data);
+        return users.data[0]!;
       });
   }
 
-  // async searchChannel(token: string, query: string): Promise<tw.SearchChannel> {
-  //   const res = await this.http.get(`${this.twitchHelixUrl}/search/channels`, {
-  //     params: {
-  //       query,
-  //       first: 1,
-  //     },
-  //   });
+  searchChannel(
+    token: string,
+    query: string
+  ): Promise<tw.SearchChannel | null> {
+    return this.http
+      .get(`${this.helixUrl}/search/channels`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          query,
+          first: 1,
+        },
+      })
+      .then((resp) => {
+        const channels = tw.SearchChannelResponseSchema.parse(resp.data);
 
-  //   // res.data
-  // }
+        const name = query.toLowerCase();
+        const channel = channels.data[0];
+        if (
+          name === channel?.broadcaster_login ||
+          name === channel?.display_name
+        ) {
+          return channel;
+        }
+        return null;
+      });
+  }
+
+  subscriptions(
+    token: string,
+    status?: 'enabled'
+  ): Promise<tw.SubscriptionsResponse> {
+    const params: Record<string, string> = {};
+    if (status !== undefined) params['status'] = status;
+
+    return this.http
+      .get(`${this.helixUrl}/eventsub/subscriptions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      })
+      .then((resp) => {
+        return tw.SubscriptionsResponseSchema.parse(resp.data);
+      });
+  }
+
+  createChatMessageSubscription(
+    token: string,
+    options: { sessionId: string; broadcasterId: string; userId: string }
+  ): Promise<tw.SubscriptionsResponse> {
+    return this.http
+      .post(
+        `${this.helixUrl}/eventsub/subscriptions`,
+        {
+          type: 'channel.chat.message',
+          version: '1',
+          condition: {
+            broadcaster_user_id: options.broadcasterId,
+            user_id: options.userId,
+          },
+          transport: {
+            method: 'websocket',
+            session_id: options.sessionId,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((resp) => {
+        return tw.SubscriptionsResponseSchema.parse(resp.data);
+      });
+  }
 }

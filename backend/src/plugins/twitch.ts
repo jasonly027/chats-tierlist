@@ -14,4 +14,6 @@ const twitch: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('twitch', client);
 };
 
-export default fastifyPlugin(twitch);
+export default fastifyPlugin(twitch, {
+  name: 'twitch',
+});
