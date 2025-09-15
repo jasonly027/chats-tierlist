@@ -1,4 +1,6 @@
+import { AxiosError } from 'axios';
 import fs from 'fs';
+import pino, { stdSerializers } from 'pino';
 
 export function envVar(key: string): string {
   if (process.env[key]) {
@@ -17,3 +19,16 @@ export function envVar(key: string): string {
   console.error(`Neither ${key} or ${key}_FILE was set`);
   process.exit(1);
 }
+
+export const logger = pino({
+  level: 'debug',
+  serializers: {
+    err(err) {
+      if (err instanceof AxiosError) {
+        delete err.config?.httpAgent;
+        delete err.config?.httpsAgent;
+      }
+      return stdSerializers.errWithCause(err);
+    },
+  },
+});

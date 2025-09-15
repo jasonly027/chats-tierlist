@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import * as tw from '@src/lib/twitch/types/api.js';
+import * as tw from './types/api.js';
 import { HttpAgent, HttpsAgent } from 'agentkeepalive';
 
 interface TwitchClientOptions {

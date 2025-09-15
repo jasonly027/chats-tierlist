@@ -21,10 +21,9 @@ export default function (fastify: FastifyInstance) {
     },
     async (req: FastifyRequest<{ Querystring: { name: string } }>) => {
       const { name } = req.query;
-      const result = await fastify.chatSubscriber.subscribe(name, () => {});
-      fastify.log.info({ result }, 'subscribe');
-
-      return 'OK';
+      return await fastify.chatSubscriber.subscribe(name, (msg) => {
+        fastify.log.info(msg);
+      });
     }
   );
 

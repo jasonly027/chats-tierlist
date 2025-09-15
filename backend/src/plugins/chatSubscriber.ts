@@ -2,6 +2,7 @@ import * as util from '@lib/util.js';
 import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { TwitchChatSubscriber } from '@src/lib/twitch/twitchChatSubscriber.js';
+import { TwitchWebSocket } from '@src/lib/twitch/twitchWebSocket.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -15,7 +16,9 @@ const chatSubscriber: FastifyPluginAsync = async (fastify) => {
   const subscriber = new TwitchChatSubscriber({
     client: fastify.twitch,
     token,
-    logger: fastify.log,
+    createSocket() {
+      return new TwitchWebSocket('wss://eventsub.wss.twitch.tv/ws');
+    },
   });
 
   fastify.decorate('chatSubscriber', subscriber);

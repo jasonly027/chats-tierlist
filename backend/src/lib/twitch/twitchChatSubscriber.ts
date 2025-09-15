@@ -1,55 +1,53 @@
-import type { FastifyBaseLogger } from 'fastify';
 import { Mutex } from 'async-mutex';
+import { AxiosError } from 'axios';
+import {
+  ChatMessageEventSchema,
+  type ChatMessageEvent,
+  type NotifcationMessage,
+  type RevocationMessage,
+} from './types/webSocket.ts';
 import type { TwitchClient } from './twitchClient.ts';
-import { TwitchWebSocket } from './twitchWebSocket.js';
-import * as tw from './types/webSocket.ts';
+import { TwitchWebSocket } from './twitchWebSocket.ts';
+import { logger as baseLogger } from '@lib/util.js';
+
+const logger = baseLogger.child({ module: 'TwitchChatSubscriber' });
+
+export type SubscribeResult =
+  | 'ok'
+  | 'invalid channel name'
+  | 'chat join limit hit';
 
 export interface TwitchChatSubscriberOptions {
   client: TwitchClient;
-  url?: string;
   token: string;
-  logger?: FastifyBaseLogger;
+  createSocket: () => TwitchWebSocket;
 }
-
-type Connection = {
-  id: string;
-  socket: TwitchWebSocket;
-};
-
-type SubscriberCallbackFn = (msg: string | null) => void;
-
-type SubscribeResult = 'ok' | 'invalid channel name' | 'chat join limit hit';
 
 export class TwitchChatSubscriber {
   private readonly client: TwitchClient;
-  private readonly url: string | undefined;
 
   private mutex: Mutex;
   private token: string;
+  private createSocket: () => TwitchWebSocket;
   private userId: Promise<string>;
   private staleConnection: Connection | undefined;
-  private chats: Array<{
-    channelName: string;
-    listeners: SubscriberCallbackFn[];
-  }>;
-  private logger: FastifyBaseLogger | undefined;
+  private broadcasts: Broadcast[];
 
-  constructor({ client, url, token, logger }: TwitchChatSubscriberOptions) {
+  constructor({ client, token, createSocket }: TwitchChatSubscriberOptions) {
     this.client = client;
-    this.url = url;
     this.mutex = new Mutex();
     this.token = token;
+    this.createSocket = createSocket;
     this.userId = this.client.userFromToken(this.token).then(({ id }) => id);
     this.staleConnection = undefined;
-    this.chats = [];
-    this.logger = logger;
+    this.broadcasts = [];
   }
 
   subscribe(name: string, cb: SubscriberCallbackFn): Promise<SubscribeResult> {
     return this.mutex.runExclusive(async () => {
-      const chat = this.chats.find(({ channelName }) => channelName === name);
-      if (chat) {
-        chat.listeners.push(cb);
+      const broadcast = this.findBroadcast(name);
+      if (broadcast) {
+        broadcast.addListener(cb);
         return 'ok';
       }
 
@@ -59,31 +57,44 @@ export class TwitchChatSubscriber {
       }
 
       const connection = await this.getConnection();
-      await this.client.createChatMessageSubscription(this.token, {
-        sessionId: connection.id,
-        userId: await this.userId,
-        broadcasterId: channel.id,
-      });
+      await this.client
+        .createChatMessageSubscription(this.token, {
+          sessionId: connection.id,
+          userId: await this.userId,
+          broadcasterId: channel.id,
+        })
+        .catch((err: AxiosError) => {
+          // Already subscribed
+          if (err.status === 409) {
+            return 'ok';
+          }
+          return err;
+        });
 
-      this.chats.push({
-        channelName: channel.id,
-        listeners: [cb],
-      });
+      this.broadcasts.push(
+        new Broadcast({
+          displayName: channel.display_name,
+          login: channel.broadcaster_login,
+          listeners: [cb],
+        })
+      );
 
       return 'ok';
     });
+  }
+
+  private findBroadcast(query: string): Broadcast | undefined {
+    const name = query.toLowerCase();
+    return this.broadcasts.find(
+      (bd) => bd.displayName === name || bd.login === name
+    );
   }
 
   private async getConnection(): Promise<Connection> {
     if (this.staleConnection) return this.staleConnection;
 
     return new Promise((resolve, reject) => {
-      const socket = new TwitchWebSocket({
-        ...(this.url ? { url: this.url } : {}),
-        ...(this.logger
-          ? { logger: this.logger.child({ module: 'TwitchWebSocket' }) }
-          : {}),
-      });
+      const socket = this.createSocket();
 
       socket.once('welcome', (msg) => {
         this.staleConnection = { id: msg.payload.session.id, socket };
@@ -98,15 +109,59 @@ export class TwitchChatSubscriber {
       socket.once('error', (err) => reject(err));
       socket.once('close', () => {
         this.staleConnection = undefined;
-        this.chats.forEach(({ listeners }) => {
-          listeners.forEach((listener) => listener(null));
-        });
-        this.chats = [];
+
+        for (const bd of this.broadcasts) {
+          bd.broadcast('close');
+        }
+        this.broadcasts = [];
       });
     });
   }
 
-  private onSocketNotification(msg: tw.NotifcationMessage) {
-    console.log('New notification!', msg);
+  private onSocketNotification(msg: NotifcationMessage): void {
+    const event = ChatMessageEventSchema.parse(msg.payload.event);
+    const bd = this.findBroadcast(event.broadcaster_user_name);
+    if (bd) bd.broadcast(event);
+  }
+}
+
+interface Connection {
+  id: string;
+  socket: TwitchWebSocket;
+}
+
+type SubscriberCallbackFn = (
+  msg: ChatMessageEvent | RevocationMessage | 'close'
+) => void;
+
+interface BroadcastOptions {
+  login: string;
+  displayName: string;
+  listeners: SubscriberCallbackFn[];
+}
+
+class Broadcast {
+  readonly login: string;
+  readonly displayName: string;
+  private listeners: SubscriberCallbackFn[];
+
+  constructor({ login, displayName, listeners }: BroadcastOptions) {
+    this.login = login;
+    this.displayName = displayName;
+    this.listeners = listeners;
+  }
+
+  addListener(cb: SubscriberCallbackFn): void {
+    this.listeners.push(cb);
+  }
+
+  broadcast(msg: Parameters<SubscriberCallbackFn>[0]): void {
+    for (const listener of this.listeners) {
+      try {
+        listener(msg);
+      } catch (err) {
+        logger.error({ err }, 'Sending message to listener threw an error');
+      }
+    }
   }
 }

@@ -1,11 +1,8 @@
 import * as ws from 'ws';
 import * as tw from './types/webSocket.js';
-import type { FastifyBaseLogger } from 'fastify';
+import { logger as baseLogger } from '@lib/util.js';
 
-export interface TwitchWebSocketOptions {
-  url?: string;
-  logger?: FastifyBaseLogger;
-}
+const logger = baseLogger.child({ module: 'TwitchWebSocket' });
 
 type ListenerArgs = {
   welcome: [msg: tw.WelcomeMessage];
@@ -14,7 +11,7 @@ type ListenerArgs = {
   error: [err: Error];
 };
 
-type Listener<T extends Array<unknown>> = (...args: T) => void;
+type Listener<T extends unknown[]> = (...args: T) => void;
 
 type OnCloseRef = (code: number, reason: Buffer) => void;
 
@@ -28,14 +25,12 @@ export class TwitchWebSocket {
     [K in keyof ListenerArgs]: Array<Listener<ListenerArgs[K]>>;
   };
 
-  private logger: FastifyBaseLogger | undefined;
-
-  constructor(options?: TwitchWebSocketOptions) {
+  constructor(url?: string) {
     this.isAlive = true;
     this.keepAliveInterval = undefined;
     this.onCloseRef = this.onClose.bind(this);
     this.socket = this.registerSocket(
-      new ws.WebSocket(options?.url ?? 'wss://eventsub.wss.twitch.tv/ws', {
+      new ws.WebSocket(url ?? 'wss://eventsub.wss.twitch.tv/ws', {
         autoPong: true,
       })
     );
@@ -46,8 +41,6 @@ export class TwitchWebSocket {
       close: [],
       error: [],
     };
-
-    this.logger = options?.logger;
   }
 
   on<K extends keyof ListenerArgs>(
@@ -113,45 +106,66 @@ export class TwitchWebSocket {
         this.onRevocation(tw.RevocationMessageSchema.parse(obj));
         break;
       default:
-        this.logger?.warn({ messageType, obj }, 'Unexpected message received');
+        logger.warn({ messageType, obj }, 'Unexpected message received');
     }
   }
 
   private onError(err: Error): void {
-    this.logger?.error({ err }, 'Received error');
-    this.listeners.error.forEach((fn) => fn(err));
+    logger.error({ err }, 'Received error');
+    this.listeners.error.forEach((fn) => {
+      try {
+        fn(err);
+      } catch (err) {
+        logger.error({ err }, 'onError callback threw an error');
+      }
+    });
   }
 
   private onClose(code: number, reason: Buffer): void {
     const reasonStr = reason.toString();
-    this.logger?.info({ code, reason: reasonStr }, 'Connection closed');
+    logger.info({ code, reason: reasonStr }, 'Connection closed');
     this.clearKeepAliveCheck();
-    this.listeners.close.forEach((fn) => fn(code, reasonStr));
+    this.listeners.close.forEach((fn) => {
+      try {
+        fn(code, reasonStr);
+      } catch (err) {
+        logger.error({ err }, 'onClose callback threw an error');
+      }
+    });
   }
 
   private onWelcome(msg: tw.WelcomeMessage): void {
-    this.logger?.info(
-      { id: msg.payload.session.id },
-      'Received welcome message'
-    );
+    logger.info({ id: msg.payload.session.id }, 'Received welcome message');
 
     this.startKeepAliveCheck(msg.payload.session.keepalive_timeout_seconds);
-    this.listeners.welcome.forEach((fn) => fn(msg));
+    this.listeners.welcome.forEach((fn) => {
+      try {
+        fn(msg);
+      } catch (err) {
+        logger.error({ err }, 'onWelcome callback threw an error');
+      }
+    });
   }
 
   private onKeepAlive(_msg: tw.KeepAliveMessage): void {
-    this.logger?.debug('Received keep-alive message');
+    logger.debug('Received keep-alive message');
     this.isAlive = true;
   }
 
   private onNotification(msg: tw.NotifcationMessage): void {
-    this.logger?.info('Received notification message');
+    logger.debug('Received notification message');
     this.isAlive = true;
-    this.listeners.notification.forEach((fn) => fn(msg));
+    this.listeners.notification.forEach((fn) => {
+      try {
+        fn(msg);
+      } catch (err) {
+        logger.error({ err }, 'onNotification callback threw an error');
+      }
+    });
   }
 
   private onReconnect(msg: tw.ReconnectMessage): void {
-    this.logger?.info('Received reconnect message');
+    logger.info('Received reconnect message');
 
     const newSocket = new ws.WebSocket(msg.payload.session.reconnect_url, {
       autoPong: true,
@@ -164,13 +178,13 @@ export class TwitchWebSocket {
 
       const obj = JSON.parse(data.toString());
       const msg = tw.WelcomeMessageSchema.parse(obj);
-      this.logger?.info('Successfully reconnected');
+      logger.info('Successfully reconnected');
       this.onWelcome(msg);
     });
   }
 
   private onRevocation(msg: tw.RevocationMessage): void {
-    this.logger?.info({ msg }, 'Received revocation message');
+    logger.info({ msg }, 'Received revocation message');
   }
 
   private startKeepAliveCheck(timeoutSecs: number): void {
@@ -178,7 +192,7 @@ export class TwitchWebSocket {
 
     this.keepAliveInterval = setInterval(() => {
       if (!this.isAlive) {
-        this.logger?.info('No keep-alive from server. Closing connection...');
+        logger.info('No keep-alive from server. Closing connection...');
         this.socket.close(1001, 'No keep-alive from server');
         return;
       }

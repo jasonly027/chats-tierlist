@@ -108,3 +108,19 @@ export const RevocationMessageSchema = z.object({
   }),
 });
 export type RevocationMessage = z.infer<typeof RevocationMessageSchema>;
+
+// https://dev.twitch.tv/docs/eventsub/eventsub-reference/#channel-chat-message-event
+export const ChatMessageEventSchema = z.object({
+  broadcaster_user_id: z.string(),
+  broadcaster_user_name: z.string(),
+  broadcaster_user_login: z.string(),
+  chatter_user_id: z.string(),
+  chatter_user_name: z.string(),
+  chatter_user_login: z.string(),
+  message_id: z.string(),
+  message: z.object({
+    text: z.string(),
+  }),
+  message_type: z.string(),
+});
+export type ChatMessageEvent = z.infer<typeof ChatMessageEventSchema>;

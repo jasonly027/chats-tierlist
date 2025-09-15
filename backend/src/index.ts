@@ -1,11 +1,10 @@
 import Fastify from 'fastify';
-import plugins from './plugins/_plugins.ts';
-import routes from './routes/_routes.ts';
+import plugins from '@plugins/_plugins.js';
+import routes from '@routes/_routes.js';
+import { logger } from './lib/util.ts';
 
 const fastify = Fastify({
-  logger: {
-    level: 'debug',
-  },
+  loggerInstance: logger,
 });
 
 fastify.register(plugins);

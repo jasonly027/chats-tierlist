@@ -43,17 +43,11 @@ export class Repository {
   }
 }
 
-// A wrapper for database errors so Fastify's default error handler doesn't
-// expose internal database error messages on err.message.
 class RepositoryError extends Error {
-  // @ts-expect-error field is included in logs. We use this.internal
-  // instead of this.cause because the latter strips data.
-  private readonly internal: unknown;
-
   constructor(message: string, cause: unknown) {
     super(message);
     this.name = 'RepositoryError';
-    this.internal = cause;
+    this.cause = cause;
   }
 }
 
