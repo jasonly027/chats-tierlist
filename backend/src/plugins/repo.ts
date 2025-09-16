@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import database from '@lib/database.js';
-import { Repository } from '@lib/repository.js';
+import database from '@lib/db/database.js';
+import { Repository } from '@lib/db/repository.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -14,4 +14,6 @@ const repo: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('repo', repo);
 };
 
-export default fastifyPlugin(repo);
+export default fastifyPlugin(repo, {
+  name: 'repo',
+});

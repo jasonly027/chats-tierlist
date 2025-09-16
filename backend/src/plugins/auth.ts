@@ -1,10 +1,9 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import * as util from '../lib/util.ts';
+import * as util from '@lib/util.js';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
-import type { SessionProfile } from '../types.ts';
 import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
 
@@ -22,19 +21,24 @@ declare module 'fastify' {
   }
 }
 
-const auth: FastifyPluginAsync = async (fastify) => {
-  if (!fastify.hasDecorator('twitch')) {
-    throw new Error('Required plugin "twitch" is not registered');
-  }
-  if (!fastify.hasDecorator('repo')) {
-    throw new Error('Required plugin "repo" is not registered');
-  }
+export interface SessionProfile {
+  twitch_id: string;
+  name: string;
+  profileImageUrl: string;
+}
 
+const auth: FastifyPluginAsync = async (fastify) => {
   await registerSession(fastify);
   await registerAuth(fastify);
 };
 
-export default fastifyPlugin(auth);
+export default fastifyPlugin(auth, {
+  name: 'auth',
+  decorators: {
+    fastify: ['twitch', 'repo'],
+  },
+  dependencies: ['twitch', 'repo'],
+});
 
 async function registerSession(fastify: FastifyInstance) {
   const REDIS_URL = util.envVar('REDIS_URL');
@@ -90,8 +94,13 @@ async function registerAuth(fastify: FastifyInstance) {
     const tw = fastify.twitchOAuth2;
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    const user = await fastify.twitch.getUser(token.access_token);
-    fastify.twitch.revoke(token.access_token);
+    const user = await fastify.twitch
+      .userFromToken(token.access_token)
+      .finally(() => {
+        fastify.twitch.revoke(token.access_token).catch((err) => {
+          req.log.warn({ err }, 'failed to revoke token');
+        });
+      });
 
     const createUser = fastify.repo.createUserIfNotExists(user.id);
     req.session.set('user', {
