@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import * as util from '@lib/util.js';
+import { Channel } from '@lib/twitch/models.js';
 
 export default function (fastify: FastifyInstance) {
   fastify.get('/', async (req) => {
@@ -21,9 +22,13 @@ export default function (fastify: FastifyInstance) {
     },
     async (req: FastifyRequest<{ Querystring: { name: string } }>) => {
       const { name } = req.query;
-      return await fastify.chatSubscriber.subscribe(name, (msg) => {
-        fastify.log.info(msg);
-      });
+      const token = util.envVar('TWITCH_TOKEN');
+
+      const ch = await fastify.twitch.searchChannel(token, name);
+      if (!ch) return 'unknown channel';
+      const channel = new Channel(ch);
+
+      return fastify.tierlist.listen(channel);
     }
   );
 

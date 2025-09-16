@@ -8,14 +8,16 @@ import {
 } from './types/webSocket.ts';
 import type { TwitchClient } from './twitchClient.ts';
 import { TwitchWebSocket } from './twitchWebSocket.ts';
-import { logger as baseLogger } from '@lib/util.js';
+import { baseLogger } from '@lib/util.js';
+import type { Channel } from './models.ts';
 
 const logger = baseLogger.child({ module: 'TwitchChatSubscriber' });
 
-export type SubscribeResult =
-  | 'ok'
-  | 'invalid channel name'
-  | 'chat join limit hit';
+export type SubscriberEvent =
+  | { type: 'message'; event: ChatMessageEvent }
+  | { type: 'close' };
+
+export type SubscriberCallbackFn = (msg: SubscriberEvent) => void;
 
 export interface TwitchChatSubscriberOptions {
   client: TwitchClient;
@@ -43,51 +45,57 @@ export class TwitchChatSubscriber {
     this.broadcasts = [];
   }
 
-  subscribe(name: string, cb: SubscriberCallbackFn): Promise<SubscribeResult> {
+  subscribe(
+    channel: Channel,
+    cb: SubscriberCallbackFn
+  ): Promise<boolean> {
     return this.mutex.runExclusive(async () => {
-      const broadcast = this.findBroadcast(name);
-      if (broadcast) {
-        broadcast.addListener(cb);
-        return 'ok';
-      }
-
-      const channel = await this.client.searchChannel(this.token, name);
-      if (channel === null) {
-        return 'invalid channel name';
+      const bd = this.findBroadcastByName(channel.name());
+      if (bd) {
+        bd.addListener(cb);
+        return true;
       }
 
       const connection = await this.getConnection();
-      await this.client
+      const res = await this.client
         .createChatMessageSubscription(this.token, {
           sessionId: connection.id,
           userId: await this.userId,
-          broadcasterId: channel.id,
+          broadcasterId: channel.id(),
         })
         .catch((err: AxiosError) => {
-          // Already subscribed
-          if (err.status === 409) {
-            return 'ok';
+          // Join limit hit(?)
+          if (err.status === 429) {
+            logger.warn({ err }, 'Chat join limit');
+            return undefined;
           }
-          return err;
+          throw err;
         });
+      if (res === undefined) {
+        return false;
+      }
 
-      this.broadcasts.push(
-        new Broadcast({
-          displayName: channel.display_name,
-          login: channel.broadcaster_login,
-          listeners: [cb],
-        })
-      );
+      this.broadcasts.push(new Broadcast(channel, res.id, [cb]));
+      logger.info({ channel }, 'Subscribed to broadcast');
 
-      return 'ok';
+      return true;
     });
   }
 
-  private findBroadcast(query: string): Broadcast | undefined {
-    const name = query.toLowerCase();
-    return this.broadcasts.find(
-      (bd) => bd.displayName === name || bd.login === name
-    );
+  unsubscribe(cb: SubscriberCallbackFn): Promise<void> {
+    return this.mutex.runExclusive(async () => {
+      const broadcast = this.findBroadcastWithCallback(cb);
+      if (!broadcast) return;
+
+      broadcast.removeListener(cb);
+      if (broadcast.hasListeners()) return;
+
+      this.removeBroadcast(broadcast);
+
+      await this.client
+        .deleteChatMessageSubscription(this.token, broadcast.subscriptionId)
+        .catch((err) => logger.error({ err }, 'Failed to delete subscription'));
+    });
   }
 
   private async getConnection(): Promise<Connection> {
@@ -105,23 +113,61 @@ export class TwitchChatSubscriber {
           this.staleConnection.id = msg.payload.session.id;
         }
       });
-      socket.on('notification', this.onSocketNotification.bind(this));
       socket.once('error', (err) => reject(err));
-      socket.once('close', () => {
-        this.staleConnection = undefined;
-
-        for (const bd of this.broadcasts) {
-          bd.broadcast('close');
-        }
-        this.broadcasts = [];
-      });
+      socket.on('notification', this.onNotification.bind(this));
+      socket.on('revocation', this.onRevocation.bind(this));
+      socket.once('close', this.onClose.bind(this));
     });
   }
 
-  private onSocketNotification(msg: NotifcationMessage): void {
+  private onNotification(msg: NotifcationMessage): void {
     const event = ChatMessageEventSchema.parse(msg.payload.event);
-    const bd = this.findBroadcast(event.broadcaster_user_name);
-    if (bd) bd.broadcast(event);
+    this.findBroadcastByName(event.broadcaster_user_login)?.messageAll({
+      type: 'message',
+      event,
+    });
+  }
+
+  private onRevocation(msg: RevocationMessage): void {
+    const subscriptionId = msg.payload.subscription.id;
+    const broadcast = this.findBroadcastBySubscriptionId(subscriptionId);
+    if (!broadcast) {
+      logger.warn(
+        { subscriptionId },
+        "Broadcast to notify of revocation wasn't found"
+      );
+      return;
+    }
+
+    broadcast.messageAll({ type: 'close' });
+    this.removeBroadcast(broadcast);
+  }
+
+  private onClose(): void {
+    this.mutex.runExclusive(() => {
+      this.staleConnection = undefined;
+      this.broadcasts.forEach((bd) => bd.messageAll({ type: 'close' }));
+      this.broadcasts = [];
+    });
+  }
+
+  private findBroadcastByName(name: string): Broadcast | undefined {
+    return this.broadcasts.find((bd) => bd.channel.name() === name);
+  }
+
+  private findBroadcastWithCallback(
+    cb: SubscriberCallbackFn
+  ): Broadcast | undefined {
+    return this.broadcasts.find((bd) => bd.hasListener(cb));
+  }
+
+  private findBroadcastBySubscriptionId(id: string): Broadcast | undefined {
+    return this.broadcasts.find((bd) => bd.subscriptionId === id);
+  }
+
+  private removeBroadcast(broadcast: Broadcast): void {
+    const idx = this.broadcasts.indexOf(broadcast);
+    if (idx !== -1) this.broadcasts.splice(idx, 1);
   }
 }
 
@@ -130,24 +176,18 @@ interface Connection {
   socket: TwitchWebSocket;
 }
 
-type SubscriberCallbackFn = (
-  msg: ChatMessageEvent | RevocationMessage | 'close'
-) => void;
-
-interface BroadcastOptions {
-  login: string;
-  displayName: string;
-  listeners: SubscriberCallbackFn[];
-}
-
 class Broadcast {
-  readonly login: string;
-  readonly displayName: string;
-  private listeners: SubscriberCallbackFn[];
+  readonly channel: Channel;
+  readonly subscriptionId: string;
+  private readonly listeners: SubscriberCallbackFn[];
 
-  constructor({ login, displayName, listeners }: BroadcastOptions) {
-    this.login = login;
-    this.displayName = displayName;
+  constructor(
+    channel: Channel,
+    subscriptionId: string,
+    listeners: SubscriberCallbackFn[]
+  ) {
+    this.channel = channel;
+    this.subscriptionId = subscriptionId;
     this.listeners = listeners;
   }
 
@@ -155,13 +195,20 @@ class Broadcast {
     this.listeners.push(cb);
   }
 
-  broadcast(msg: Parameters<SubscriberCallbackFn>[0]): void {
-    for (const listener of this.listeners) {
-      try {
-        listener(msg);
-      } catch (err) {
-        logger.error({ err }, 'Sending message to listener threw an error');
-      }
-    }
+  removeListener(cb: SubscriberCallbackFn): void {
+    const idx = this.listeners.indexOf(cb);
+    if (idx !== -1) this.listeners.splice(idx);
+  }
+
+  hasListener(cb: SubscriberCallbackFn): boolean {
+    return this.listeners.find((listener) => listener === cb) !== undefined;
+  }
+
+  hasListeners(): boolean {
+    return this.listeners.length !== 0;
+  }
+
+  messageAll(msg: SubscriberEvent): void {
+    this.listeners.forEach((cb) => cb(msg));
   }
 }

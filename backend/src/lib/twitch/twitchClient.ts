@@ -111,7 +111,7 @@ export class TwitchClient {
   createChatMessageSubscription(
     token: string,
     options: { sessionId: string; broadcasterId: string; userId: string }
-  ): Promise<tw.SubscriptionsResponse> {
+  ): Promise<tw.Subscription> {
     return this.http
       .post(
         `${this.helixUrl}/eventsub/subscriptions`,
@@ -134,7 +134,21 @@ export class TwitchClient {
         }
       )
       .then((resp) => {
-        return tw.SubscriptionsResponseSchema.parse(resp.data);
+        return tw.SubscriptionSchema.parse(resp.data?.data?.[0]);
       });
+  }
+
+  deleteChatMessageSubscription(
+    token: string,
+    subscriptionId: string
+  ): Promise<AxiosResponse> {
+    return this.http.delete(`${this.helixUrl}/eventsub/subscriptions`, {
+      params: {
+        id: subscriptionId,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 }

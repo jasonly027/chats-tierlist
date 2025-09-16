@@ -1,12 +1,13 @@
 import * as ws from 'ws';
 import * as tw from './types/webSocket.js';
-import { logger as baseLogger } from '@lib/util.js';
+import { baseLogger } from '@lib/util.js';
 
 const logger = baseLogger.child({ module: 'TwitchWebSocket' });
 
 type ListenerArgs = {
   welcome: [msg: tw.WelcomeMessage];
   notification: [msg: tw.NotifcationMessage];
+  revocation: [msg: tw.RevocationMessage];
   close: [code: number, reason: string];
   error: [err: Error];
 };
@@ -38,6 +39,7 @@ export class TwitchWebSocket {
     this.listeners = {
       welcome: [],
       notification: [],
+      revocation: [],
       close: [],
       error: [],
     };
@@ -185,6 +187,13 @@ export class TwitchWebSocket {
 
   private onRevocation(msg: tw.RevocationMessage): void {
     logger.info({ msg }, 'Received revocation message');
+    this.listeners.revocation.forEach((fn) => {
+      try {
+        fn(msg);
+      } catch (err) {
+        logger.error({ err }, 'onRevocation callback threw an error');
+      }
+    });
   }
 
   private startKeepAliveCheck(timeoutSecs: number): void {

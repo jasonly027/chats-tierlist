@@ -30,8 +30,13 @@ export const SearchChannelResponseSchema = z.object({
 export type SearchChannelResponse = z.infer<typeof SearchChannelResponseSchema>;
 
 // https://dev.twitch.tv/docs/api/reference#get-eventsub-subscriptions
+export const SubscriptionSchema = z.object({
+  id: z.string(),
+});
+export type Subscription = z.infer<typeof SubscriptionSchema>;
+
 export const SubscriptionsResponseSchema = z.object({
-  data: z.array(z.unknown()),
+  data: z.array(SubscriptionSchema),
   total: z.int(),
   total_cost: z.int(),
   max_total_cost: z.int(),

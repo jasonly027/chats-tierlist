@@ -1,4 +1,4 @@
-import type { TierListItem, TierListTier } from '@src/types.js';
+import type { TierListItem, TierListTier } from '@lib/tierlist/types.js';
 
 export interface User {
   id: number;

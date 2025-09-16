@@ -20,7 +20,7 @@ export function envVar(key: string): string {
   process.exit(1);
 }
 
-export const logger = pino({
+export const baseLogger = pino({
   level: 'debug',
   serializers: {
     err(err) {

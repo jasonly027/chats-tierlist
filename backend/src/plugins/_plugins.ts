@@ -1,17 +1,17 @@
 import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
-import repo from '@plugins/repo.js';
-import twitch from '@plugins/twitch.js';
-import auth from '@plugins/auth.js';
+import repo from './repo.js';
+import twitch from './twitch.js';
+import auth from './auth.js';
 import fastifySensible from '@fastify/sensible';
-import chatSubscriber from './chatSubscriber.ts';
+import tierlist from './tierlist.ts';
 
 const plugins: FastifyPluginCallback = (fastify) => {
   fastify.register(fastifySensible);
   fastify.register(repo);
   fastify.register(twitch);
-  fastify.register(chatSubscriber);
+  fastify.register(tierlist);
   fastify.register(auth);
 };
 

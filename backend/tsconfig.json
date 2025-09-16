@@ -7,10 +7,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"],
       "@plugins/*": ["src/plugins/*"],
       "@routes/*": ["src/routes/*"],
-      "@lib/*": ["src/lib/*"],
+      "@lib/*": ["src/lib/*"]
     },
     "outDir": "dist"
   },
