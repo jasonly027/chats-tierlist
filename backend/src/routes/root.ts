@@ -28,7 +28,7 @@ export default function (fastify: FastifyInstance) {
       if (!ch) return 'unknown channel';
       const channel = new Channel(ch);
 
-      return fastify.tierlist.listen(channel);
+      return fastify.tierListMessenger.listen(channel);
     }
   );
 

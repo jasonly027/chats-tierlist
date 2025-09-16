@@ -5,13 +5,13 @@ import repo from './repo.js';
 import twitch from './twitch.js';
 import auth from './auth.js';
 import fastifySensible from '@fastify/sensible';
-import tierlist from './tierlist.ts';
+import messenger from './tierListMessenger.ts';
 
 const plugins: FastifyPluginCallback = (fastify) => {
   fastify.register(fastifySensible);
   fastify.register(repo);
   fastify.register(twitch);
-  fastify.register(tierlist);
+  fastify.register(messenger);
   fastify.register(auth);
 };
 

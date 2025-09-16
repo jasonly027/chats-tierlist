@@ -29,7 +29,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     },
     items: {
       type: 'TEXT[]',
-      check: 'array_length(items, 1) <= 1000',
+      check: 'array_length(items, 1) <= 500',
     },
   });
 }

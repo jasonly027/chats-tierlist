@@ -41,14 +41,10 @@ export class TwitchChatSubscriber {
     this.token = token;
     this.createSocket = createSocket;
     this.userId = this.client.userFromToken(this.token).then(({ id }) => id);
-    this.staleConnection = undefined;
     this.broadcasts = [];
   }
 
-  subscribe(
-    channel: Channel,
-    cb: SubscriberCallbackFn
-  ): Promise<boolean> {
+  subscribe(channel: Channel, cb: SubscriberCallbackFn): Promise<boolean> {
     return this.mutex.runExclusive(async () => {
       const bd = this.findBroadcastByName(channel.name());
       if (bd) {
@@ -129,18 +125,20 @@ export class TwitchChatSubscriber {
   }
 
   private onRevocation(msg: RevocationMessage): void {
-    const subscriptionId = msg.payload.subscription.id;
-    const broadcast = this.findBroadcastBySubscriptionId(subscriptionId);
-    if (!broadcast) {
-      logger.warn(
-        { subscriptionId },
-        "Broadcast to notify of revocation wasn't found"
-      );
-      return;
-    }
+    this.mutex.runExclusive(() => {
+      const subscriptionId = msg.payload.subscription.id;
+      const broadcast = this.findBroadcastBySubscriptionId(subscriptionId);
+      if (!broadcast) {
+        logger.warn(
+          { subscriptionId },
+          "Broadcast to notify of revocation wasn't found"
+        );
+        return;
+      }
 
-    broadcast.messageAll({ type: 'close' });
-    this.removeBroadcast(broadcast);
+      broadcast.messageAll({ type: 'close' });
+      this.removeBroadcast(broadcast);
+    });
   }
 
   private onClose(): void {

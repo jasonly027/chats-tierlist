@@ -1,19 +1,14 @@
-import type { Channel } from "@lib/twitch/models.js";
-
 export interface TierList {
-  tiers: Record<string, TierListTier>;
+  tiers: TierListTier[];
   items: Record<string, TierListItem>;
 }
 
 export interface TierListTier {
+  name: string;
   color: string;
 }
 
 export interface TierListItem {
-  imageUrl: string | null;
-  votes: Record<string, string>;
-}
-
-export interface TierListStore {
-  getSchema(channel: Channel): void;
+  imageUrl: string | undefined;
+  votes: Record<string, number>;
 }

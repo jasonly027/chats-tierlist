@@ -1,5 +1,6 @@
 import * as pg from 'pg';
 import * as model from '@lib/db/models.js';
+import type { TierList } from '@lib/tierlist/types.js';
 
 export class Repository {
   private readonly pool: pg.Pool;
@@ -40,6 +41,10 @@ export class Repository {
         return res.rows[0] ? mapRawUser(res.rows[0]) : null;
       })
       .catch(throwAsRepositoryError('failed to get user'));
+  }
+
+  async setTierList(twitch_id: string, tierList: TierList): Promise<void> {
+    todo
   }
 }
 
