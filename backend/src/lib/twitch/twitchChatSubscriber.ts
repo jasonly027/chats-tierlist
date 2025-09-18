@@ -21,7 +21,7 @@ export type SubscriberCallbackFn = (msg: SubscriberEvent) => void;
 
 export interface TwitchChatSubscriberOptions {
   client: TwitchClient;
-  token: string;
+  getToken: () => Promise<string>;
   createSocket: () => TwitchWebSocket;
 }
 
@@ -29,21 +29,27 @@ export class TwitchChatSubscriber {
   private readonly client: TwitchClient;
 
   private mutex: Mutex;
-  private token: string;
+  private getToken: () => Promise<string>;
   private createSocket: () => TwitchWebSocket;
   private userId: Promise<string>;
   private staleConnection: Connection | undefined;
   private broadcasts: Broadcast[];
 
-  constructor({ client, token, createSocket }: TwitchChatSubscriberOptions) {
+  constructor({ client, getToken, createSocket }: TwitchChatSubscriberOptions) {
     this.client = client;
     this.mutex = new Mutex();
-    this.token = token;
+    this.getToken = getToken;
     this.createSocket = createSocket;
-    this.userId = this.client.userFromToken(this.token).then(({ id }) => id);
+    this.userId = this.getToken()
+      .then((token) => this.client.userFromToken(token))
+      .then(({ id }) => id);
     this.broadcasts = [];
   }
 
+  /**
+   * @throws {Error} when socket fails to connect.
+   * @throws {AxiosError} when subscribe fails for reasons other than join limit.
+   */
   subscribe(channel: Channel, cb: SubscriberCallbackFn): Promise<boolean> {
     return this.mutex.runExclusive(async () => {
       const bd = this.findBroadcastByName(channel.name());
@@ -54,7 +60,7 @@ export class TwitchChatSubscriber {
 
       const connection = await this.getConnection();
       const res = await this.client
-        .createChatMessageSubscription(this.token, {
+        .createChatMessageSubscription(await this.getToken(), {
           sessionId: connection.id,
           userId: await this.userId,
           broadcasterId: channel.id(),
@@ -82,18 +88,25 @@ export class TwitchChatSubscriber {
     return this.mutex.runExclusive(async () => {
       const broadcast = this.findBroadcastWithCallback(cb);
       if (!broadcast) return;
-
       broadcast.removeListener(cb);
       if (broadcast.hasListeners()) return;
 
       this.removeBroadcast(broadcast);
 
       await this.client
-        .deleteChatMessageSubscription(this.token, broadcast.subscriptionId)
+        .deleteChatMessageSubscription(
+          await this.getToken(),
+          broadcast.subscriptionId
+        )
         .catch((err) => logger.error({ err }, 'Failed to delete subscription'));
+
+      logger.info({ broadcast }, 'Unsubscribed from broadcast');
     });
   }
 
+  /**
+   * @throws {Error} if underlying socket throws before initial connection.
+   */
   private async getConnection(): Promise<Connection> {
     if (this.staleConnection) return this.staleConnection;
 

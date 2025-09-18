@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import * as util from '@lib/util.js';
 import { Channel } from '@lib/twitch/models.js';
+import { requireAuth } from '@plugins/auth.js';
 
 export default function (fastify: FastifyInstance) {
-  fastify.get('/', async (req) => {
+  fastify.get('/', { preHandler: requireAuth }, async (req) => {
     return `Hello World ${JSON.stringify(req.user)}`;
   });
 
@@ -22,17 +22,21 @@ export default function (fastify: FastifyInstance) {
     },
     async (req: FastifyRequest<{ Querystring: { name: string } }>) => {
       const { name } = req.query;
-      const token = util.envVar('TWITCH_TOKEN');
 
-      const ch = await fastify.twitch.searchChannel(token, name);
+      const ch = await fastify.twitch.client.searchChannel(
+        await fastify.twitch.tokenStore.getToken(),
+        name
+      );
       if (!ch) return 'unknown channel';
       const channel = new Channel(ch);
 
-      return fastify.tierListMessenger.listen(channel);
+      return fastify.tierlist.listener.listen(channel);
     }
   );
 
   fastify.get('/subscriptions', async () => {
-    return await fastify.twitch.subscriptions(util.envVar('TWITCH_TOKEN'));
+    return await fastify.twitch.client.subscriptions(
+      await fastify.twitch.tokenStore.getToken()
+    );
   });
 }

@@ -11,11 +11,13 @@ const database = new Pool({
   idleTimeoutMillis: IDLE_TIMEOUT_MS,
 });
 
+const dbClient = await database.connect();
 await migration_runner({
-  dbClient: await database.connect(),
+  dbClient,
   migrationsTable: 'migrations',
   dir: 'migrations',
   direction: 'up',
 });
+dbClient.release();
 
 export default database;

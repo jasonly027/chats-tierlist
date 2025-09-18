@@ -31,9 +31,10 @@ export class TierListStore {
     });
   }
 
-  update(channel: Channel, userId: string, message: string) {
-    this.cache
-      .fetch(channel.id(), { context: channel })
-      .then((editor) => editor?.vote(userId, message));
+  getEditor(channel: Channel): Promise<TierListEditor | undefined> {
+    return this.cache.fetch(channel.id(), { context: channel }).catch((err) => {
+      logger.error({ err }, 'Failed to fetch editor');
+      return undefined;
+    });
   }
 }

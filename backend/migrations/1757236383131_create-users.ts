@@ -23,13 +23,8 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       notNull: true,
       default: false,
     },
-    tiers: {
-      type: 'TEXT[]',
-      check: 'array_length(tiers, 1) <= 50',
-    },
-    items: {
-      type: 'TEXT[]',
-      check: 'array_length(items, 1) <= 500',
+    tier_list: {
+      type: 'TEXT',
     },
   });
 }

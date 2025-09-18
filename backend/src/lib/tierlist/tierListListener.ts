@@ -9,19 +9,23 @@ import { Mutex } from 'async-mutex';
 
 const logger = baseLogger.child({ module: 'TierListManager' });
 
-export class TierListMessenger {
-  private readonly editor: TierListStore;
+export class TierListListener {
+  private readonly store: TierListStore;
   private readonly subscriber: TwitchChatSubscriber;
   private readonly broadcasts: Broadcast[];
   private readonly mutex: Mutex;
 
-  constructor(editor: TierListStore, subscriber: TwitchChatSubscriber) {
-    this.editor = editor;
+  constructor(store: TierListStore, subscriber: TwitchChatSubscriber) {
+    this.store = store;
     this.subscriber = subscriber;
     this.broadcasts = [];
     this.mutex = new Mutex();
   }
 
+  /**
+   * @returns true if successfully listening and false if chat join limit.
+   * @throws {Error} when subscribe fails.
+   */
   async listen(channel: Channel): Promise<boolean> {
     return this.mutex.runExclusive(async () => {
       const bd = this.findBroadcast(channel);
@@ -32,11 +36,11 @@ export class TierListMessenger {
 
       const broadcast = new Broadcast(channel, (msg) => {
         if (msg.type === 'message') {
-          this.editor.update(
-            channel,
-            msg.event.chatter_user_id,
-            msg.event.message.text
-          );
+          this.store
+            .getEditor(channel)
+            .then((editor) =>
+              editor?.vote(msg.event.chatter_user_id, msg.event.message.text)
+            );
         } else {
           this.removeBroadcast(broadcast);
         }

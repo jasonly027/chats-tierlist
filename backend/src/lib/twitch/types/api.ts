@@ -1,5 +1,12 @@
 import z from 'zod';
 
+// https://dev.twitch.tv/docs/authentication/refresh-tokens/
+export const RefreshSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string(),
+});
+export type Refresh = z.infer<typeof RefreshSchema>;
+
 // https://dev.twitch.tv/docs/api/reference/#get-users
 export const UserSchema = z.object({
   id: z.string(),

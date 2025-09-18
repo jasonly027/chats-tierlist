@@ -1,12 +1,15 @@
 import type { Repository } from '@lib/db/repository.js';
 import type { Channel } from '@lib/twitch/models.js';
-import type { TierList } from './types.ts';
+import type { TierList } from './models.ts';
 import escapeStringRegexp from 'escape-string-regexp';
+import { baseLogger } from '@lib/util.js';
+
+const logger = baseLogger.child({ module: 'TierListEditor' });
 
 export class TierListEditor {
   private readonly repo: Repository;
   private readonly channelId: string;
-  private readonly tierList: TierList;
+  private tierList: TierList;
   private regex: RegExp;
   private saveIntervalId: NodeJS.Timeout | undefined;
 
@@ -16,6 +19,11 @@ export class TierListEditor {
     this.tierList = tierList;
     this.regex = this.buildRegex();
     this.startAutoSave();
+  }
+
+  update(tierList: TierList): void {
+    this.tierList = tierList;
+    this.regex = this.buildRegex();
   }
 
   addItem(name: string, imageUrl?: string | undefined): boolean {
@@ -75,7 +83,9 @@ export class TierListEditor {
   }
 
   save(): void {
-    this.repo.setTierList(this.channelId, this.tierList);
+    this.repo.setTierList(this.channelId, this.tierList).catch((err) => {
+      logger.error({ err }, 'Failed to save tier list');
+    });
   }
 
   startAutoSave(): void {
@@ -83,7 +93,9 @@ export class TierListEditor {
 
     this.stopAutoSave();
     this.saveIntervalId = setInterval(() => {
-      this.repo.setTierList(this.channelId, this.tierList);
+      this.repo.setTierList(this.channelId, this.tierList).catch((err) => {
+        logger.error({ err }, 'Failed to save tier list');
+      });
     }, SAVE_INTERVAL);
   }
 
@@ -101,7 +113,7 @@ export class TierListEditor {
     const tierIdx = this.tierList.tiers.findIndex((t) => t.name === tierName);
     if (!itemName || tierIdx === -1) return undefined;
 
-    return [itemName!, tierIdx];
+    return [itemName, tierIdx];
   }
 
   private buildRegex(): RegExp {
@@ -113,7 +125,6 @@ export class TierListEditor {
       .map((item) => escapeStringRegexp(item))
       .sort((a, b) => b.length - a.length)
       .join('|');
-
     if (!tiersPattern || !itemsPattern) return /^$/;
 
     return new RegExp(`^(${itemsPattern}) (${tiersPattern})$`);

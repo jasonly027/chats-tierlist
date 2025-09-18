@@ -3,17 +3,24 @@ import * as tw from './types/api.js';
 import { HttpAgent, HttpsAgent } from 'agentkeepalive';
 
 interface TwitchClientOptions {
-  url?: string;
+  clientId: string;
+  clientSecret: string;
+  helixUrl?: string;
+  oauthUrl?: string;
 }
 
 export class TwitchClient {
   private readonly helixUrl: string;
+  private readonly oauthUrl: string;
   private readonly clientId: string;
+  private readonly clientSecret: string;
   private http: AxiosInstance;
 
-  constructor(clientId: string, options?: TwitchClientOptions) {
-    this.helixUrl = options?.url ?? 'https://api.twitch.tv/helix';
-    this.clientId = clientId;
+  constructor(options: TwitchClientOptions) {
+    this.clientId = options.clientId;
+    this.clientSecret = options.clientSecret;
+    this.helixUrl = options.helixUrl ?? 'https://api.twitch.tv/helix';
+    this.oauthUrl = options.oauthUrl ?? 'https://id.twitch.tv/oauth2';
 
     this.http = axios.create({
       headers: {
@@ -25,18 +32,39 @@ export class TwitchClient {
   }
 
   validate(token: string): Promise<AxiosResponse> {
-    return this.http.get('https://id.twitch.tv/oauth2/validate', {
+    return this.http.get(`${this.oauthUrl}/validate`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
   }
 
+  refresh(token: string): Promise<tw.Refresh> {
+    return this.http
+      .post(
+        `${this.oauthUrl}/token`,
+        {
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: token,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      )
+      .then((res) => {
+        return tw.RefreshSchema.parse(res.data);
+      });
+  }
+
   revoke(token: string): Promise<AxiosResponse> {
     return this.http.post(
-      'https://id.twitch.tv/oauth2/revoke',
+      `${this.oauthUrl}/revoke`,
       {
-        ['client_id']: this.clientId,
+        client_id: this.clientId,
         token: token,
       },
       {
