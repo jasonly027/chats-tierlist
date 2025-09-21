@@ -11,53 +11,69 @@ export class TierListEditor {
   private readonly channelId: string;
   private tierList: TierList;
   private regex: RegExp;
-  private saveIntervalId: NodeJS.Timeout | undefined;
+  private saveTimeoutId: NodeJS.Timeout | undefined;
+  private dirty: boolean;
 
   constructor(repo: Repository, channel: Channel, tierList: TierList) {
     this.repo = repo;
     this.channelId = channel.id();
     this.tierList = tierList;
     this.regex = this.buildRegex();
-    this.startAutoSave();
+    this.dirty = false;
   }
 
-  update(tierList: TierList): void {
+  getTierList(): TierList {
+    return this.tierList;
+  }
+
+  setTierList(tierList: TierList): void {
     this.tierList = tierList;
-    this.regex = this.buildRegex();
+    this.update();
   }
 
   addItem(name: string, imageUrl?: string | undefined): boolean {
-    if (!name.trim() || this.tierList.items[name]) return false;
+    if (!name || this.tierList.items[name]) return false;
 
     this.tierList.items[name] = {
       imageUrl,
       votes: {},
     };
-    this.regex = this.buildRegex();
+    this.update();
 
     return true;
   }
 
   removeItem(name: string): void {
     delete this.tierList.items[name];
-    this.regex = this.buildRegex();
+    this.update();
   }
 
   renameItem(oldName: string, newName: string): boolean {
-    if (!oldName.trim() || !newName.trim()) return false;
+    if (!oldName || !newName) return false;
 
     const item = this.tierList.items[oldName];
     if (!item || this.tierList.items[newName]) return false;
 
     delete this.tierList.items[oldName];
     this.tierList.items[newName] = item;
-    this.regex = this.buildRegex();
+    this.update();
 
     return true;
   }
 
-  renameTier(oldName: string, newName: string): boolean {
-    if (!oldName.trim() || !newName.trim()) return false;
+  addTier(name: string, color: string): boolean {
+    if (!name || this.tierList.tiers.find((t) => t.name === name)) {
+      return false;
+    }
+
+    this.tierList.tiers.push({ name, color });
+    this.update();
+
+    return true;
+  }
+
+  updateTier(oldName: string, newName: string, color?: string): boolean {
+    if (!oldName || !newName) return false;
 
     const tier = this.tierList.tiers.find((t) => t.name === oldName);
     if (!tier || this.tierList.tiers.find((t) => t.name === newName)) {
@@ -65,43 +81,37 @@ export class TierListEditor {
     }
 
     tier.name = newName;
-    this.regex = this.buildRegex();
+    tier.color = color ?? tier.color;
+    this.update();
 
     return true;
   }
 
-  vote(userId: string, message: string): void {
-    if (!message.trim()) return;
+  vote(userId: string, message: string): boolean {
+    if (!message) return false;
+
     const choice = this.parse(message);
-    if (!choice) return;
+    if (!choice) return false;
 
     const [itemName, tierIdx] = choice;
     const votes = this.tierList.items[itemName]?.votes;
-    if (votes) {
-      votes[userId] = tierIdx;
-    }
+    if (!votes) return false;
+
+    votes[userId] = tierIdx;
+    this.update();
+
+    return true;
   }
 
-  save(): void {
-    this.repo.setTierList(this.channelId, this.tierList).catch((err) => {
-      logger.error({ err }, 'Failed to save tier list');
-    });
-  }
-
-  startAutoSave(): void {
-    const SAVE_INTERVAL = 15 * 1000; // 15 seconds
-
-    this.stopAutoSave();
-    this.saveIntervalId = setInterval(() => {
-      this.repo.setTierList(this.channelId, this.tierList).catch((err) => {
+  save(): Promise<void> {
+    return this.repo
+      .setTierList(this.channelId, this.tierList)
+      .then(() => {
+        logger.info({ channelId: this.channelId }, 'Saved tier list');
+      })
+      .catch((err) => {
         logger.error({ err }, 'Failed to save tier list');
       });
-    }, SAVE_INTERVAL);
-  }
-
-  stopAutoSave(): void {
-    clearInterval(this.saveIntervalId);
-    this.saveIntervalId = undefined;
   }
 
   // Tries to parse `message` as [item name, tier index]
@@ -114,6 +124,30 @@ export class TierListEditor {
     if (!itemName || tierIdx === -1) return undefined;
 
     return [itemName, tierIdx];
+  }
+
+  private update(): void {
+    this.requestToSave();
+    this.regex = this.buildRegex();
+  }
+
+  // Marks the state as dirty and schedules a save after a delay.
+  // Subsequent calls after a scheduling call but before the actual save
+  // only re-mark the state dirty and do not schedule another save.
+  // After the save completes, if the state is still dirty, this function
+  // calls itself to schedule another save.
+  private requestToSave(): void {
+    this.dirty = true;
+    if (this.saveTimeoutId) return;
+    const SAVE_DELAY = 5 * 1000; // 5 seconds
+
+    this.saveTimeoutId = setTimeout(() => {
+      this.dirty = false;
+      this.save().then(() => {
+        this.saveTimeoutId = undefined;
+        if (this.dirty) this.requestToSave();
+      });
+    }, SAVE_DELAY);
   }
 
   private buildRegex(): RegExp {

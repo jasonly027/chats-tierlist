@@ -36,12 +36,14 @@ export class TierListListener {
 
       const broadcast = new Broadcast(channel, (msg) => {
         if (msg.type === 'message') {
-          this.store
-            .getEditor(channel)
-            .then((editor) =>
-              editor?.vote(msg.event.chatter_user_id, msg.event.message.text)
-            );
+          this.store.getEditor(channel).then((editor) => {
+            editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
+          });
         } else {
+          logger.info(
+            { broadcast },
+            'Removing broadcast due to close message from subscriber callback'
+          );
           this.removeBroadcast(broadcast);
         }
       });
@@ -67,6 +69,7 @@ export class TierListListener {
 
   private removeBroadcast(broadcast: Broadcast): void {
     this.mutex.runExclusive(async () => {
+      this.stopBroadcastAliveCheck(broadcast);
       const idx = this.broadcasts.indexOf(broadcast);
       if (idx !== -1) this.broadcasts.splice(idx, 1);
       await this.subscriber.unsubscribe(broadcast.cb);
@@ -77,15 +80,20 @@ export class TierListListener {
     const CHECK_INTERVAL = 30 * 1000; // 30 seconds
     const ALIVE_TIMEOUT = 100 * 1000; // 100 seconds
 
-    const interval = setInterval(() => {
+    broadcast.keepAliveIntervalId = setInterval(() => {
       if (Date.now() - broadcast.lastKeepAlive > ALIVE_TIMEOUT) {
         logger.info(
+          { broadcast },
           'No keep-alive for broadcast received. Removing broadcast...'
         );
         this.removeBroadcast(broadcast);
-        clearInterval(interval);
       }
     }, CHECK_INTERVAL);
+  }
+
+  private stopBroadcastAliveCheck(broadcast: Broadcast): void {
+    clearInterval(broadcast.keepAliveIntervalId);
+    broadcast.keepAliveIntervalId = undefined;
   }
 }
 
@@ -93,6 +101,7 @@ class Broadcast {
   readonly channel: Channel;
   readonly cb: SubscriberCallbackFn;
   lastKeepAlive: number;
+  keepAliveIntervalId: NodeJS.Timeout | undefined;
 
   constructor(channel: Channel, cb: SubscriberCallbackFn) {
     this.channel = channel;

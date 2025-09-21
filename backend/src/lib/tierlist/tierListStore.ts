@@ -25,7 +25,6 @@ export class TierListStore {
       },
 
       dispose(editor) {
-        editor.stopAutoSave();
         editor.save();
       },
     });
