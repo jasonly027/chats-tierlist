@@ -18,11 +18,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       notNull: true,
       unique: true,
     },
-    voting: {
-      type: 'BOOLEAN',
-      notNull: true,
-      default: false,
-    },
     tier_list: {
       type: 'TEXT',
     },

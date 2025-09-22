@@ -1,6 +1,7 @@
 export interface TierList {
   tiers: TierListTier[];
   items: Record<string, TierListItem>;
+  isLocked: boolean;
 }
 
 export interface TierListTier {

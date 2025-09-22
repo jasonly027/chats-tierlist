@@ -26,9 +26,16 @@ export class TierListEditor {
     return this.tierList;
   }
 
-  setTierList(tierList: TierList): void {
+  setTierList(tierList: TierList): boolean {
+    if (this.tierList.isLocked) return false;
+
     this.tierList = tierList;
     this.update();
+    return true;
+  }
+
+  setLocked(isLocked: boolean): void {
+    this.tierList.isLocked = isLocked;
   }
 
   addItem(name: string, imageUrl?: string | undefined): boolean {
@@ -88,7 +95,7 @@ export class TierListEditor {
   }
 
   vote(userId: string, message: string): boolean {
-    if (!message) return false;
+    if (this.tierList.isLocked || !message) return false;
 
     const choice = this.parse(message);
     if (!choice) return false;

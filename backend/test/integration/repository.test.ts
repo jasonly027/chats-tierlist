@@ -97,6 +97,7 @@ describe('Repository', function () {
     return {
       tiers: [],
       items: {},
+      isLocked: false,
     };
   }
 

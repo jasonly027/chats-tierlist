@@ -35,6 +35,7 @@ describe('TierListEditor', function () {
     return {
       tiers: [],
       items: {},
+      isLocked: false,
     };
   }
 
@@ -43,9 +44,18 @@ describe('TierListEditor', function () {
       const tierList = createTierList();
       tierList.tiers.push({ name: '', color: '' });
 
-      editor.setTierList(tierList);
+      const res = editor.setTierList(tierList);
 
+      expect(res).to.be.true;
       expect(editor.getTierList()).to.equal(tierList);
+    });
+
+    it('should fail if tier list is locked', function () {
+      editor.setLocked(true);
+
+      const res = editor.setTierList(createTierList());
+
+      expect(res).to.be.false;
     });
   });
 
@@ -232,24 +242,32 @@ describe('TierListEditor', function () {
       expect(editor.getTierList().items['item']?.votes['user2']).to.equal(1);
     });
 
+    it('should fail when the tier list is locked', function () {
+      editor.setLocked(true);
+
+      const res = editor.vote('user', 'item A');
+
+      expect(res).to.be.false;
+    });
+
     it('should fail when message is empty', function () {
-      const result = editor.vote('user', '');
-      expect(result).to.be.false;
+      const res = editor.vote('user', '');
+      expect(res).to.be.false;
     });
 
     it('should fail when parse fails', function () {
-      const result = editor.vote('user', 'notItem notAorB');
-      expect(result).to.be.false;
+      const res = editor.vote('user', 'notItem notAorB');
+      expect(res).to.be.false;
     });
 
     it('should fail when item does not exist', function () {
-      const result = editor.vote('user', 'notItem A');
-      expect(result).to.be.false;
+      const res = editor.vote('user', 'notItem A');
+      expect(res).to.be.false;
     });
 
     it('should fail when tier does not exist', function () {
-      const result = editor.vote('user', 'item notAorB');
-      expect(result).to.be.false;
+      const res = editor.vote('user', 'item notAorB');
+      expect(res).to.be.false;
     });
   });
 });
