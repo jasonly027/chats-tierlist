@@ -11,6 +11,11 @@ import fastifySession from '@fastify/session';
 import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
 import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
+import {
+  UserResponseSchema,
+  type User as TwitchUser,
+} from '@lib/twitch/types/api.js';
+import axios, { type AxiosResponse } from 'axios';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -40,15 +45,15 @@ const auth: FastifyPluginAsync = async (fastify) => {
 export default fastifyPlugin(auth, {
   name: 'auth',
   decorators: {
-    fastify: ['twitch', 'repo'],
+    fastify: ['repo'],
   },
-  dependencies: ['twitch', 'repo'],
+  dependencies: ['repo'],
 });
 
 async function registerSession(fastify: FastifyInstance) {
   const REDIS_URL = util.envVar('REDIS_URL');
   const SESSION_SECRET = util.envVar('SESSION_SECRET');
-  const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days in ms
+  const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days
 
   fastify.register(fastifyCookie);
 
@@ -96,17 +101,14 @@ async function registerAuth(fastify: FastifyInstance) {
   });
 
   fastify.get('/login/callback', async (req, res) => {
-    const twitchClient = fastify.twitch.client;
     const tw = fastify.twitchOAuth2;
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    const user = await twitchClient
-      .userFromToken(token.access_token)
-      .finally(() => {
-        twitchClient.revoke(token.access_token).catch((err) => {
-          req.log.warn({ err }, 'failed to revoke token');
-        });
+    const user = await userProfile(token.access_token).finally(() => {
+      revokeUserToken(token.access_token).catch((err) => {
+        req.log.warn({ err }, 'Failed to revoke token');
       });
+    });
 
     const createUser = fastify.repo.createUserIfNotExists(user.id);
     req.session.set('user', {
@@ -131,4 +133,35 @@ export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
   if (!req.user) {
     return res.unauthorized();
   }
+}
+
+const TWITCH_CLIENT_ID = util.envVar('TWITCH_CLIENT_ID');
+
+async function userProfile(token: string): Promise<TwitchUser> {
+  return axios
+    .get('https://api.twitch.tv/helix/users', {
+      headers: {
+        ['Client-Id']: TWITCH_CLIENT_ID,
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      const users = UserResponseSchema.parse(res.data);
+      return users.data[0]!;
+    });
+}
+
+async function revokeUserToken(token: string): Promise<AxiosResponse> {
+  return axios.post(
+    `https://id.twitch.tv/oauth2/revoke`,
+    {
+      client_id: TWITCH_CLIENT_ID,
+      token: token,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
 }

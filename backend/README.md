@@ -5,6 +5,6 @@ TODO
 - [x] Auto refresh token
 - [x] WebSocket connection Twitch
 - [x] Chat Listener
-- [ ] Axios interceptor for Twitch
+- [x] Axios interceptor for Twitch
 - [ ] Listen route
 - [ ] Update tier list routes

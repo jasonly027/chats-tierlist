@@ -21,7 +21,6 @@ export type SubscriberCallbackFn = (msg: SubscriberEvent) => void;
 
 export interface TwitchChatSubscriberOptions {
   client: TwitchClient;
-  getToken: () => Promise<string>;
   createSocket: () => TwitchWebSocket;
 }
 
@@ -29,20 +28,14 @@ export class TwitchChatSubscriber {
   private readonly client: TwitchClient;
 
   private mutex: Mutex;
-  private getToken: () => Promise<string>;
   private createSocket: () => TwitchWebSocket;
-  private userId: Promise<string>;
   private staleConnection: Connection | undefined;
   private broadcasts: Broadcast[];
 
-  constructor({ client, getToken, createSocket }: TwitchChatSubscriberOptions) {
+  constructor({ client, createSocket }: TwitchChatSubscriberOptions) {
     this.client = client;
     this.mutex = new Mutex();
-    this.getToken = getToken;
     this.createSocket = createSocket;
-    this.userId = this.getToken()
-      .then((token) => this.client.userFromToken(token))
-      .then(({ id }) => id);
     this.broadcasts = [];
   }
 
@@ -60,9 +53,8 @@ export class TwitchChatSubscriber {
 
       const connection = await this.getConnection();
       const res = await this.client
-        .createChatMessageSubscription(await this.getToken(), {
+        .createChatMessageSubscription({
           sessionId: connection.id,
-          userId: await this.userId,
           broadcasterId: channel.id(),
         })
         .catch((err: AxiosError) => {
@@ -94,10 +86,7 @@ export class TwitchChatSubscriber {
       this.removeBroadcast(broadcast);
 
       await this.client
-        .deleteChatMessageSubscription(
-          await this.getToken(),
-          broadcast.subscriptionId
-        )
+        .deleteChatMessageSubscription(broadcast.subscriptionId)
         .catch((err) => logger.error({ err }, 'Failed to delete subscription'));
 
       logger.info({ broadcast }, 'Unsubscribed from broadcast');

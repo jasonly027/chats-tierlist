@@ -21,6 +21,7 @@ const tierlist: FastifyPluginAsync = async (fastify) => {
     const tierList = (await fastify.repo.getTierList(channel.id())) ?? {
       tiers: [],
       items: {},
+      isLocked: false,
     };
     return new TierListEditor(fastify.repo, channel, tierList);
   };
@@ -28,9 +29,6 @@ const tierlist: FastifyPluginAsync = async (fastify) => {
 
   const subscriber = new TwitchChatSubscriber({
     client: fastify.twitch.client,
-    getToken() {
-      return fastify.twitch.tokenStore.getToken();
-    },
     createSocket() {
       return new TwitchWebSocket('wss://eventsub.wss.twitch.tv/ws');
     },

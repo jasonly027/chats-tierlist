@@ -81,10 +81,9 @@ describe('Repository', function () {
 
       const user = await repo.getUser(twitchId);
 
-      expect(user).to.have.all.keys('id', 'twitch_id', 'voting');
+      expect(user).to.have.all.keys('id', 'twitch_id');
       expect(user?.id).to.be.a('number');
       expect(user?.twitch_id).to.be.a('string').and.equal(twitchId);
-      expect(user?.voting).to.be.a('boolean').and.equal(false);
     });
 
     it('should return undefined when no matching user', async function () {
