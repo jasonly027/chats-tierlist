@@ -28,8 +28,7 @@ export class Repository {
         `
       SELECT
         id,
-        twitch_id,
-        voting
+        twitch_id
       FROM users
       WHERE twitch_id = $1
       `,

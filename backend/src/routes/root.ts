@@ -23,10 +23,7 @@ export default function (fastify: FastifyInstance) {
     async (req: FastifyRequest<{ Querystring: { name: string } }>) => {
       const { name } = req.query;
 
-      const ch = await fastify.twitch.client.searchChannel(
-        await fastify.twitch.tokenStore.getToken(),
-        name
-      );
+      const ch = await fastify.twitch.client.searchChannel(name);
       if (!ch) return 'unknown channel';
       const channel = new Channel(ch);
 
@@ -35,8 +32,12 @@ export default function (fastify: FastifyInstance) {
   );
 
   fastify.get('/subscriptions', async () => {
-    return await fastify.twitch.client.subscriptions(
-      await fastify.twitch.tokenStore.getToken()
-    );
+    return await fastify.twitch.client.subscriptions();
+  });
+
+  fastify.get('/revoke', async () => {
+    const res = await fastify.twitch.client.revoke();
+    fastify.log.info({res});
+    return 'ok';
   });
 }

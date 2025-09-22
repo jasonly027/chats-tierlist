@@ -1,10 +1,19 @@
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import * as tw from './types/api.js';
 import { HttpAgent, HttpsAgent } from 'agentkeepalive';
+import { baseLogger } from '@lib/util.js';
 
-interface TwitchClientOptions {
+const logger = baseLogger.child({ module: 'TwitchClient' });
+
+export interface TwitchClientOptions {
   clientId: string;
   clientSecret: string;
+  refreshToken: string;
   helixUrl?: string;
   oauthUrl?: string;
 }
@@ -14,11 +23,22 @@ export class TwitchClient {
   private readonly oauthUrl: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private accessToken!: string;
+  private refreshToken: string;
+  private userId!: string;
   private http: AxiosInstance;
 
-  constructor(options: TwitchClientOptions) {
+  static async create(options: TwitchClientOptions): Promise<TwitchClient> {
+    const client = new TwitchClient(options);
+    client.accessToken = (await client.refresh()).access_token;
+    client.userId = (await client.userFromToken()).id;
+    return client;
+  }
+
+  private constructor(options: TwitchClientOptions) {
     this.clientId = options.clientId;
     this.clientSecret = options.clientSecret;
+    this.refreshToken = options.refreshToken;
     this.helixUrl = options.helixUrl ?? 'https://api.twitch.tv/helix';
     this.oauthUrl = options.oauthUrl ?? 'https://id.twitch.tv/oauth2';
 
@@ -29,17 +49,48 @@ export class TwitchClient {
       httpAgent: new HttpAgent(),
       httpsAgent: new HttpsAgent(),
     });
+    this.attachRefreshInterceptor();
   }
 
-  validate(token: string): Promise<AxiosResponse> {
+  private attachRefreshInterceptor(): void {
+    this.http.interceptors.response.use(
+      (res) => res,
+      (err) => {
+        if (!(err instanceof AxiosError) || err.config === undefined) {
+          return Promise.reject(err);
+        }
+        const config: AxiosRequestConfigWithRefresh = err.config;
+        if (err.response?.status !== 401 || config.skipRefresh) {
+          return Promise.reject(err);
+        }
+
+        logger.info('Access token expired. Attempting refresh into retry.');
+        config.skipRefresh = true;
+        return this.refresh()
+          .then((res) => {
+            this.accessToken = res.access_token;
+            this.refreshToken = res.refresh_token;
+
+            config.headers.Authorization = `Bearer ${this.accessToken}`;
+            return this.http(config);
+          })
+          .catch((err2) => {
+            logger.error({ err: err2 }, 'Failed while refreshing into retry');
+            return Promise.reject(err2);
+          });
+      }
+    );
+  }
+
+  validate(): Promise<AxiosResponse> {
     return this.http.get(`${this.oauthUrl}/validate`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.accessToken}`,
       },
     });
   }
 
-  refresh(token: string): Promise<tw.Refresh> {
+  refresh(): Promise<tw.Refresh> {
     return this.http
       .post(
         `${this.oauthUrl}/token`,
@@ -47,7 +98,7 @@ export class TwitchClient {
           client_id: this.clientId,
           client_secret: this.clientSecret,
           grant_type: 'refresh_token',
-          refresh_token: token,
+          refresh_token: this.refreshToken,
         },
         {
           headers: {
@@ -60,12 +111,12 @@ export class TwitchClient {
       });
   }
 
-  revoke(token: string): Promise<AxiosResponse> {
+  revoke(): Promise<AxiosResponse> {
     return this.http.post(
       `${this.oauthUrl}/revoke`,
       {
         client_id: this.clientId,
-        token: token,
+        token: this.accessToken,
       },
       {
         headers: {
@@ -75,11 +126,11 @@ export class TwitchClient {
     );
   }
 
-  userFromToken(token: string): Promise<tw.User> {
+  userFromToken(): Promise<tw.User> {
     return this.http
       .get(`${this.helixUrl}/users`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
       })
       .then((resp) => {
@@ -88,14 +139,11 @@ export class TwitchClient {
       });
   }
 
-  searchChannel(
-    token: string,
-    query: string
-  ): Promise<tw.SearchChannel | null> {
+  searchChannel(query: string): Promise<tw.SearchChannel | null> {
     return this.http
       .get(`${this.helixUrl}/search/channels`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
         params: {
           query,
@@ -117,17 +165,14 @@ export class TwitchClient {
       });
   }
 
-  subscriptions(
-    token: string,
-    status?: 'enabled'
-  ): Promise<tw.SubscriptionsResponse> {
+  subscriptions(status?: 'enabled'): Promise<tw.SubscriptionsResponse> {
     const params: Record<string, string> = {};
     if (status !== undefined) params['status'] = status;
 
     return this.http
       .get(`${this.helixUrl}/eventsub/subscriptions`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
         params,
       })
@@ -136,10 +181,10 @@ export class TwitchClient {
       });
   }
 
-  createChatMessageSubscription(
-    token: string,
-    options: { sessionId: string; broadcasterId: string; userId: string }
-  ): Promise<tw.Subscription> {
+  createChatMessageSubscription(options: {
+    sessionId: string;
+    broadcasterId: string;
+  }): Promise<tw.Subscription> {
     return this.http
       .post(
         `${this.helixUrl}/eventsub/subscriptions`,
@@ -148,7 +193,7 @@ export class TwitchClient {
           version: '1',
           condition: {
             broadcaster_user_id: options.broadcasterId,
-            user_id: options.userId,
+            user_id: this.userId,
           },
           transport: {
             method: 'websocket',
@@ -157,7 +202,7 @@ export class TwitchClient {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${this.accessToken}`,
           },
         }
       )
@@ -167,7 +212,6 @@ export class TwitchClient {
   }
 
   deleteChatMessageSubscription(
-    token: string,
     subscriptionId: string
   ): Promise<AxiosResponse> {
     return this.http.delete(`${this.helixUrl}/eventsub/subscriptions`, {
@@ -175,8 +219,12 @@ export class TwitchClient {
         id: subscriptionId,
       },
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.accessToken}`,
       },
     });
   }
+}
+
+interface AxiosRequestConfigWithRefresh extends InternalAxiosRequestConfig {
+  skipRefresh?: boolean;
 }
