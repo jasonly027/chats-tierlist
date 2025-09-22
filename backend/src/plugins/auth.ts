@@ -1,4 +1,9 @@
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type {
+  FastifyInstance,
+  FastifyPluginAsync,
+  FastifyReply,
+  FastifyRequest,
+} from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import * as util from '@lib/util.js';
 import fastifyCookie from '@fastify/cookie';
@@ -91,13 +96,14 @@ async function registerAuth(fastify: FastifyInstance) {
   });
 
   fastify.get('/login/callback', async (req, res) => {
+    const twitchClient = fastify.twitch.client;
     const tw = fastify.twitchOAuth2;
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    const user = await fastify.twitch
+    const user = await twitchClient
       .userFromToken(token.access_token)
       .finally(() => {
-        fastify.twitch.revoke(token.access_token).catch((err) => {
+        twitchClient.revoke(token.access_token).catch((err) => {
           req.log.warn({ err }, 'failed to revoke token');
         });
       });
@@ -119,4 +125,10 @@ async function registerAuth(fastify: FastifyInstance) {
     await req.session.destroy();
     return res.send('OK');
   });
+}
+
+export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
+  if (!req.user) {
+    return res.unauthorized();
+  }
 }

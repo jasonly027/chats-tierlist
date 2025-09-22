@@ -11,3 +11,11 @@ services:
     image: redis:8.2.1-alpine
     ports:
       - '6379:6379'
+  test-db:
+    image: postgres:17.6-alpine3.22
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./dev-test-db:/var/lib/postgresql/data

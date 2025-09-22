@@ -17,7 +17,7 @@ type Listener<T extends unknown[]> = (...args: T) => void;
 type OnCloseRef = (code: number, reason: Buffer) => void;
 
 export class TwitchWebSocket {
-  private isAlive: boolean;
+  private lastKeepAlive: number;
   private keepAliveInterval: NodeJS.Timeout | undefined;
   private onCloseRef: OnCloseRef;
   private socket: ws.WebSocket;
@@ -27,8 +27,7 @@ export class TwitchWebSocket {
   };
 
   constructor(url?: string) {
-    this.isAlive = true;
-    this.keepAliveInterval = undefined;
+    this.lastKeepAlive = Date.now();
     this.onCloseRef = this.onClose.bind(this);
     this.socket = this.registerSocket(
       new ws.WebSocket(url ?? 'wss://eventsub.wss.twitch.tv/ws', {
@@ -77,8 +76,6 @@ export class TwitchWebSocket {
   }
 
   private registerSocket(socket: ws.WebSocket): ws.WebSocket {
-    this.clearKeepAliveCheck();
-    this.isAlive = true;
     this.onCloseRef = this.onClose.bind(this);
 
     socket.on('message', this.onMessage.bind(this));
@@ -151,12 +148,12 @@ export class TwitchWebSocket {
 
   private onKeepAlive(_msg: tw.KeepAliveMessage): void {
     logger.debug('Received keep-alive message');
-    this.isAlive = true;
+    this.lastKeepAlive = Date.now();
   }
 
   private onNotification(msg: tw.NotifcationMessage): void {
     logger.debug('Received notification message');
-    this.isAlive = true;
+    this.lastKeepAlive = Date.now();
     this.listeners.notification.forEach((fn) => {
       try {
         fn(msg);
@@ -197,16 +194,16 @@ export class TwitchWebSocket {
   }
 
   private startKeepAliveCheck(timeoutSecs: number): void {
-    const timeoutMilliseconds = timeoutSecs * 1000;
+    const CHECK_INTERVAL = 10 * 1000; // 10 seconds
+    const ALIVE_TIMEOUT = timeoutSecs * 1000;
 
+    this.lastKeepAlive = Date.now();
     this.keepAliveInterval = setInterval(() => {
-      if (!this.isAlive) {
+      if (Date.now() - this.lastKeepAlive > ALIVE_TIMEOUT) {
         logger.info('No keep-alive from server. Closing connection...');
         this.socket.close(1001, 'No keep-alive from server');
-        return;
       }
-      this.isAlive = false;
-    }, timeoutMilliseconds);
+    }, CHECK_INTERVAL);
   }
 
   private clearKeepAliveCheck(): void {

@@ -1,15 +1,16 @@
 import * as pg from 'pg';
 import * as model from '@lib/db/models.js';
+import type { TierList } from '@lib/tierlist/models.js';
 
 export class Repository {
-  private readonly pool: pg.Pool;
+  private readonly db: pg.Pool | pg.Client;
 
-  constructor(pool: pg.Pool) {
-    this.pool = pool;
+  constructor(db: pg.Pool | pg.Client) {
+    this.db = db;
   }
 
   async createUserIfNotExists(twitch_id: string): Promise<void> {
-    await this.pool
+    await this.db
       .query(
         `
       INSERT INTO users (twitch_id) 
@@ -21,25 +22,54 @@ export class Repository {
       .catch(throwAsRepositoryError('failed to create user'));
   }
 
-  async getUser(twitch_id: string): Promise<model.User | null> {
-    return this.pool
-      .query<_User>(
+  async getUser(twitch_id: string): Promise<model.User | undefined> {
+    return this.db
+      .query<model.User>(
         `
       SELECT
         id,
         twitch_id,
-        voting,
-        tiers,
-        items
+        voting
       FROM users
       WHERE twitch_id = $1
       `,
         [twitch_id]
       )
       .then((res) => {
-        return res.rows[0] ? mapRawUser(res.rows[0]) : null;
+        return res.rows[0];
       })
       .catch(throwAsRepositoryError('failed to get user'));
+  }
+
+  async getTierList(twitch_id: string): Promise<TierList | undefined> {
+    return await this.db
+      .query<{ tier_list: string }>(
+        `
+      SELECT tier_list
+      FROM users
+      WHERE twitch_id = $1
+      `,
+        [twitch_id]
+      )
+      .then((res) => {
+        const serializedTierList = res.rows[0]?.tier_list;
+        if (!serializedTierList) return undefined;
+        return JSON.parse(serializedTierList);
+      });
+  }
+
+  async setTierList(twitch_id: string, tierList: TierList): Promise<void> {
+    const serializedTierList = JSON.stringify(tierList);
+    await this.db
+      .query(
+        `
+      UPDATE users
+      SET tier_list = $1
+      WHERE twitch_id = $2
+      `,
+        [serializedTierList, twitch_id]
+      )
+      .catch(throwAsRepositoryError('setting tier list'));
   }
 }
 
@@ -55,42 +85,5 @@ class RepositoryError extends Error {
 function throwAsRepositoryError(message: string) {
   return (cause: unknown): PromiseLike<never> => {
     throw new RepositoryError(message, cause);
-  };
-}
-
-interface _User {
-  id: number;
-  twitch_id: string;
-  voting: boolean;
-  tiers: string[] | null;
-  items: string[] | null;
-}
-
-// function mapUser(user: model.User): _User {
-//   const tiers =
-//     user.tiers.length !== 0
-//       ? user.tiers.map((tier) => JSON.stringify(tier))
-//       : null;
-//   const items =
-//     user.tiers.length !== 0
-//       ? user.items.map((item) => JSON.stringify(item))
-//       : null;
-
-//   return {
-//     id: user.id,
-//     twitch_id: user.twitch_id,
-//     voting: user.voting,
-//     tiers,
-//     items,
-//   };
-// }
-
-function mapRawUser(raw: _User): model.User {
-  return {
-    id: raw.id,
-    twitch_id: raw.twitch_id,
-    voting: raw.voting,
-    tiers: raw.tiers?.map((tier) => JSON.parse(tier)) ?? [],
-    items: raw.items?.map((item) => JSON.parse(item)) ?? [],
   };
 }
