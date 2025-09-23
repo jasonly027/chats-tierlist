@@ -13,7 +13,7 @@ const websocket: FastifyPluginAsync = async (fastify) => {
   const wss = fastify.websocketServer;
   wss.on('connection', (socket: WebSocketWithAlive) => {
     socket.isAlive = true;
-    socket.on('pong', function(this: WebSocketWithAlive) {
+    socket.on('pong', function (this: WebSocketWithAlive) {
       this.isAlive = true;
     });
 

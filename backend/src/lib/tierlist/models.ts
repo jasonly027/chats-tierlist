@@ -1,7 +1,9 @@
 export interface TierList {
   tiers: TierListTier[];
   items: Record<string, TierListItem>;
-  isLocked: boolean;
+  isVoting: boolean;
+  focus: string | null;
+  version: number;
 }
 
 export interface TierListTier {
@@ -10,6 +12,6 @@ export interface TierListTier {
 }
 
 export interface TierListItem {
-  imageUrl: string | undefined;
+  imageUrl: string | null;
   votes: Record<string, number>;
 }

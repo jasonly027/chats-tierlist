@@ -101,7 +101,7 @@ function startListenKeepAlive(
   };
   reportKeepAlive();
 
-  const ALIVE_INTERVAL = 5 * 1000; // 5 secs
+  const ALIVE_INTERVAL = 10 * 1000; // 10 secs
   const intervalId = setInterval(reportKeepAlive, ALIVE_INTERVAL);
 
   socket.on('close', () => clearInterval(intervalId));

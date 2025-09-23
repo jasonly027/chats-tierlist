@@ -26,18 +26,23 @@ export class TierListEditor {
   }
 
   setTierList(tierList: TierList): boolean {
-    if (this.tierList.isLocked) return false;
-
     this.tierList = tierList;
     this.update();
     return true;
   }
 
-  setLocked(isLocked: boolean): void {
-    this.tierList.isLocked = isLocked;
+  setVoting(isVoting: boolean): void {
+    this.tierList.isVoting = isVoting;
   }
 
-  addItem(name: string, imageUrl?: string | undefined): boolean {
+  setFocus(name: string | null): boolean {
+    if (name !== null && !this.tierList.items[name]) return false;
+
+    this.tierList.focus = name;
+    return true;
+  }
+
+  addItem(name: string, imageUrl: string | null = null): boolean {
     if (!name || this.tierList.items[name]) return false;
 
     this.tierList.items[name] = {
@@ -51,6 +56,9 @@ export class TierListEditor {
 
   removeItem(name: string): void {
     delete this.tierList.items[name];
+    if (this.tierList.focus === name) {
+      this.tierList.focus = null;
+    }
     this.update();
   }
 
@@ -62,6 +70,9 @@ export class TierListEditor {
 
     delete this.tierList.items[oldName];
     this.tierList.items[newName] = item;
+    if (this.tierList.focus === oldName) {
+      this.tierList.focus = newName;
+    }
     this.update();
 
     return true;
@@ -94,12 +105,16 @@ export class TierListEditor {
   }
 
   vote(userId: string, message: string): boolean {
-    if (this.tierList.isLocked || !message) return false;
+    if (!this.tierList.isVoting || !message) return false;
 
     const choice = this.parse(message);
     if (!choice) return false;
 
     const [itemName, tierIdx] = choice;
+    if (this.tierList.focus !== null && this.tierList.focus !== itemName) {
+      return false;
+    }
+
     const votes = this.tierList.items[itemName]?.votes;
     if (!votes) return false;
 
@@ -133,6 +148,7 @@ export class TierListEditor {
   }
 
   private update(): void {
+    this.tierList.version = Date.now();
     this.requestToSave();
     this.regex = this.buildRegex();
   }

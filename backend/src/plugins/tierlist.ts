@@ -20,7 +20,9 @@ const tierlist: FastifyPluginAsync = async (fastify) => {
     const tierList = (await fastify.repo.getTierList(channelId)) ?? {
       tiers: [],
       items: {},
-      isLocked: false,
+      isVoting: false,
+      focus: null,
+      version: Date.now(),
     };
     return new TierListEditor(fastify.repo, channelId, tierList);
   };
