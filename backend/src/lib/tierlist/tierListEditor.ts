@@ -1,5 +1,4 @@
 import type { Repository } from '@lib/db/repository.js';
-import type { Channel } from '@lib/twitch/models.js';
 import type { TierList } from './models.ts';
 import escapeStringRegexp from 'escape-string-regexp';
 import { baseLogger } from '@lib/util.js';
@@ -14,9 +13,9 @@ export class TierListEditor {
   private saveTimeoutId: NodeJS.Timeout | undefined;
   private dirty: boolean;
 
-  constructor(repo: Repository, channel: Channel, tierList: TierList) {
+  constructor(repo: Repository, channelId: string, tierList: TierList) {
     this.repo = repo;
-    this.channelId = channel.id();
+    this.channelId = channelId;
     this.tierList = tierList;
     this.regex = this.buildRegex();
     this.dirty = false;

@@ -37,7 +37,7 @@ export default function (fastify: FastifyInstance) {
 
   fastify.get('/revoke', async () => {
     const res = await fastify.twitch.client.revoke();
-    fastify.log.info({res});
+    fastify.log.info({ res });
     return 'ok';
   });
 }

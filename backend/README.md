@@ -8,3 +8,5 @@ TODO
 - [x] Axios interceptor for Twitch
 - [ ] Listen route
 - [ ] Update tier list routes
+- [ ] Change when tier list locking happens
+- [ ] Add tier list versioning for sync

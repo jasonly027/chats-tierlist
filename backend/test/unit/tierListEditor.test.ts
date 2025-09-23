@@ -1,7 +1,6 @@
 import { Repository } from '@lib/db/repository.js';
 import type { TierList } from '@lib/tierlist/models.js';
 import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import { Channel } from '@lib/twitch/models.js';
 import { expect } from 'chai';
 import Sinon from 'sinon';
 
@@ -12,15 +11,7 @@ describe('TierListEditor', function () {
   beforeEach(function () {
     repo.setTierList.resolves();
 
-    const channel = new Channel({
-      broadcaster_login: 'login',
-      display_name: 'name',
-      id: 'id',
-      is_live: false,
-      thumbnail_url: 'url',
-    });
-
-    editor = new TierListEditor(repo, channel, createTierList());
+    editor = new TierListEditor(repo, 'id', createTierList());
   });
 
   afterEach(function () {

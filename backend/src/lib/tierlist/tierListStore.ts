@@ -1,4 +1,3 @@
-import type { Channel } from '@lib/twitch/models.js';
 import { baseLogger } from '@lib/util.js';
 import { LRUCache } from 'lru-cache';
 import type { TierListEditor } from './tierListEditor.ts';
@@ -6,18 +5,18 @@ import type { TierListEditor } from './tierListEditor.ts';
 const logger = baseLogger.child({ module: 'TierListEditor' });
 
 export class TierListStore {
-  private readonly cache: LRUCache<string, TierListEditor, Channel>;
+  private readonly cache: LRUCache<string, TierListEditor>;
 
-  constructor(createEditor: (channel: Channel) => Promise<TierListEditor>) {
+  constructor(createEditor: (channelId: string) => Promise<TierListEditor>) {
     this.cache = new LRUCache({
       maxSize: 100,
       sizeCalculation: () => {
         return 1;
       },
 
-      async fetchMethod(_key, _value, { context }) {
+      async fetchMethod(key, _value) {
         try {
-          return await createEditor(context);
+          return await createEditor(key);
         } catch (err) {
           logger.error({ err }, 'Failed to create editor');
           throw err;
@@ -30,8 +29,8 @@ export class TierListStore {
     });
   }
 
-  getEditor(channel: Channel): Promise<TierListEditor | undefined> {
-    return this.cache.fetch(channel.id(), { context: channel }).catch((err) => {
+  getEditor(channelId: string): Promise<TierListEditor | undefined> {
+    return this.cache.fetch(channelId).catch((err) => {
       logger.error({ err }, 'Failed to fetch editor');
       return undefined;
     });

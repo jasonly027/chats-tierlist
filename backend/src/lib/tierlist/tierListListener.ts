@@ -36,7 +36,7 @@ export class TierListListener {
 
       const broadcast = new Broadcast(channel, (msg) => {
         if (msg.type === 'message') {
-          this.store.getEditor(channel).then((editor) => {
+          this.store.getEditor(channel.id()).then((editor) => {
             editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
           });
         } else {
