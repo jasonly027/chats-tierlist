@@ -62,16 +62,29 @@ export class TierListEditor {
     this.update();
   }
 
-  renameItem(oldName: string, newName: string): boolean {
-    if (!oldName || !newName) return false;
+  // TODO: Test
+  updateItem(
+    oldName: string,
+    { newName, imageUrl }: { newName?: string; imageUrl?: string }
+  ): boolean {
+    if (
+      oldName === '' ||
+      newName === '' ||
+      (newName && this.tierList.items[newName])
+    ) {
+      return false;
+    }
 
     const item = this.tierList.items[oldName];
-    if (!item || this.tierList.items[newName]) return false;
+    if (!item) return false;
+    item.imageUrl = imageUrl ?? item.imageUrl;
 
-    delete this.tierList.items[oldName];
-    this.tierList.items[newName] = item;
-    if (this.tierList.focus === oldName) {
-      this.tierList.focus = newName;
+    if (newName) {
+      delete this.tierList.items[oldName];
+      this.tierList.items[newName] = item;
+      if (this.tierList.focus === oldName) {
+        this.tierList.focus = newName;
+      }
     }
     this.update();
 
@@ -89,15 +102,25 @@ export class TierListEditor {
     return true;
   }
 
-  updateTier(oldName: string, newName: string, color?: string): boolean {
-    if (!oldName || !newName) return false;
-
-    const tier = this.tierList.tiers.find((t) => t.name === oldName);
-    if (!tier || this.tierList.tiers.find((t) => t.name === newName)) {
+  // TODO: Test color change regardless of newName
+  updateTier(
+    oldName: string,
+    { newName, color }: { newName?: string; color?: string }
+  ): boolean {
+    if (
+      oldName === '' ||
+      newName === '' ||
+      this.tierList.tiers.find((t) => t.name === newName)
+    ) {
       return false;
     }
 
-    tier.name = newName;
+    const tier = this.tierList.tiers.find((t) => t.name === oldName);
+    if (!tier) {
+      return false;
+    }
+
+    tier.name = newName ?? tier.name;
     tier.color = color ?? tier.color;
     this.update();
 

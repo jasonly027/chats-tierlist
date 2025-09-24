@@ -65,7 +65,7 @@ function startSendingTierList(
         JSON.stringify({
           type: 'tierlist',
           success: tierList !== undefined,
-          tierList,
+          tier_list: tierList,
         })
       );
     });

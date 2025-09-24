@@ -132,7 +132,7 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       const item = editor.getTierList().items['old'];
 
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', 'new');
 
       expect(res).to.be.true;
       expect(editor.getTierList().items).to.have.all.keys('new');
@@ -140,17 +140,17 @@ describe('TierListEditor', function () {
     });
 
     it('should fail on empty old name', function () {
-      const res = editor.renameItem('', 'new');
+      const res = editor.updateItem('', 'new');
       expect(res).to.be.false;
     });
 
     it('should fail on empty new name', function () {
-      const res = editor.renameItem('old', '');
+      const res = editor.updateItem('old', '');
       expect(res).to.be.false;
     });
 
     it('should fail on nonexisting old name', function () {
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', 'new');
       expect(res).to.be.false;
     });
 
@@ -158,7 +158,7 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       editor.addItem('new');
 
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', 'new');
 
       expect(res).to.be.false;
     });
@@ -167,7 +167,7 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       editor.setFocus('old');
 
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', 'new');
 
       expect(res).to.be.true;
       expect(editor.getTierList().focus).to.equal('new');
