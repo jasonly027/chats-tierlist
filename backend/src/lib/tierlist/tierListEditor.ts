@@ -62,21 +62,15 @@ export class TierListEditor {
     this.update();
   }
 
-  // TODO: Test
   updateItem(
     oldName: string,
     { newName, imageUrl }: { newName?: string; imageUrl?: string }
   ): boolean {
-    if (
-      oldName === '' ||
-      newName === '' ||
-      (newName && this.tierList.items[newName])
-    ) {
+    const item = this.tierList.items[oldName];
+    if (!item || newName === '' || (newName && this.tierList.items[newName])) {
       return false;
     }
 
-    const item = this.tierList.items[oldName];
-    if (!item) return false;
     item.imageUrl = imageUrl ?? item.imageUrl;
 
     if (newName) {
@@ -102,21 +96,16 @@ export class TierListEditor {
     return true;
   }
 
-  // TODO: Test color change regardless of newName
   updateTier(
     oldName: string,
     { newName, color }: { newName?: string; color?: string }
   ): boolean {
+    const tier = this.tierList.tiers.find((t) => t.name === oldName);
     if (
-      oldName === '' ||
+      !tier ||
       newName === '' ||
       this.tierList.tiers.find((t) => t.name === newName)
     ) {
-      return false;
-    }
-
-    const tier = this.tierList.tiers.find((t) => t.name === oldName);
-    if (!tier) {
       return false;
     }
 

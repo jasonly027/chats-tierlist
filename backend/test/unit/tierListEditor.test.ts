@@ -127,30 +127,32 @@ describe('TierListEditor', function () {
     });
   });
 
-  describe('renameItem', function () {
-    it('should rename the item', function () {
+  describe('updateItem', function () {
+    it('should update the item', function () {
       editor.addItem('old');
       const item = editor.getTierList().items['old'];
 
-      const res = editor.updateItem('old', 'new');
+      const res = editor.updateItem('old', {
+        newName: 'new',
+        imageUrl: 'image',
+      });
 
       expect(res).to.be.true;
       expect(editor.getTierList().items).to.have.all.keys('new');
       expect(editor.getTierList().items['new']).to.equal(item);
+      expect(item?.imageUrl).to.equal('image');
     });
 
-    it('should fail on empty old name', function () {
-      const res = editor.updateItem('', 'new');
+    it('should fail on nonexisting old name', function () {
+      const res = editor.updateItem('old', {});
       expect(res).to.be.false;
     });
 
     it('should fail on empty new name', function () {
-      const res = editor.updateItem('old', '');
-      expect(res).to.be.false;
-    });
+      editor.addItem('old');
 
-    it('should fail on nonexisting old name', function () {
-      const res = editor.updateItem('old', 'new');
+      const res = editor.updateItem('old', { newName: '' });
+
       expect(res).to.be.false;
     });
 
@@ -158,7 +160,7 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       editor.addItem('new');
 
-      const res = editor.updateItem('old', 'new');
+      const res = editor.updateItem('old', { newName: 'new' });
 
       expect(res).to.be.false;
     });
@@ -167,7 +169,7 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       editor.setFocus('old');
 
-      const res = editor.updateItem('old', 'new');
+      const res = editor.updateItem('old', { newName: 'new' });
 
       expect(res).to.be.true;
       expect(editor.getTierList().focus).to.equal('new');
@@ -204,7 +206,10 @@ describe('TierListEditor', function () {
     it('should update the tier', function () {
       editor.addTier('old', 'old color');
 
-      const res = editor.updateTier('old', 'new', 'new color');
+      const res = editor.updateTier('old', {
+        newName: 'new',
+        color: 'new color',
+      });
 
       expect(res).to.be.true;
       expect(editor.getTierList().tiers[0]).to.deep.equal({
@@ -213,18 +218,17 @@ describe('TierListEditor', function () {
       });
     });
 
-    it('should fail on empty old name', function () {
-      const res = editor.updateTier('', 'new');
+    it('should fail on nonexisting old name', function () {
+      const res = editor.updateTier('old', { newName: 'new' });
       expect(res).to.be.false;
     });
 
     it('should fail on empty new name', function () {
-      const res = editor.updateTier('old', '');
-      expect(res).to.be.false;
-    });
+      editor.addTier('old', 'old color');
 
-    it('should fail on nonexisting old name', function () {
-      const res = editor.updateTier('old', 'new');
+      const res = editor.updateTier('old', {
+        newName: '',
+      });
       expect(res).to.be.false;
     });
 
@@ -232,7 +236,9 @@ describe('TierListEditor', function () {
       editor.addTier('old', 'old color');
       editor.addTier('new', 'new color');
 
-      const res = editor.updateTier('old', 'new', 'new color');
+      const res = editor.updateTier('old', {
+        newName: 'new',
+      });
 
       expect(res).to.be.false;
     });

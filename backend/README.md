@@ -3,7 +3,7 @@
 ### Tier List
 
 - `WS /tierlist/:name`: WebSocket that streams broadcaster tier list info.
-  - The first message sent is metadata on the broadcaster.
+  - The first message sent is metadata on the broadcaster:
     | Field | Type | Description |
     | - | - | - |
     | id | string | Broadcaster's ID. |
@@ -58,7 +58,7 @@
     | name | string? | New item name. |
     | image_url | string? | New color code. |
   - Responds with 404 Not Found if item with name couldn't be found.
-  - Responds with 400 Bad Request if both name and color fields are missing.
+  - Responds with 400 Bad Request if both name and image_url fields are missing.
 - `DELETE /tierlist/item/:name`: Deletes an existing item from user's tier list.
   - Responds with 404 Not Found if item with name couldn't be found.
 - `PATCH /tierlist`: Updates the focus or isVoting property of user's tierlist.
@@ -69,7 +69,7 @@
     | is_voting | boolean? | Set whether user tier list can be voted on. |
   - Responds with 400 Bad Request if both focus and is_voting fields are missing.
 
-*Other than the WebSocket endpoint, all endpoints expect a session cookie to identify the user's tier list.*
+_Other than the WebSocket endpoint, all endpoints expect a session cookie to identify the user's tier list._
 
 TODO
 
@@ -83,4 +83,3 @@ TODO
 - [ ] Update tier list routes
 - [x] Change when tier list locking happens
 - [x] Add tier list versioning for sync
-
