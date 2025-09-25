@@ -1,19 +1,15 @@
 import type { TierListListener } from '@lib/tierlist/tierListListener.js';
 import type { TierListStore } from '@lib/tierlist/tierListStore.js';
 import { Channel } from '@lib/twitch/models.js';
-import type {
-  FastifyBaseLogger,
-  FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-} from 'fastify';
+import type { FastifyTypeBox } from '@lib/util.js';
+import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from 'fastify';
 import { WebSocket } from 'ws';
 
 interface RootHandlerParams {
   name: string;
 }
 
-export default function (fastify: FastifyInstance) {
+export default function (fastify: FastifyTypeBox) {
   fastify.get(
     '/:name',
     { preHandler: rootPreHandler, websocket: true },

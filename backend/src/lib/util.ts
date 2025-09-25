@@ -1,6 +1,22 @@
+import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { AxiosError } from 'axios';
+import type {
+  FastifyBaseLogger,
+  FastifyInstance,
+  RawReplyDefaultExpression,
+  RawRequestDefaultExpression,
+  RawServerDefault,
+} from 'fastify';
 import fs from 'fs';
 import pino, { stdSerializers } from 'pino';
+
+export type FastifyTypeBox = FastifyInstance<
+  RawServerDefault,
+  RawRequestDefaultExpression,
+  RawReplyDefaultExpression,
+  FastifyBaseLogger,
+  TypeBoxTypeProvider
+>;
 
 export function envVar(key: string): string {
   if (process.env[key]) {

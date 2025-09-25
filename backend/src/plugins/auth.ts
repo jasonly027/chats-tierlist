@@ -5,7 +5,7 @@ import type {
   FastifyRequest,
 } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import * as util from '@lib/util.js';
+import { envVar } from '@lib/util.js';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
@@ -51,8 +51,8 @@ export default fastifyPlugin(auth, {
 });
 
 async function registerSession(fastify: FastifyInstance) {
-  const REDIS_URL = util.envVar('REDIS_URL');
-  const SESSION_SECRET = util.envVar('SESSION_SECRET');
+  const REDIS_URL = envVar('REDIS_URL');
+  const SESSION_SECRET = envVar('SESSION_SECRET');
   const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days
 
   fastify.register(fastifyCookie);
@@ -77,9 +77,9 @@ async function registerSession(fastify: FastifyInstance) {
 }
 
 async function registerAuth(fastify: FastifyInstance) {
-  const CLIENT_ID = util.envVar('TWITCH_CLIENT_ID');
-  const CLIENT_SECRET = util.envVar('TWITCH_CLIENT_SECRET');
-  const CALLBACK_URL = util.envVar('TWITCH_CALLBACK_URL');
+  const CLIENT_ID = envVar('TWITCH_CLIENT_ID');
+  const CLIENT_SECRET = envVar('TWITCH_CLIENT_SECRET');
+  const CALLBACK_URL = envVar('TWITCH_CALLBACK_URL');
 
   fastify.register(fastifyOauth2, {
     name: 'twitchOAuth2',
@@ -135,7 +135,7 @@ export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
   }
 }
 
-const TWITCH_CLIENT_ID = util.envVar('TWITCH_CLIENT_ID');
+const TWITCH_CLIENT_ID = envVar('TWITCH_CLIENT_ID');
 
 async function userProfile(token: string): Promise<TwitchUser> {
   return axios
