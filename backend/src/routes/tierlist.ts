@@ -4,6 +4,7 @@ import { Channel } from '@lib/twitch/models.js';
 import type { FastifyTypeBox } from '@lib/util.js';
 import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from 'fastify';
 import { WebSocket } from 'ws';
+import { Type } from '@fastify/type-provider-typebox';
 
 interface RootHandlerParams {
   name: string;
@@ -101,4 +102,40 @@ export default function (fastify: FastifyTypeBox) {
 
     socket.on('close', () => clearInterval(intervalId));
   }
+
+  fastify.put(
+    '/',
+    {
+      schema: {
+        body: Type.Object({
+          tier_list: Type.Object({
+            tiers: Type.Array(
+              Type.Object({
+                name: Type.String({ minLength: 1 }),
+                color: Type.String(),
+              }),
+              {
+                maxItems: 50,
+              }
+            ),
+            items: Type.Array(
+              Type.Object({
+                name: Type.String({ minLength: 1 }),
+                image_url: Type.Union([Type.String(), Type.Null()]),
+              }),
+              {
+                maxItems: 500,
+              }
+            ),
+          }),
+        }),
+        response: {
+          200: Type.Literal('OK'),
+        },
+      },
+    },
+    async (_req, res) => {
+      return res.send('OK');
+    }
+  );
 }

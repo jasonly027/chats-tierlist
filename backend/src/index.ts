@@ -1,23 +1,10 @@
-import Fastify from 'fastify';
-import plugins from './plugins/_plugins.js';
-import routes from './routes/_routes.ts';
-import { baseLogger } from './lib/util.ts';
-import {
-  TypeBoxValidatorCompiler,
-  type TypeBoxTypeProvider,
-} from '@fastify/type-provider-typebox';
+import { createServer } from './server.ts';
 
-const fastify = Fastify({
-  loggerInstance: baseLogger,
-}).withTypeProvider<TypeBoxTypeProvider>();
-fastify.setValidatorCompiler(TypeBoxValidatorCompiler);
+const server = await createServer();
 
-fastify.register(plugins);
-fastify.register(routes);
-
-fastify.listen({ port: 3000 }, (err) => {
+server.listen({ port: 3000 }, (err) => {
   if (err) {
-    fastify.log.error(err);
+    server.log.error(err);
     process.exit(1);
   }
 });
