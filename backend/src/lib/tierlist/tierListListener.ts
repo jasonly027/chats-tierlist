@@ -7,7 +7,7 @@ import {
 import { baseLogger } from '@lib/util.js';
 import { Mutex } from 'async-mutex';
 
-const logger = baseLogger.child({ module: 'TierListManager' });
+const logger = baseLogger.child({ module: 'TierListListener' });
 
 export class TierListListener {
   private readonly store: TierListStore;

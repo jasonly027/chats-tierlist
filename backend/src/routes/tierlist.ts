@@ -1,20 +1,30 @@
 import type { TierListListener } from '@lib/tierlist/tierListListener.js';
 import type { TierListStore } from '@lib/tierlist/tierListStore.js';
 import { Channel } from '@lib/twitch/models.js';
-import type { FastifyTypeBox } from '@lib/util.js';
-import type { FastifyBaseLogger, FastifyReply, FastifyRequest } from 'fastify';
+import type {
+  FastifyReplyTypeBox,
+  FastifyRequestTypeBox,
+  FastifyTypeBox,
+} from '@lib/util.js';
+import type { FastifyBaseLogger, FastifySchema } from 'fastify';
 import { WebSocket } from 'ws';
-import { Type } from '@fastify/type-provider-typebox';
-
-interface RootHandlerParams {
-  name: string;
-}
+import { Type as T } from '@fastify/type-provider-typebox';
 
 export default function (fastify: FastifyTypeBox) {
+  const ListenChannelSchema = {
+    params: T.Object({
+      name: T.String(),
+    }),
+  } satisfies FastifySchema;
+
   fastify.get(
     '/:name',
-    { preHandler: rootPreHandler, websocket: true },
-    async (socket, req: FastifyRequest<{ Params: RootHandlerParams }>) => {
+    {
+      schema: ListenChannelSchema,
+      preHandler: rootPreHandler,
+      websocket: true,
+    },
+    async (socket, req) => {
       // Attached by listenPreHandler
       const channel = (req as typeof req & { custom: Channel }).custom;
 
@@ -32,8 +42,8 @@ export default function (fastify: FastifyTypeBox) {
 
   // Attaches the channel associated with name to req.custom.
   async function rootPreHandler(
-    req: FastifyRequest<{ Params: RootHandlerParams }>,
-    res: FastifyReply
+    req: FastifyRequestTypeBox<typeof ListenChannelSchema>,
+    res: FastifyReplyTypeBox<typeof ListenChannelSchema>
   ): Promise<void> {
     const { name } = req.params;
 
@@ -104,24 +114,25 @@ export default function (fastify: FastifyTypeBox) {
   }
 
   fastify.put(
-    '/',
+    '',
     {
       schema: {
-        body: Type.Object({
-          tier_list: Type.Object({
-            tiers: Type.Array(
-              Type.Object({
-                name: Type.String({ minLength: 1 }),
-                color: Type.String(),
+        tags: ['Tier List'],
+        body: T.Object({
+          tier_list: T.Object({
+            tiers: T.Array(
+              T.Object({
+                name: T.String({ minLength: 1 }),
+                color: T.String(),
               }),
               {
                 maxItems: 50,
               }
             ),
-            items: Type.Array(
-              Type.Object({
-                name: Type.String({ minLength: 1 }),
-                image_url: Type.Union([Type.String(), Type.Null()]),
+            items: T.Array(
+              T.Object({
+                name: T.String({ minLength: 1 }),
+                image_url: T.Union([T.String(), T.Null()]),
               }),
               {
                 maxItems: 500,
@@ -130,7 +141,7 @@ export default function (fastify: FastifyTypeBox) {
           }),
         }),
         response: {
-          200: Type.Literal('OK'),
+          200: T.Literal('OK'),
         },
       },
     },

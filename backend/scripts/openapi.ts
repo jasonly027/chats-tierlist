@@ -1,19 +1,24 @@
 import fastifySwagger from '@fastify/swagger';
 import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import serverPlugin from './server.ts';
+import serverPlugin from '../src/server.ts';
 import Fastify from 'fastify';
 import fs from 'fs';
 
 const swagger: FastifyPluginCallback = (fastify) => {
   fastify.register(fastifySwagger, {
     openapi: {
-      openapi: '3.0.4',
+      openapi: '3.1.1',
       info: {
-        title: 'Title',
-        description: 'Description',
+        title: "Chat's TierList",
         version: '0.1.0',
       },
+      servers: [
+        {
+          url: 'http://localhost:3000',
+          description: 'Development server',
+        },
+      ],
     },
   });
 };
@@ -24,6 +29,6 @@ await fastify.register(swaggerPlugin);
 await fastify.register(serverPlugin);
 await fastify.ready();
 
-await fs.writeFileSync('openapi.yaml', fastify.swagger({ yaml: true }) + '\n');
+await fs.writeFileSync('docs/openapi.yaml', fastify.swagger({ yaml: true }) + '\n');
+console.log('Spec written to docs/openapi.yaml.\nView docs with `npm run docs`.')
 process.exit(0);
-

@@ -1,8 +1,9 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { Channel } from '@lib/twitch/models.js';
 import { requireAuth } from '@plugins/auth.js';
+import type { FastifyTypeBox } from '@lib/util.js';
+import { Type as T } from '@fastify/type-provider-typebox';
 
-export default function (fastify: FastifyInstance) {
+export default function (fastify: FastifyTypeBox) {
   fastify.get('/', { preHandler: requireAuth }, async (req) => {
     return `Hello World ${JSON.stringify(req.user)}`;
   });
@@ -11,16 +12,12 @@ export default function (fastify: FastifyInstance) {
     '/subscribe',
     {
       schema: {
-        querystring: {
-          type: 'object',
-          properties: {
-            name: { type: 'string' },
-          },
-          required: ['name'],
-        },
+        querystring: T.Object({
+          name: T.String({ minLength: 1 }),
+        }),
       },
     },
-    async (req: FastifyRequest<{ Querystring: { name: string } }>) => {
+    async (req) => {
       const { name } = req.query;
 
       const ch = await fastify.twitch.client.searchChannel(name);
