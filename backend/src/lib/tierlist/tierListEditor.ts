@@ -1,5 +1,4 @@
 import type { Repository } from '@lib/db/repository.js';
-import type { Channel } from '@lib/twitch/models.js';
 import type { TierList } from './models.ts';
 import escapeStringRegexp from 'escape-string-regexp';
 import { baseLogger } from '@lib/util.js';
@@ -14,9 +13,9 @@ export class TierListEditor {
   private saveTimeoutId: NodeJS.Timeout | undefined;
   private dirty: boolean;
 
-  constructor(repo: Repository, channel: Channel, tierList: TierList) {
+  constructor(repo: Repository, channelId: string, tierList: TierList) {
     this.repo = repo;
-    this.channelId = channel.id();
+    this.channelId = channelId;
     this.tierList = tierList;
     this.regex = this.buildRegex();
     this.dirty = false;
@@ -27,18 +26,23 @@ export class TierListEditor {
   }
 
   setTierList(tierList: TierList): boolean {
-    if (this.tierList.isLocked) return false;
-
     this.tierList = tierList;
     this.update();
     return true;
   }
 
-  setLocked(isLocked: boolean): void {
-    this.tierList.isLocked = isLocked;
+  setVoting(isVoting: boolean): void {
+    this.tierList.isVoting = isVoting;
   }
 
-  addItem(name: string, imageUrl?: string | undefined): boolean {
+  setFocus(name: string | null): boolean {
+    if (name !== null && !this.tierList.items[name]) return false;
+
+    this.tierList.focus = name;
+    return true;
+  }
+
+  addItem(name: string, imageUrl: string | null = null): boolean {
     if (!name || this.tierList.items[name]) return false;
 
     this.tierList.items[name] = {
@@ -52,17 +56,30 @@ export class TierListEditor {
 
   removeItem(name: string): void {
     delete this.tierList.items[name];
+    if (this.tierList.focus === name) {
+      this.tierList.focus = null;
+    }
     this.update();
   }
 
-  renameItem(oldName: string, newName: string): boolean {
-    if (!oldName || !newName) return false;
-
+  updateItem(
+    oldName: string,
+    { newName, imageUrl }: { newName?: string; imageUrl?: string }
+  ): boolean {
     const item = this.tierList.items[oldName];
-    if (!item || this.tierList.items[newName]) return false;
+    if (!item || newName === '' || (newName && this.tierList.items[newName])) {
+      return false;
+    }
 
-    delete this.tierList.items[oldName];
-    this.tierList.items[newName] = item;
+    item.imageUrl = imageUrl ?? item.imageUrl;
+
+    if (newName) {
+      delete this.tierList.items[oldName];
+      this.tierList.items[newName] = item;
+      if (this.tierList.focus === oldName) {
+        this.tierList.focus = newName;
+      }
+    }
     this.update();
 
     return true;
@@ -79,15 +96,20 @@ export class TierListEditor {
     return true;
   }
 
-  updateTier(oldName: string, newName: string, color?: string): boolean {
-    if (!oldName || !newName) return false;
-
+  updateTier(
+    oldName: string,
+    { newName, color }: { newName?: string; color?: string }
+  ): boolean {
     const tier = this.tierList.tiers.find((t) => t.name === oldName);
-    if (!tier || this.tierList.tiers.find((t) => t.name === newName)) {
+    if (
+      !tier ||
+      newName === '' ||
+      this.tierList.tiers.find((t) => t.name === newName)
+    ) {
       return false;
     }
 
-    tier.name = newName;
+    tier.name = newName ?? tier.name;
     tier.color = color ?? tier.color;
     this.update();
 
@@ -95,12 +117,16 @@ export class TierListEditor {
   }
 
   vote(userId: string, message: string): boolean {
-    if (this.tierList.isLocked || !message) return false;
+    if (!this.tierList.isVoting || !message) return false;
 
     const choice = this.parse(message);
     if (!choice) return false;
 
     const [itemName, tierIdx] = choice;
+    if (this.tierList.focus !== null && this.tierList.focus !== itemName) {
+      return false;
+    }
+
     const votes = this.tierList.items[itemName]?.votes;
     if (!votes) return false;
 
@@ -134,6 +160,7 @@ export class TierListEditor {
   }
 
   private update(): void {
+    this.tierList.version = Date.now();
     this.requestToSave();
     this.regex = this.buildRegex();
   }

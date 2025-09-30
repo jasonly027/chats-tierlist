@@ -5,7 +5,7 @@ import type {
   FastifyRequest,
 } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import * as util from '@lib/util.js';
+import { envVar } from '@lib/util.js';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
@@ -16,6 +16,7 @@ import {
   type User as TwitchUser,
 } from '@lib/twitch/types/api.js';
 import axios, { type AxiosResponse } from 'axios';
+import { Type as T } from '@fastify/type-provider-typebox';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -23,7 +24,12 @@ declare module 'fastify' {
   }
 
   interface FastifyRequest {
-    user: SessionProfile | undefined;
+    /** Only initialized if user has a valid session.
+     *  Handlers using this field should add the requireAuth
+     *  middleware to the onRequest hook to ensure user is not
+     *  undefined.
+     */
+    user: SessionProfile;
   }
 
   interface Session {
@@ -51,8 +57,8 @@ export default fastifyPlugin(auth, {
 });
 
 async function registerSession(fastify: FastifyInstance) {
-  const REDIS_URL = util.envVar('REDIS_URL');
-  const SESSION_SECRET = util.envVar('SESSION_SECRET');
+  const REDIS_URL = envVar('REDIS_URL');
+  const SESSION_SECRET = envVar('SESSION_SECRET');
   const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days
 
   fastify.register(fastifyCookie);
@@ -71,15 +77,18 @@ async function registerSession(fastify: FastifyInstance) {
     },
   });
 
-  fastify.addHook('preHandler', async (req) => {
-    req.user = req.session.get('user');
+  fastify.addHook('onRequest', async (req) => {
+    const user = req.session.get('user');
+    if (user) {
+      req.user = user;
+    }
   });
 }
 
 async function registerAuth(fastify: FastifyInstance) {
-  const CLIENT_ID = util.envVar('TWITCH_CLIENT_ID');
-  const CLIENT_SECRET = util.envVar('TWITCH_CLIENT_SECRET');
-  const CALLBACK_URL = util.envVar('TWITCH_CALLBACK_URL');
+  const CLIENT_ID = envVar('TWITCH_CLIENT_ID');
+  const CLIENT_SECRET = envVar('TWITCH_CLIENT_SECRET');
+  const CALLBACK_URL = envVar('TWITCH_CALLBACK_URL');
 
   fastify.register(fastifyOauth2, {
     name: 'twitchOAuth2',
@@ -123,10 +132,22 @@ async function registerAuth(fastify: FastifyInstance) {
     );
   });
 
-  fastify.get('/logout', async (req, res) => {
-    await req.session.destroy();
-    return res.send('OK');
-  });
+  fastify.get(
+    '/logout',
+    {
+      schema: {
+        summary: 'Signs out the user',
+        tags: ['Auth'],
+        response: {
+          200: T.Null({ description: 'Successfully logged out' }),
+        },
+      },
+    },
+    async (req, res) => {
+      await req.session.destroy();
+      return res.code(200).send(null);
+    }
+  );
 }
 
 export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
@@ -135,7 +156,7 @@ export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
   }
 }
 
-const TWITCH_CLIENT_ID = util.envVar('TWITCH_CLIENT_ID');
+const TWITCH_CLIENT_ID = envVar('TWITCH_CLIENT_ID');
 
 async function userProfile(token: string): Promise<TwitchUser> {
   return axios

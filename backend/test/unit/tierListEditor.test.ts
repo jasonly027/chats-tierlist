@@ -1,7 +1,6 @@
 import { Repository } from '@lib/db/repository.js';
 import type { TierList } from '@lib/tierlist/models.js';
 import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import { Channel } from '@lib/twitch/models.js';
 import { expect } from 'chai';
 import Sinon from 'sinon';
 
@@ -12,15 +11,7 @@ describe('TierListEditor', function () {
   beforeEach(function () {
     repo.setTierList.resolves();
 
-    const channel = new Channel({
-      broadcaster_login: 'login',
-      display_name: 'name',
-      id: 'id',
-      is_live: false,
-      thumbnail_url: 'url',
-    });
-
-    editor = new TierListEditor(repo, channel, createTierList());
+    editor = new TierListEditor(repo, 'id', createTierList());
   });
 
   afterEach(function () {
@@ -35,7 +26,9 @@ describe('TierListEditor', function () {
     return {
       tiers: [],
       items: {},
-      isLocked: false,
+      isVoting: true,
+      focus: null,
+      version: Date.now(),
     };
   }
 
@@ -49,12 +42,33 @@ describe('TierListEditor', function () {
       expect(res).to.be.true;
       expect(editor.getTierList()).to.equal(tierList);
     });
+  });
 
-    it('should fail if tier list is locked', function () {
-      editor.setLocked(true);
+  describe('setFocus', function () {
+    beforeEach(function () {
+      editor.addTier('A', 'red');
+      editor.addTier('B', 'blue');
+      editor.addItem('item');
+    });
 
-      const res = editor.setTierList(createTierList());
+    it('should set focus to item', function () {
+      const res = editor.setFocus('item');
 
+      expect(res).to.be.true;
+      expect(editor.getTierList().focus).to.equal('item');
+    });
+
+    it('should set focus to null', function () {
+      editor.setFocus('item');
+
+      const res = editor.setFocus(null);
+
+      expect(res).to.be.true;
+      expect(editor.getTierList().focus).to.be.null;
+    });
+
+    it('should fail if fail is not a valid item', function () {
+      const res = editor.setFocus('not item');
       expect(res).to.be.false;
     });
   });
@@ -101,32 +115,44 @@ describe('TierListEditor', function () {
     it('should not throw when deleting nonexisting item', function () {
       editor.removeItem('item');
     });
+
+    it('should reset focus if deleted item was focused', function () {
+      editor.addItem('item');
+
+      const res = editor.setFocus('item');
+      editor.removeItem('item');
+
+      expect(res).to.be.true;
+      expect(editor.getTierList().focus).to.be.null;
+    });
   });
 
-  describe('renameItem', function () {
-    it('should rename the item', function () {
+  describe('updateItem', function () {
+    it('should update the item', function () {
       editor.addItem('old');
       const item = editor.getTierList().items['old'];
 
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', {
+        newName: 'new',
+        imageUrl: 'image',
+      });
 
       expect(res).to.be.true;
       expect(editor.getTierList().items).to.have.all.keys('new');
       expect(editor.getTierList().items['new']).to.equal(item);
+      expect(item?.imageUrl).to.equal('image');
     });
 
-    it('should fail on empty old name', function () {
-      const res = editor.renameItem('', 'new');
+    it('should fail on nonexisting old name', function () {
+      const res = editor.updateItem('old', {});
       expect(res).to.be.false;
     });
 
     it('should fail on empty new name', function () {
-      const res = editor.renameItem('old', '');
-      expect(res).to.be.false;
-    });
+      editor.addItem('old');
 
-    it('should fail on nonexisting old name', function () {
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', { newName: '' });
+
       expect(res).to.be.false;
     });
 
@@ -134,9 +160,19 @@ describe('TierListEditor', function () {
       editor.addItem('old');
       editor.addItem('new');
 
-      const res = editor.renameItem('old', 'new');
+      const res = editor.updateItem('old', { newName: 'new' });
 
       expect(res).to.be.false;
+    });
+
+    it('should rename focus if item was focused', function () {
+      editor.addItem('old');
+      editor.setFocus('old');
+
+      const res = editor.updateItem('old', { newName: 'new' });
+
+      expect(res).to.be.true;
+      expect(editor.getTierList().focus).to.equal('new');
     });
   });
 
@@ -170,7 +206,10 @@ describe('TierListEditor', function () {
     it('should update the tier', function () {
       editor.addTier('old', 'old color');
 
-      const res = editor.updateTier('old', 'new', 'new color');
+      const res = editor.updateTier('old', {
+        newName: 'new',
+        color: 'new color',
+      });
 
       expect(res).to.be.true;
       expect(editor.getTierList().tiers[0]).to.deep.equal({
@@ -179,18 +218,17 @@ describe('TierListEditor', function () {
       });
     });
 
-    it('should fail on empty old name', function () {
-      const res = editor.updateTier('', 'new');
+    it('should fail on nonexisting old name', function () {
+      const res = editor.updateTier('old', { newName: 'new' });
       expect(res).to.be.false;
     });
 
     it('should fail on empty new name', function () {
-      const res = editor.updateTier('old', '');
-      expect(res).to.be.false;
-    });
+      editor.addTier('old', 'old color');
 
-    it('should fail on nonexisting old name', function () {
-      const res = editor.updateTier('old', 'new');
+      const res = editor.updateTier('old', {
+        newName: '',
+      });
       expect(res).to.be.false;
     });
 
@@ -198,7 +236,9 @@ describe('TierListEditor', function () {
       editor.addTier('old', 'old color');
       editor.addTier('new', 'new color');
 
-      const res = editor.updateTier('old', 'new', 'new color');
+      const res = editor.updateTier('old', {
+        newName: 'new',
+      });
 
       expect(res).to.be.false;
     });
@@ -242,8 +282,8 @@ describe('TierListEditor', function () {
       expect(editor.getTierList().items['item']?.votes['user2']).to.equal(1);
     });
 
-    it('should fail when the tier list is locked', function () {
-      editor.setLocked(true);
+    it('should fail when voting is disabled', function () {
+      editor.setVoting(false);
 
       const res = editor.vote('user', 'item A');
 
@@ -268,6 +308,16 @@ describe('TierListEditor', function () {
     it('should fail when tier does not exist', function () {
       const res = editor.vote('user', 'item notAorB');
       expect(res).to.be.false;
+    });
+
+    it('should fail when item is not the focus', function () {
+      const res1 = editor.addItem('other item');
+      const res2 = editor.setFocus('other item');
+      const res3 = editor.vote('user', 'item A');
+
+      expect(res1).to.be.true;
+      expect(res2).to.be.true;
+      expect(res3).to.be.false;
     });
   });
 });

@@ -1,7 +1,7 @@
 import type { SearchChannel } from './types/api.ts';
 
 export class Channel {
-  private readonly channel: SearchChannel;
+  readonly channel: SearchChannel;
 
   constructor(channel: SearchChannel) {
     this.channel = channel;

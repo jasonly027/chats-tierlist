@@ -7,7 +7,7 @@ import {
 import { baseLogger } from '@lib/util.js';
 import { Mutex } from 'async-mutex';
 
-const logger = baseLogger.child({ module: 'TierListManager' });
+const logger = baseLogger.child({ module: 'TierListListener' });
 
 export class TierListListener {
   private readonly store: TierListStore;
@@ -36,7 +36,7 @@ export class TierListListener {
 
       const broadcast = new Broadcast(channel, (msg) => {
         if (msg.type === 'message') {
-          this.store.getEditor(channel).then((editor) => {
+          this.store.getEditor(channel.id()).then((editor) => {
             editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
           });
         } else {

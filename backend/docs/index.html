@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script
+      type="module"
+      src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"
+    ></script>
+  </head>
+  <body>
+    <!-- Generate the spec with `npm run openapi` -->
+    <rapi-doc
+      spec-url="openapi.yaml"
+      theme="dark"
+      show-info="true"
+      show-header="false"
+      render-style="view"
+      allow-try="false"
+      font-size="largest"
+      primary-color="#a970ff"
+      schema-style="table"
+    >
+    </rapi-doc>
+  </body>
+</html>

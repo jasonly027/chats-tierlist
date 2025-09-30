@@ -5,7 +5,6 @@ import { TwitchWebSocket } from '@lib/twitch/twitchWebSocket.js';
 import { TierListListener } from '@lib/tierlist/tierListListener.js';
 import { TierListStore } from '@lib/tierlist/tierListStore.js';
 import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import type { Channel } from '@lib/twitch/models.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -17,13 +16,15 @@ declare module 'fastify' {
 }
 
 const tierlist: FastifyPluginAsync = async (fastify) => {
-  const createEditor = async (channel: Channel) => {
-    const tierList = (await fastify.repo.getTierList(channel.id())) ?? {
+  const createEditor = async (channelId: string) => {
+    const tierList = (await fastify.repo.getTierList(channelId)) ?? {
       tiers: [],
       items: {},
-      isLocked: false,
+      isVoting: false,
+      focus: null,
+      version: Date.now(),
     };
-    return new TierListEditor(fastify.repo, channel, tierList);
+    return new TierListEditor(fastify.repo, channelId, tierList);
   };
   const store = new TierListStore(createEditor);
 

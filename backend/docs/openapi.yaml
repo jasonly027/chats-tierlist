@@ -1,0 +1,339 @@
+openapi: 3.1.1
+info:
+  title: Chat's TierList
+  version: 0.1.0
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionId
+  schemas:
+    def-0:
+      type: object
+      properties:
+        statusCode:
+          type: number
+        code:
+          type: string
+        error:
+          type: string
+        message:
+          type: string
+      title: HttpError
+paths:
+  /login/callback:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /logout:
+    get:
+      summary: Signs out the user
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Successfully logged out
+  /login:
+    get:
+      tags: []
+      responses:
+        "200":
+          description: Default Response
+  /:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /subscribe:
+    get:
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: query
+          name: name
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /subscriptions:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /revoke:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /tierlist:
+    put:
+      summary: Overwrite entire tier list
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tier_list
+              properties:
+                tier_list:
+                  type: object
+                  required:
+                    - tiers
+                    - items
+                  properties:
+                    tiers:
+                      type: object
+                      maxProperties: 50
+                      additionalProperties:
+                        type: object
+                        required:
+                          - color
+                        properties:
+                          color:
+                            type: string
+                            minLength: 1
+                            description: Background color of the tier
+                    items:
+                      type: object
+                      maxProperties: 500
+                      additionalProperties:
+                        type: object
+                        properties:
+                          image_url:
+                            type: string
+                            minLength: 1
+                            description: An optional image URL
+        required: true
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Successfully overwrote tier list
+    patch:
+      summary: Update settings on the tier list
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                focus:
+                  type: string
+                  minLength: 1
+                  description: Name of the item to focus
+                is_voting:
+                  type: boolean
+                  description: Determine whether votes should be parsed or ignored
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Successfully updated settings on the tier list
+        "404":
+          description: Focus target does not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                description: Focus target does not exist
+  /tierlist/tier:
+    post:
+      summary: Add a new tier
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - color
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  description: Name of the tier
+                color:
+                  type: string
+                  minLength: 1
+                  description: Background color of the tier
+        required: true
+      security:
+        - cookieAuth: []
+      responses:
+        "201":
+          description: Successfully added tier
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                description: Conflict
+  /tierlist/tier/{name}:
+    patch:
+      summary: Update an existing tier
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  description: Name of the tier
+                color:
+                  type: string
+                  minLength: 1
+                  description: Background color of the tier
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: path
+          name: name
+          required: true
+          description: Name of the tier
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Successfully updated tier
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                description: Conflict
+  /tierlist/item:
+    post:
+      summary: Adds a new item
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  description: Name of the item
+                image_url:
+                  type: string
+                  minLength: 1
+                  description: Image url of the item
+        required: true
+      security:
+        - cookieAuth: []
+      responses:
+        "201":
+          description: Successfully added item
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                description: Conflict
+  /tierlist/item/{name}:
+    patch:
+      summary: Updates an item
+      tags:
+        - Tier List
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  description: Name of the item
+                image_url:
+                  type: string
+                  minLength: 1
+                  description: Image url of the item
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: path
+          name: name
+          required: true
+          description: Name of the item
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Successfully updated item
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+                description: Conflict
+    delete:
+      summary: Deletes an item
+      tags:
+        - Tier List
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          in: path
+          name: name
+          required: true
+          description: Name of the item
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Successfully deleted item
+servers:
+  - url: http://localhost:3000
+    description: Development server
+

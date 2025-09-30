@@ -96,7 +96,9 @@ describe('Repository', function () {
     return {
       tiers: [],
       items: {},
-      isLocked: false,
+      isVoting: false,
+      focus: null,
+      version: Date.now(),
     };
   }
 

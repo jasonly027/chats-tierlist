@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { TwitchClient } from '@lib/twitch/twitchClient.js';
-import * as util from '@lib/util.js';
+import { envVar, baseLogger } from '@lib/util.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -13,9 +13,9 @@ declare module 'fastify' {
 
 const twitch: FastifyPluginAsync = async (fastify) => {
   const client = await TwitchClient.create({
-    clientId: util.envVar('TWITCH_CLIENT_ID'),
-    clientSecret: util.envVar('TWITCH_CLIENT_SECRET'),
-    refreshToken: util.envVar('TWITCH_REFRESH_TOKEN'),
+    clientId: envVar('TWITCH_CLIENT_ID'),
+    clientSecret: envVar('TWITCH_CLIENT_SECRET'),
+    refreshToken: envVar('TWITCH_REFRESH_TOKEN'),
   });
 
   startValidationInterval(client);
@@ -29,7 +29,7 @@ export default fastifyPlugin(twitch, {
 
 // Validates the client token immediately and continues to do so every hour.
 function startValidationInterval(client: TwitchClient): void {
-  const logger = util.baseLogger.child({ module: 'TwitchClientValidator' });
+  const logger = baseLogger.child({ module: 'TwitchClientValidator' });
 
   client.validate();
   const VALIDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
