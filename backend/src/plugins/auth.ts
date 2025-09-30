@@ -23,7 +23,12 @@ declare module 'fastify' {
   }
 
   interface FastifyRequest {
-    user: SessionProfile | undefined;
+    /** Only initialized if user has a valid session.
+     *  Handlers using this field should add the requireAuth
+     *  middleware to the onRequest hook to ensure user is not
+     *  undefined.
+     */
+    user: SessionProfile;
   }
 
   interface Session {
@@ -71,8 +76,11 @@ async function registerSession(fastify: FastifyInstance) {
     },
   });
 
-  fastify.addHook('preHandler', async (req) => {
-    req.user = req.session.get('user');
+  fastify.addHook('onRequest', async (req) => {
+    const user = req.session.get('user');
+    if (user) {
+      req.user = user;
+    }
   });
 }
 

@@ -9,7 +9,7 @@ import tierlist from './tierlist.ts';
 import websocket from './websocket.ts';
 
 const plugins: FastifyPluginCallback = (fastify) => {
-  fastify.register(fastifySensible);
+  fastify.register(fastifySensible, { sharedSchemaId: 'HttpError' });
   fastify.register(websocket);
   fastify.register(repo);
   fastify.register(twitch);

@@ -1,6 +1,6 @@
 import Fastify, { type FastifyPluginAsync } from 'fastify';
 import plugins from './plugins/_plugins.js';
-import routes from './routes/_routes.ts';
+import routes from './routes.ts';
 import { baseLogger } from '@lib/util.js';
 import {
   TypeBoxValidatorCompiler,

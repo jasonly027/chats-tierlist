@@ -9,7 +9,7 @@
     "start": "node --env-file .env dist/src/index.js",
     "check": "tsc --noEmit && prettier --check . && eslint .",
     "openapi": "tsx --env-file .env scripts/openapi.ts",
-    "docs": "http-server docs/",
+    "docs": "npm run openapi && http-server -c-1 docs/",
     "test": "mocha --require tsx \"test/**/*.{ts,js,cjs,mjs}\"",
     "test:watch": "mocha --require tsx --watch \"./test/**/*.{ts,js,cjs,mjs}\"",
     "dev": "tsx --env-file .env src/index.ts | pino-pretty",
