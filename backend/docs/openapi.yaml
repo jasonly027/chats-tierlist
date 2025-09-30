@@ -3,6 +3,11 @@ info:
   title: Chat's TierList
   version: 0.1.0
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionId
   schemas:
     def-0:
       type: object
@@ -24,9 +29,12 @@ paths:
           description: Default Response
   /logout:
     get:
+      summary: Signs out the user
+      tags:
+        - Auth
       responses:
         "200":
-          description: Default Response
+          description: Successfully logged out
   /login:
     get:
       tags: []
@@ -102,6 +110,8 @@ paths:
                             minLength: 1
                             description: An optional image URL
         required: true
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Successfully overwrote tier list
@@ -122,6 +132,8 @@ paths:
                 is_voting:
                   type: boolean
                   description: Determine whether votes should be parsed or ignored
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Successfully updated settings on the tier list
@@ -160,6 +172,8 @@ paths:
                   minLength: 1
                   description: Background color of the tier
         required: true
+      security:
+        - cookieAuth: []
       responses:
         "201":
           description: Successfully added tier
@@ -202,6 +216,8 @@ paths:
           name: name
           required: true
           description: Name of the tier
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Successfully updated tier
@@ -239,6 +255,8 @@ paths:
                   minLength: 1
                   description: Image url of the item
         required: true
+      security:
+        - cookieAuth: []
       responses:
         "201":
           description: Successfully added item
@@ -281,6 +299,8 @@ paths:
           name: name
           required: true
           description: Name of the item
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Successfully updated item
@@ -308,6 +328,8 @@ paths:
           name: name
           required: true
           description: Name of the item
+      security:
+        - cookieAuth: []
       responses:
         "204":
           description: Successfully deleted item

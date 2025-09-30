@@ -142,6 +142,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
         response: {
           204: T.Null({ description: 'Successfully overwrote tier list' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -186,6 +187,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
             { description: 'Focus target does not exist' }
           ),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -234,6 +236,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
           201: T.Null({ description: 'Successfully added tier' }),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -270,6 +273,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
           204: T.Null({ description: 'Successfully updated tier' }),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -321,6 +325,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
           201: T.Null({ description: 'Successfully added item' }),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -357,6 +362,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
           204: T.Null({ description: 'Successfully updated item' }),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
@@ -393,6 +399,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
         response: {
           204: T.Null({ description: 'Successfully deleted item' }),
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {

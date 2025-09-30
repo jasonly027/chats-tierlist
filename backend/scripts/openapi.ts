@@ -19,6 +19,15 @@ const swagger: FastifyPluginCallback = (fastify) => {
           description: 'Development server',
         },
       ],
+      components: {
+        securitySchemes: {
+          cookieAuth: {
+            type: 'apiKey',
+            in: 'cookie',
+            name: 'sessionId',
+          },
+        },
+      },
     },
   });
 };
@@ -29,6 +38,11 @@ await fastify.register(swaggerPlugin);
 await fastify.register(serverPlugin);
 await fastify.ready();
 
-await fs.writeFileSync('docs/openapi.yaml', fastify.swagger({ yaml: true }) + '\n');
-console.log('Spec written to docs/openapi.yaml.\nView docs with `npm run docs`.')
+await fs.writeFileSync(
+  'docs/openapi.yaml',
+  fastify.swagger({ yaml: true }) + '\n'
+);
+console.log(
+  'Spec written to docs/openapi.yaml.\nView docs with `npm run docs`.'
+);
 process.exit(0);

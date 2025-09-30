@@ -16,6 +16,7 @@ import {
   type User as TwitchUser,
 } from '@lib/twitch/types/api.js';
 import axios, { type AxiosResponse } from 'axios';
+import { Type as T } from '@fastify/type-provider-typebox';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -131,10 +132,22 @@ async function registerAuth(fastify: FastifyInstance) {
     );
   });
 
-  fastify.get('/logout', async (req, res) => {
-    await req.session.destroy();
-    return res.send('OK');
-  });
+  fastify.get(
+    '/logout',
+    {
+      schema: {
+        summary: 'Signs out the user',
+        tags: ['Auth'],
+        response: {
+          200: T.Null({ description: 'Successfully logged out' }),
+        },
+      },
+    },
+    async (req, res) => {
+      await req.session.destroy();
+      return res.code(200).send(null);
+    }
+  );
 }
 
 export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
