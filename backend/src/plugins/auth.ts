@@ -60,6 +60,7 @@ async function registerSession(fastify: FastifyInstance) {
   const REDIS_URL = envVar('REDIS_URL');
   const SESSION_SECRET = envVar('SESSION_SECRET');
   const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days
+  const COOKIE_DOMAIN = envVar('COOKIE_DOMAIN');
 
   fastify.register(fastifyCookie);
 
@@ -71,9 +72,12 @@ async function registerSession(fastify: FastifyInstance) {
     secret: SESSION_SECRET,
     saveUninitialized: false,
     store: redisStore,
+    cookieName: 'chatsTierListSessionId',
     cookie: {
       maxAge: SESSION_TTL,
-      secure: process.env['NODE_ENV'] === 'production',
+      secure: true,
+      sameSite: 'strict',
+      domain: COOKIE_DOMAIN,
     },
   });
 
@@ -89,6 +93,7 @@ async function registerAuth(fastify: FastifyInstance) {
   const CLIENT_ID = envVar('TWITCH_CLIENT_ID');
   const CLIENT_SECRET = envVar('TWITCH_CLIENT_SECRET');
   const CALLBACK_URL = envVar('TWITCH_CALLBACK_URL');
+  const REDIRECT_URL = envVar('LOGIN_REDIRECT_URL');
 
   fastify.register(fastifyOauth2, {
     name: 'twitchOAuth2',
@@ -107,6 +112,10 @@ async function registerAuth(fastify: FastifyInstance) {
 
     startRedirectPath: '/login',
     callbackUri: CALLBACK_URL,
+
+    cookie: {
+      secure: true,
+    },
   });
 
   fastify.get('/login/callback', async (req, res) => {
@@ -128,7 +137,7 @@ async function registerAuth(fastify: FastifyInstance) {
     const createSession = req.session.save();
 
     return Promise.all([createUser, createSession]).then(() =>
-      res.redirect('/')
+      res.redirect(REDIRECT_URL)
     );
   });
 

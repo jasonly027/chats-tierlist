@@ -17,6 +17,11 @@
 
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }

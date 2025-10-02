@@ -1,1 +1,51 @@
 @import 'tailwindcss';
+
+@font-face {
+  font-family: Lexend Deca;
+  src: url('/fonts/LexendDeca-VariableFont_wght.ttf');
+}
+
+body {
+  @apply bg-gray-900 text-gray-50 selection:bg-violet-400;
+}
+
+button {
+  cursor: pointer;
+}
+
+button, input {
+    user-select: none;
+}
+
+.redBall {
+  background-color: red;
+  box-shadow: 0 0 50vh min(30vw, 30vh) red;
+}
+
+.greenBall {
+  background-color: rgb(35, 237, 13);
+  box-shadow: 0 0 50vh min(25vw, 25vh) rgb(35, 237, 13);
+}
+
+.yellowBall {
+  background-color: yellow;
+  box-shadow: 0 0 50vh min(30vw, 30vh) yellow;
+}
+
+
+.redBall,
+.greenBall,
+.yellowBall {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+
+@keyframes moveRight {
+  0% { left: 0; }
+  100% { left: 80vw; } /* adjust distance as needed */
+}
+
+.ballsContainer {
+  animation: moveRight 30s linear infinite alternate;
+}
