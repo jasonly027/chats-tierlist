@@ -8,7 +8,7 @@ function Index() {
   return (
     <>
       <BallBackground />
-      <main className="mx-4 h-screen flex flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
+      <main className="mx-4 flex h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
         <LogInButton />
         <article>
           <h1 className="text-center font-[Lexend_Deca] text-6xl font-semibold sm:text-7xl md:text-8xl">
