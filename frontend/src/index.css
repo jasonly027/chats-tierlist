@@ -3,6 +3,7 @@
 @font-face {
   font-family: Lexend Deca;
   src: url('/fonts/LexendDeca-VariableFont_wght.ttf');
+  font-display: swap;
 }
 
 body {

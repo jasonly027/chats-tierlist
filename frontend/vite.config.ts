@@ -1,3 +1,5 @@
+import path from 'path';
+
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
@@ -12,8 +14,12 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
       routesDirectory: './src/app/routes',
-      generatedRouteTree: './src/app/routeTree.gen.ts'
+      generatedRouteTree: './src/app/routeTree.gen.ts',
     }),
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
 });
-

@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { env } from '@/config/env';
+
 export const Route = createFileRoute('/')({
   component: Index,
 });
@@ -11,7 +13,7 @@ function Index() {
       <main className="mx-4 flex h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
         <LogInButton />
         <article>
-          <h1 className="text-center font-[Lexend_Deca] text-6xl font-semibold sm:text-7xl md:text-8xl">
+          <h1 className="text-center font-[Lexend_Deca,_Arial] text-6xl font-semibold sm:text-7xl md:text-8xl">
             Chat's TierList
           </h1>
           <h2 className="text-center max-sm:mx-13 sm:text-lg md:text-xl">
@@ -63,7 +65,7 @@ function LogInButton() {
     <a
       className="absolute top-4 right-4 flex flex-row items-center gap-px fill-gray-50 p-1 font-semibold transition-colors duration-300 select-none hover:fill-violet-600 hover:text-violet-600 md:text-lg"
       draggable={false}
-      href={import.meta.env.VITE_LOGIN_URL}
+      href={env.LOGIN_URL}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
