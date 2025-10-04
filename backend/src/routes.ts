@@ -5,16 +5,16 @@ import type { FastifyBaseLogger, FastifySchema } from 'fastify';
 import {
   FreshTierListSchema,
   tierListFromFreshTierList,
-} from '@lib/tierlist/models.js';
-import type { TierListListener } from '@lib/tierlist/tierListListener.js';
-import type { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { Channel } from '@lib/twitch/models.js';
+} from '@/lib/tierlist/models';
+import type { TierListListener } from '@/lib/tierlist/tierListListener';
+import type { TierListStore } from '@/lib/tierlist/tierListStore';
 import type {
   FastifyReplyTypeBox,
   FastifyRequestTypeBox,
   FastifyTypeBox,
-} from '@lib/util.js';
-import { requireAuth } from '@plugins/auth.js';
+} from '@/lib/util';
+import { requireAuth } from '@/server/plugins/auth';
+import { Channel } from '@/shared/twitch/models';
 
 export default function (fastify: FastifyTypeBox) {
   fastify.register(devRoutes);
@@ -418,7 +418,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
 }
 
 function devRoutes(fastify: FastifyTypeBox) {
-  fastify.get('/', { onRequest: [requireAuth] }, (req) => {
+  fastify.get('/', { onRequest: requireAuth }, (req) => {
     return `Hello World ${JSON.stringify(req.user)}`;
   });
 

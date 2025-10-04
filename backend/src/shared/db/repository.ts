@@ -1,7 +1,7 @@
 import * as pg from 'pg';
 
-import * as model from '@lib/db/models.js';
-import type { TierList } from '@lib/tierlist/models.js';
+import type { TierList } from '@/lib/tierlist/models';
+import * as model from '@/shared/db/models';
 
 export class Repository {
   private readonly db: pg.Pool | pg.Client;

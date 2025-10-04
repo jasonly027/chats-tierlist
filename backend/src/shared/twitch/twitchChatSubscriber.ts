@@ -1,17 +1,17 @@
 import { Mutex } from 'async-mutex';
 import { AxiosError } from 'axios';
 
-import { baseLogger } from '@lib/util.js';
+import { baseLogger } from '@/lib/util';
+import type { Channel } from '@/shared/twitch/models';
+import type { TwitchClient } from '@/shared/twitch/twitchClient';
+import { TwitchWebSocket } from '@/shared/twitch/twitchWebSocket';
 
-import type { Channel } from './models.ts';
-import type { TwitchClient } from './twitchClient.ts';
-import { TwitchWebSocket } from './twitchWebSocket.ts';
 import {
   ChatMessageEventSchema,
   type ChatMessageEvent,
   type NotifcationMessage,
   type RevocationMessage,
-} from './types/webSocket.ts';
+} from '@/shared/twitch/types/webSocket';
 
 const logger = baseLogger.child({ module: 'TwitchChatSubscriber' });
 
@@ -89,7 +89,9 @@ export class TwitchChatSubscriber {
 
       await this.client
         .deleteChatMessageSubscription(broadcast.subscriptionId)
-        .catch((err) => logger.error({ err }, 'Failed to delete subscription'));
+        .catch((err: Error) =>
+          logger.error({ err }, 'Failed to delete subscription')
+        );
 
       logger.info({ broadcast }, 'Unsubscribed from broadcast');
     });

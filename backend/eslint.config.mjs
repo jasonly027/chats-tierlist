@@ -1,13 +1,14 @@
 // @ts-check
 
 import js from '@eslint/js';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
 import json from '@eslint/json';
+import { defineConfig, globalIgnores } from 'eslint/config';
+// @ts-expect-error No declaration
+import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
 import imports from 'eslint-plugin-import';
 import prettier from 'eslint-plugin-prettier/recommended';
-import { defineConfig, globalIgnores } from 'eslint/config';
-import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -22,7 +23,7 @@ export default defineConfig([
       prettier,
     ],
     plugins: {
-      // @ts-expect-error Plugin doesn't provide TS
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       'chai-friendly': pluginChaiFriendly,
     },
     languageOptions: {

@@ -1,8 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
-import { TwitchClient } from '@lib/twitch/twitchClient.js';
-import { envVar, baseLogger } from '@lib/util.js';
+import { env } from '@/config';
+import { baseLogger } from '@/lib/util';
+import { TwitchClient } from '@/shared/twitch/twitchClient';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -14,9 +15,9 @@ declare module 'fastify' {
 
 const twitch: FastifyPluginAsync = async (fastify) => {
   const client = await TwitchClient.create({
-    clientId: envVar('TWITCH_CLIENT_ID'),
-    clientSecret: envVar('TWITCH_CLIENT_SECRET'),
-    refreshToken: envVar('TWITCH_REFRESH_TOKEN'),
+    clientId: env.TWITCH_CLIENT_ID,
+    clientSecret: env.TWITCH_CLIENT_SECRET,
+    refreshToken: env.TWITCH_REFRESH_TOKEN,
   });
 
   startValidationInterval(client);

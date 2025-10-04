@@ -1,11 +1,11 @@
 import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
-import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import { TierListListener } from '@lib/tierlist/tierListListener.js';
-import { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { TwitchChatSubscriber } from '@lib/twitch/twitchChatSubscriber.js';
-import { TwitchWebSocket } from '@lib/twitch/twitchWebSocket.js';
+import { TierListEditor } from '@/lib/tierlist/tierListEditor';
+import { TierListListener } from '@/lib/tierlist/tierListListener';
+import { TierListStore } from '@/lib/tierlist/tierListStore';
+import { TwitchChatSubscriber } from '@/shared/twitch/twitchChatSubscriber';
+import { TwitchWebSocket } from '@/shared/twitch/twitchWebSocket';
 
 declare module 'fastify' {
   interface FastifyInstance {

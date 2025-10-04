@@ -1,4 +1,4 @@
-import type { SearchChannel } from './types/api.ts';
+import type { SearchChannel } from '@/shared/twitch/types/api';
 
 export class Channel {
   readonly channel: SearchChannel;

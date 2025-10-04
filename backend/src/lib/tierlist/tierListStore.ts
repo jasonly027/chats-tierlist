@@ -1,8 +1,6 @@
-import { baseLogger } from '@lib/util.js';
 import { LRUCache } from 'lru-cache';
-import type { TierListEditor } from './tierListEditor.ts';
 
-const logger = baseLogger.child({ module: 'TierListEditor' });
+import type { TierListEditor } from '@/lib/tierlist/tierListEditor';
 
 export class TierListStore {
   private readonly cache: LRUCache<string, TierListEditor>;
@@ -15,24 +13,16 @@ export class TierListStore {
       },
 
       async fetchMethod(key, _value) {
-        try {
-          return await createEditor(key);
-        } catch (err) {
-          logger.error({ err }, 'Failed to create editor');
-          throw err;
-        }
+        return await createEditor(key);
       },
 
       dispose(editor) {
-        editor.save();
+        void editor.save();
       },
     });
   }
 
   getEditor(channelId: string): Promise<TierListEditor | undefined> {
-    return this.cache.fetch(channelId).catch((err) => {
-      logger.error({ err }, 'Failed to fetch editor');
-      return undefined;
-    });
+    return this.cache.fetch(channelId);
   }
 }

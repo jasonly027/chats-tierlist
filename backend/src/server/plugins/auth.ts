@@ -9,15 +9,16 @@ import type {
   FastifyPluginAsync,
   FastifyReply,
   FastifyRequest,
+  HookHandlerDoneFunction,
 } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import { createClient } from 'redis';
 
+import { env } from '@/config';
 import {
   UserResponseSchema,
   type User as TwitchUser,
-} from '@lib/twitch/types/api.js';
-import { envVar } from '@lib/util.js';
+} from '@/shared/twitch/types/api';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -58,19 +59,16 @@ export default fastifyPlugin(auth, {
 });
 
 async function registerSession(fastify: FastifyInstance) {
-  const REDIS_URL = envVar('REDIS_URL');
-  const SESSION_SECRET = envVar('SESSION_SECRET');
   const SESSION_TTL = 5 * 24 * 60 * 60 * 1000; // 5 days
-  const COOKIE_DOMAIN = envVar('COOKIE_DOMAIN');
 
   fastify.register(fastifyCookie);
 
-  const redisClient = createClient({ url: REDIS_URL });
+  const redisClient = createClient({ url: env.REDIS_URL });
   await redisClient.connect();
   const redisStore = new RedisStore({ client: redisClient });
 
   fastify.register(fastifySession, {
-    secret: SESSION_SECRET,
+    secret: env.SESSION_SECRET,
     saveUninitialized: false,
     store: redisStore,
     cookieName: 'chatsTierListSessionId',
@@ -78,41 +76,37 @@ async function registerSession(fastify: FastifyInstance) {
       maxAge: SESSION_TTL,
       secure: true,
       sameSite: 'strict',
-      domain: COOKIE_DOMAIN,
+      domain: env.COOKIE_DOMAIN,
     },
   });
 
-  fastify.addHook('onRequest', (req) => {
+  fastify.addHook('onRequest', (req, _res, done) => {
     const user = req.session.get('user');
     if (user) {
       req.user = user;
     }
+    done();
   });
 }
 
 function registerAuth(fastify: FastifyInstance) {
-  const CLIENT_ID = envVar('TWITCH_CLIENT_ID');
-  const CLIENT_SECRET = envVar('TWITCH_CLIENT_SECRET');
-  const CALLBACK_URL = envVar('TWITCH_CALLBACK_URL');
-  const REDIRECT_URL = envVar('LOGIN_REDIRECT_URL');
-
   fastify.register(fastifyOauth2, {
     name: 'twitchOAuth2',
     scope: [],
     credentials: {
       client: {
-        id: CLIENT_ID,
-        secret: CLIENT_SECRET,
+        id: env.TWITCH_CLIENT_ID,
+        secret: env.TWITCH_CLIENT_SECRET,
       },
-      auth: fastifyOauth2.fastifyOauth2.TWITCH_CONFIGURATION,
+      auth: fastifyOauth2.TWITCH_CONFIGURATION,
     },
     tokenRequestParams: {
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
+      client_id: env.TWITCH_CLIENT_ID,
+      client_secret: env.TWITCH_CLIENT_SECRET,
     },
 
     startRedirectPath: '/login',
-    callbackUri: CALLBACK_URL,
+    callbackUri: env.TWITCH_CALLBACK_URL,
 
     cookie: {
       secure: true,
@@ -138,7 +132,7 @@ function registerAuth(fastify: FastifyInstance) {
     const createSession = req.session.save();
 
     return Promise.all([createUser, createSession]).then(() =>
-      res.redirect(REDIRECT_URL)
+      res.redirect(env.REDIS_URL)
     );
   });
 
@@ -160,19 +154,23 @@ function registerAuth(fastify: FastifyInstance) {
   );
 }
 
-export async function requireAuth(req: FastifyRequest, res: FastifyReply) {
+export function requireAuth(
+  req: FastifyRequest,
+  res: FastifyReply,
+  done: HookHandlerDoneFunction
+) {
   if (!req.user) {
-    return res.unauthorized();
+    res.unauthorized();
+    return;
   }
+  done();
 }
-
-const TWITCH_CLIENT_ID = envVar('TWITCH_CLIENT_ID');
 
 async function userProfile(token: string): Promise<TwitchUser> {
   return axios
     .get('https://api.twitch.tv/helix/users', {
       headers: {
-        ['Client-Id']: TWITCH_CLIENT_ID,
+        ['Client-Id']: env.TWITCH_CLIENT_ID,
         Authorization: `Bearer ${token}`,
       },
     })
@@ -186,7 +184,7 @@ async function revokeUserToken(token: string): Promise<AxiosResponse> {
   return axios.post(
     `https://id.twitch.tv/oauth2/revoke`,
     {
-      client_id: TWITCH_CLIENT_ID,
+      client_id: env.TWITCH_CLIENT_ID,
       token: token,
     },
     {

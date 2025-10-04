@@ -1,9 +1,8 @@
 import escapeStringRegexp from 'escape-string-regexp';
 
-import type { Repository } from '@lib/db/repository.js';
-import { baseLogger } from '@lib/util.js';
-
-import type { TierList } from './models.ts';
+import type { TierList } from '@/lib/tierlist/models';
+import { baseLogger } from '@/lib/util';
+import type { Repository } from '@/shared/db/repository';
 
 const logger = baseLogger.child({ module: 'TierListEditor' });
 

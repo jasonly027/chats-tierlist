@@ -6,9 +6,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 
-import { baseLogger } from '@lib/util.js';
+import { baseLogger } from '@/lib/util';
 
-import * as tw from './types/api.js';
+import * as tw from './types/api';
 
 const logger = baseLogger.child({ module: 'TwitchClient' });
 

@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import Sinon from 'sinon';
 
-import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import { TierListListener } from '@lib/tierlist/tierListListener.js';
-import { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { Channel } from '@lib/twitch/models.js';
+import { TierListEditor } from '@/lib/tierlist/tierListEditor';
+import { TierListListener } from '@/lib/tierlist/tierListListener';
+import { TierListStore } from '@/lib/tierlist/tierListStore';
+import { Channel } from '@/shared/twitch/models';
 import {
   TwitchChatSubscriber,
   type SubscriberEvent,
-} from '@lib/twitch/twitchChatSubscriber.js';
+} from '@/shared/twitch/twitchChatSubscriber';
 
 describe('TierListListener', function () {
   let listener: TierListListener;
