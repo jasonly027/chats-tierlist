@@ -1,11 +1,13 @@
-import Fastify, { type FastifyPluginAsync } from 'fastify';
-import plugins from './plugins/_plugins.js';
-import routes from './routes.ts';
-import { baseLogger } from '@lib/util.js';
 import {
   TypeBoxValidatorCompiler,
   type TypeBoxTypeProvider,
 } from '@fastify/type-provider-typebox';
+import Fastify, { type FastifyPluginAsync } from 'fastify';
+
+import { baseLogger } from '@lib/util.js';
+
+import plugins from './plugins/_plugins.js';
+import routes from './routes.ts';
 
 const serverPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.withTypeProvider<TypeBoxTypeProvider>();

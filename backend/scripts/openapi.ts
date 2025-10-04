@@ -1,9 +1,11 @@
+import fs from 'fs';
+
 import fastifySwagger from '@fastify/swagger';
 import type { FastifyPluginCallback } from 'fastify';
-import fastifyPlugin from 'fastify-plugin';
-import serverPlugin from '../src/server.ts';
 import Fastify from 'fastify';
-import fs from 'fs';
+import fastifyPlugin from 'fastify-plugin';
+
+import serverPlugin from '../src/server.ts';
 
 const swagger: FastifyPluginCallback = (fastify) => {
   fastify.register(fastifySwagger, {
@@ -38,10 +40,7 @@ await fastify.register(swaggerPlugin);
 await fastify.register(serverPlugin);
 await fastify.ready();
 
-await fs.writeFileSync(
-  'docs/openapi.yaml',
-  fastify.swagger({ yaml: true }) + '\n'
-);
+fs.writeFileSync('docs/openapi.yaml', fastify.swagger({ yaml: true }) + '\n');
 console.log(
   'Spec written to docs/openapi.yaml.\nView docs with `npm run docs`.'
 );

@@ -1,5 +1,6 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
+
 import database from '@lib/db/database.js';
 import { Repository } from '@lib/db/repository.js';
 
@@ -9,7 +10,7 @@ declare module 'fastify' {
   }
 }
 
-const repo: FastifyPluginAsync = async (fastify) => {
+const repo: FastifyPluginCallback = (fastify) => {
   const repo = new Repository(database);
   fastify.decorate('repo', repo);
 };

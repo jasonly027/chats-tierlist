@@ -1,6 +1,7 @@
-import { Pool } from 'pg';
-import { envVar } from '@lib/util.js';
 import { runner as migration_runner } from 'node-pg-migrate';
+import { Pool } from 'pg';
+
+import { envVar } from '@lib/util.js';
 
 const CONNECTION_TIMEOUT_MS = 1000 * 10; // 10 secs
 const IDLE_TIMEOUT_MS = 1000 * 60; // 60 secs

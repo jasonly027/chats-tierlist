@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { AxiosError } from 'axios';
 import type {
@@ -12,7 +14,6 @@ import type {
   RawServerDefault,
   RouteGenericInterface,
 } from 'fastify';
-import fs from 'fs';
 import pino, { stdSerializers } from 'pino';
 
 export type FastifyTypeBox = FastifyInstance<
@@ -44,13 +45,13 @@ export type FastifyReplyTypeBox<TSchema extends FastifySchema> = FastifyReply<
 
 export function envVar(key: string): string {
   if (process.env[key]) {
-    return process.env[key]!;
+    return process.env[key];
   }
 
   const fileEnvKey = `${key}_FILE`;
   if (process.env[fileEnvKey]) {
     try {
-      return fs.readFileSync(process.env[fileEnvKey]!, 'utf8').trim();
+      return fs.readFileSync(process.env[fileEnvKey], 'utf8').trim();
     } catch (err) {
       console.error(`Failed to read file for ${fileEnvKey}:`, err);
     }
@@ -68,7 +69,7 @@ export const baseLogger = pino({
         delete err.config?.httpAgent;
         delete err.config?.httpsAgent;
       }
-      return stdSerializers.errWithCause(err);
+      return stdSerializers.errWithCause(err as Error);
     },
   },
 });

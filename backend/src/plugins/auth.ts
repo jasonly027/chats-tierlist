@@ -1,3 +1,9 @@
+import fastifyCookie from '@fastify/cookie';
+import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
+import fastifySession from '@fastify/session';
+import { Type as T } from '@fastify/type-provider-typebox';
+import axios, { type AxiosResponse } from 'axios';
+import { RedisStore } from 'connect-redis';
 import type {
   FastifyInstance,
   FastifyPluginAsync,
@@ -5,18 +11,13 @@ import type {
   FastifyRequest,
 } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { envVar } from '@lib/util.js';
-import fastifyCookie from '@fastify/cookie';
-import fastifySession from '@fastify/session';
-import fastifyOauth2, { type OAuth2Namespace } from '@fastify/oauth2';
-import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
+
 import {
   UserResponseSchema,
   type User as TwitchUser,
 } from '@lib/twitch/types/api.js';
-import axios, { type AxiosResponse } from 'axios';
-import { Type as T } from '@fastify/type-provider-typebox';
+import { envVar } from '@lib/util.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -45,7 +46,7 @@ export interface SessionProfile {
 
 const auth: FastifyPluginAsync = async (fastify) => {
   await registerSession(fastify);
-  await registerAuth(fastify);
+  registerAuth(fastify);
 };
 
 export default fastifyPlugin(auth, {
@@ -81,7 +82,7 @@ async function registerSession(fastify: FastifyInstance) {
     },
   });
 
-  fastify.addHook('onRequest', async (req) => {
+  fastify.addHook('onRequest', (req) => {
     const user = req.session.get('user');
     if (user) {
       req.user = user;
@@ -89,7 +90,7 @@ async function registerSession(fastify: FastifyInstance) {
   });
 }
 
-async function registerAuth(fastify: FastifyInstance) {
+function registerAuth(fastify: FastifyInstance) {
   const CLIENT_ID = envVar('TWITCH_CLIENT_ID');
   const CLIENT_SECRET = envVar('TWITCH_CLIENT_SECRET');
   const CALLBACK_URL = envVar('TWITCH_CALLBACK_URL');
@@ -123,7 +124,7 @@ async function registerAuth(fastify: FastifyInstance) {
     const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
 
     const user = await userProfile(token.access_token).finally(() => {
-      revokeUserToken(token.access_token).catch((err) => {
+      revokeUserToken(token.access_token).catch((err: Error) => {
         req.log.warn({ err }, 'Failed to revoke token');
       });
     });

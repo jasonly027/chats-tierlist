@@ -1,10 +1,11 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import { TwitchChatSubscriber } from '@lib/twitch/twitchChatSubscriber.js';
-import { TwitchWebSocket } from '@lib/twitch/twitchWebSocket.js';
+
+import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
 import { TierListListener } from '@lib/tierlist/tierListListener.js';
 import { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
+import { TwitchChatSubscriber } from '@lib/twitch/twitchChatSubscriber.js';
+import { TwitchWebSocket } from '@lib/twitch/twitchWebSocket.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -15,7 +16,7 @@ declare module 'fastify' {
   }
 }
 
-const tierlist: FastifyPluginAsync = async (fastify) => {
+const tierlist: FastifyPluginCallback = (fastify) => {
   const createEditor = async (channelId: string) => {
     const tierList = (await fastify.repo.getTierList(channelId)) ?? {
       tiers: [],

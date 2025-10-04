@@ -1,15 +1,17 @@
 import { Mutex } from 'async-mutex';
 import { AxiosError } from 'axios';
+
+import { baseLogger } from '@lib/util.js';
+
+import type { Channel } from './models.ts';
+import type { TwitchClient } from './twitchClient.ts';
+import { TwitchWebSocket } from './twitchWebSocket.ts';
 import {
   ChatMessageEventSchema,
   type ChatMessageEvent,
   type NotifcationMessage,
   type RevocationMessage,
 } from './types/webSocket.ts';
-import type { TwitchClient } from './twitchClient.ts';
-import { TwitchWebSocket } from './twitchWebSocket.ts';
-import { baseLogger } from '@lib/util.js';
-import type { Channel } from './models.ts';
 
 const logger = baseLogger.child({ module: 'TwitchChatSubscriber' });
 

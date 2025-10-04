@@ -1,19 +1,20 @@
 import { Type as T } from '@fastify/type-provider-typebox';
 import type { WebSocket } from '@fastify/websocket';
+import type { FastifyBaseLogger, FastifySchema } from 'fastify';
+
+import {
+  FreshTierListSchema,
+  tierListFromFreshTierList,
+} from '@lib/tierlist/models.js';
+import type { TierListListener } from '@lib/tierlist/tierListListener.js';
+import type { TierListStore } from '@lib/tierlist/tierListStore.js';
+import { Channel } from '@lib/twitch/models.js';
 import type {
   FastifyReplyTypeBox,
   FastifyRequestTypeBox,
   FastifyTypeBox,
 } from '@lib/util.js';
-import type { FastifyBaseLogger, FastifySchema } from 'fastify';
-import type { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { Channel } from '@lib/twitch/models.js';
 import { requireAuth } from '@plugins/auth.js';
-import type { TierListListener } from '@lib/tierlist/tierListListener.js';
-import {
-  FreshTierListSchema,
-  tierListFromFreshTierList,
-} from '@lib/tierlist/models.js';
 
 export default function (fastify: FastifyTypeBox) {
   fastify.register(devRoutes);
@@ -46,10 +47,10 @@ function tierListRoutes(fastify: FastifyTypeBox) {
     '/:name',
     {
       schema: ListenChannelSchema,
-      preHandler: ListenChannelPreHandler,
+      preHandler: [ListenChannelPreHandler],
       websocket: true,
     },
-    async (socket, req) => {
+    (socket, req) => {
       // Attached by listenPreHandler
       const channel = (req as typeof req & { custom: Channel }).custom;
 
@@ -110,7 +111,7 @@ function tierListRoutes(fastify: FastifyTypeBox) {
           const status = success ? 'ok' : 'full';
           socket.send(JSON.stringify({ type: 'listen', status }));
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           logger.error({ err }, 'Failed to listen to channel');
           socket.send(JSON.stringify({ type: 'listen', status: 'error' }));
         });
@@ -417,7 +418,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
 }
 
 function devRoutes(fastify: FastifyTypeBox) {
-  fastify.get('/', { onRequest: requireAuth }, async (req) => {
+  fastify.get('/', { onRequest: [requireAuth] }, (req) => {
     return `Hello World ${JSON.stringify(req.user)}`;
   });
 

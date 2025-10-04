@@ -1,12 +1,14 @@
+import { HttpAgent, HttpsAgent } from 'agentkeepalive';
 import axios, {
   AxiosError,
   type AxiosInstance,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios';
-import * as tw from './types/api.js';
-import { HttpAgent, HttpsAgent } from 'agentkeepalive';
+
 import { baseLogger } from '@lib/util.js';
+
+import * as tw from './types/api.js';
 
 const logger = baseLogger.child({ module: 'TwitchClient' });
 
@@ -55,7 +57,7 @@ export class TwitchClient {
   private attachRefreshInterceptor(): void {
     this.http.interceptors.response.use(
       (res) => res,
-      (err) => {
+      (err: Error) => {
         if (!(err instanceof AxiosError) || err.config === undefined) {
           return Promise.reject(err);
         }
@@ -74,7 +76,7 @@ export class TwitchClient {
             config.headers.Authorization = `Bearer ${this.accessToken}`;
             return this.http(config);
           })
-          .catch((err2) => {
+          .catch((err2: Error) => {
             logger.error({ err: err2 }, 'Failed while refreshing into retry');
             return Promise.reject(err2);
           });
@@ -207,7 +209,7 @@ export class TwitchClient {
         }
       )
       .then((resp) => {
-        return tw.SubscriptionSchema.parse(resp.data?.data?.[0]);
+        return tw.SubscriptionSchema.array().min(1).parse(resp.data)[0]!;
       });
   }
 

@@ -1,7 +1,8 @@
-import { Client } from 'pg';
-import { runner as migration_runner } from 'node-pg-migrate';
-import { Repository } from '@lib/db/repository.js';
 import { expect } from 'chai';
+import { runner as migration_runner } from 'node-pg-migrate';
+import { Client } from 'pg';
+
+import { Repository } from '@lib/db/repository.js';
 import type { TierList } from '@lib/tierlist/models.js';
 
 describe('Repository', function () {
@@ -143,7 +144,7 @@ describe('Repository', function () {
       );
 
       tierList.tiers.push({ name: '', color: '' });
-      repo.setTierList(twitchId, tierList);
+      await repo.setTierList(twitchId, tierList);
 
       const expected = JSON.stringify(tierList);
       const actual = (

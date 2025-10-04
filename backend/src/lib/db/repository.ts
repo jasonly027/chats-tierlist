@@ -1,4 +1,5 @@
 import * as pg from 'pg';
+
 import * as model from '@lib/db/models.js';
 import type { TierList } from '@lib/tierlist/models.js';
 
@@ -53,7 +54,7 @@ export class Repository {
       .then((res) => {
         const serializedTierList = res.rows[0]?.tier_list;
         if (!serializedTierList) return undefined;
-        return JSON.parse(serializedTierList);
+        return JSON.parse(serializedTierList) as TierList;
       });
   }
 

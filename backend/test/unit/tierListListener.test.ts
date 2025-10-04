@@ -1,3 +1,6 @@
+import { expect } from 'chai';
+import Sinon from 'sinon';
+
 import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
 import { TierListListener } from '@lib/tierlist/tierListListener.js';
 import { TierListStore } from '@lib/tierlist/tierListStore.js';
@@ -6,8 +9,6 @@ import {
   TwitchChatSubscriber,
   type SubscriberEvent,
 } from '@lib/twitch/twitchChatSubscriber.js';
-import { expect } from 'chai';
-import Sinon from 'sinon';
 
 describe('TierListListener', function () {
   let listener: TierListListener;

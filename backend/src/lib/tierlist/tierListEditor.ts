@@ -1,7 +1,9 @@
-import type { Repository } from '@lib/db/repository.js';
-import type { TierList } from './models.ts';
 import escapeStringRegexp from 'escape-string-regexp';
+
+import type { Repository } from '@lib/db/repository.js';
 import { baseLogger } from '@lib/util.js';
+
+import type { TierList } from './models.ts';
 
 const logger = baseLogger.child({ module: 'TierListEditor' });
 
@@ -142,7 +144,7 @@ export class TierListEditor {
       .then(() => {
         logger.info({ channelId: this.channelId }, 'Saved tier list');
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         logger.error({ err }, 'Failed to save tier list');
       });
   }
@@ -177,7 +179,7 @@ export class TierListEditor {
 
     this.saveTimeoutId = setTimeout(() => {
       this.dirty = false;
-      this.save().then(() => {
+      void this.save().finally(() => {
         this.saveTimeoutId = undefined;
         if (this.dirty) this.requestToSave();
       });

@@ -1,11 +1,13 @@
-import type { TierListStore } from './tierListStore.ts';
+import { Mutex } from 'async-mutex';
+
 import type { Channel } from '@lib/twitch/models.js';
 import {
   TwitchChatSubscriber,
   type SubscriberCallbackFn,
 } from '@lib/twitch/twitchChatSubscriber.js';
 import { baseLogger } from '@lib/util.js';
-import { Mutex } from 'async-mutex';
+
+import type { TierListStore } from './tierListStore.ts';
 
 const logger = baseLogger.child({ module: 'TierListListener' });
 

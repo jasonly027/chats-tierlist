@@ -1,6 +1,8 @@
 import * as ws from 'ws';
-import * as tw from './types/webSocket.js';
+
 import { baseLogger } from '@lib/util.js';
+
+import * as tw from './types/webSocket.js';
 
 const logger = baseLogger.child({ module: 'TwitchWebSocket' });
 

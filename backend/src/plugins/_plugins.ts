@@ -1,11 +1,11 @@
+import fastifySensible from '@fastify/sensible';
 import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
-import repo from './repo.js';
-import twitch from './twitch.js';
 import auth from './auth.js';
-import fastifySensible from '@fastify/sensible';
+import repo from './repo.js';
 import tierlist from './tierlist.ts';
+import twitch from './twitch.js';
 import websocket from './websocket.ts';
 
 const plugins: FastifyPluginCallback = (fastify) => {
