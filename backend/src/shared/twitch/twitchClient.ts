@@ -5,10 +5,23 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios';
+import T from 'typebox';
+import { Value } from 'typebox/value';
 
-import { baseLogger } from '@/lib/util';
+import { baseLogger } from '@/shared/util';
 
-import * as tw from './types/api';
+import {
+  Refresh,
+  RefreshSchema,
+  SearchChannel,
+  SearchChannelResponseSchema,
+  Subscription,
+  SubscriptionSchema,
+  SubscriptionsResponse,
+  SubscriptionsResponseSchema,
+  User,
+  UserResponseSchema,
+} from './types/api';
 
 const logger = baseLogger.child({ module: 'TwitchClient' });
 
@@ -92,7 +105,7 @@ export class TwitchClient {
     });
   }
 
-  refresh(): Promise<tw.Refresh> {
+  refresh(): Promise<Refresh> {
     return this.http
       .post(
         `${this.oauthUrl}/token`,
@@ -109,7 +122,7 @@ export class TwitchClient {
         }
       )
       .then((res) => {
-        return tw.RefreshSchema.parse(res.data);
+        return Value.Parse(RefreshSchema, res.data);
       });
   }
 
@@ -128,7 +141,7 @@ export class TwitchClient {
     );
   }
 
-  userFromToken(): Promise<tw.User> {
+  userFromToken(): Promise<User> {
     return this.http
       .get(`${this.helixUrl}/users`, {
         headers: {
@@ -136,12 +149,12 @@ export class TwitchClient {
         },
       })
       .then((resp) => {
-        const users = tw.UserResponseSchema.parse(resp.data);
+        const users = Value.Parse(UserResponseSchema, resp.data);
         return users.data[0]!;
       });
   }
 
-  searchChannel(query: string): Promise<tw.SearchChannel | null> {
+  searchChannel(query: string): Promise<SearchChannel | null> {
     return this.http
       .get(`${this.helixUrl}/search/channels`, {
         headers: {
@@ -153,7 +166,7 @@ export class TwitchClient {
         },
       })
       .then((resp) => {
-        const channels = tw.SearchChannelResponseSchema.parse(resp.data);
+        const channels = Value.Parse(SearchChannelResponseSchema, resp.data);
 
         const name = query.toLowerCase();
         const channel = channels.data[0];
@@ -167,7 +180,7 @@ export class TwitchClient {
       });
   }
 
-  subscriptions(status?: 'enabled'): Promise<tw.SubscriptionsResponse> {
+  subscriptions(status?: 'enabled'): Promise<SubscriptionsResponse> {
     const params: Record<string, string> = {};
     if (status !== undefined) params['status'] = status;
 
@@ -179,14 +192,14 @@ export class TwitchClient {
         params,
       })
       .then((resp) => {
-        return tw.SubscriptionsResponseSchema.parse(resp.data);
+        return Value.Parse(SubscriptionsResponseSchema, resp.data);
       });
   }
 
   createChatMessageSubscription(options: {
     sessionId: string;
     broadcasterId: string;
-  }): Promise<tw.Subscription> {
+  }): Promise<Subscription> {
     return this.http
       .post(
         `${this.helixUrl}/eventsub/subscriptions`,
@@ -209,7 +222,11 @@ export class TwitchClient {
         }
       )
       .then((resp) => {
-        return tw.SubscriptionSchema.array().min(1).parse(resp.data)[0]!;
+        const schema = T.Object({
+          data: T.Array(SubscriptionSchema, { minItems: 1 }),
+        });
+
+        return Value.Parse(schema, resp.data).data[0]!;
       });
   }
 

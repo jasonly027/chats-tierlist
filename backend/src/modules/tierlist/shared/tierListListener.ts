@@ -1,12 +1,12 @@
 import { Mutex } from 'async-mutex';
 
-import type { TierListStore } from '@/lib/tierlist/tierListStore';
-import { baseLogger } from '@/lib/util';
+import type { TierListStore } from '@/modules/tierlist/shared/tierListStore';
 import type { Channel } from '@/shared/twitch/models';
 import {
   TwitchChatSubscriber,
   type SubscriberCallbackFn,
 } from '@/shared/twitch/twitchChatSubscriber';
+import { baseLogger } from '@/shared/util';
 
 const logger = baseLogger.child({ module: 'TierListListener' });
 
@@ -37,9 +37,14 @@ export class TierListListener {
 
       const broadcast = new Broadcast(channel, (msg) => {
         if (msg.type === 'message') {
-          this.store.getEditor(channel.id()).then((editor) => {
-            editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
-          });
+          this.store
+            .getEditor(channel.id())
+            .then((editor) => {
+              editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
+            })
+            .catch((err: unknown) => {
+              logger.error({ err }, 'Failed to save chatter vote');
+            });
         } else {
           logger.info(
             { broadcast },
@@ -69,7 +74,7 @@ export class TierListListener {
   }
 
   private removeBroadcast(broadcast: Broadcast): void {
-    this.mutex.runExclusive(async () => {
+    void this.mutex.runExclusive(async () => {
       this.stopBroadcastAliveCheck(broadcast);
       const idx = this.broadcasts.indexOf(broadcast);
       if (idx !== -1) this.broadcasts.splice(idx, 1);

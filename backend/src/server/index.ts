@@ -4,15 +4,21 @@ import autoLoad from '@fastify/autoload';
 import { TypeBoxValidatorCompiler } from '@fastify/type-provider-typebox';
 import { FastifyPluginCallback } from 'fastify';
 
-import routes from '@/routes';
-
 const serverPlugin: FastifyPluginCallback = (fastify) => {
+  // Use TypeBox for request schemas
   fastify.setValidatorCompiler(TypeBoxValidatorCompiler);
 
+  // Register every plugin in plugins dir
   fastify.register(autoLoad, {
     dir: path.join(__dirname, 'plugins'),
   });
 
-  fastify.register(routes);
+  // Register every module in modules dir
+  fastify.register(autoLoad, {
+    dir: path.join(__dirname, '..', 'modules'),
+    dirNameRoutePrefix: false,
+    matchFilter: (path) => path.endsWith('.module.ts'),
+  });
 };
+
 export default serverPlugin;

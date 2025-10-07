@@ -6,4 +6,6 @@ const plugin: FastifyPluginCallback = (fastify) => {
   fastify.register(fastifySensible, { sharedSchemaId: 'HttpError' });
 };
 
-export default fastifyPlugin(plugin, { name: 'sensible' });
+export default fastifyPlugin(plugin, {
+  name: 'sensible',
+});

@@ -5,6 +5,7 @@ import type { FastifyPluginCallback } from 'fastify';
 import Fastify from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
+import { env } from '@/config';
 import serverPlugin from '@/server';
 
 async function createOpenApi() {
@@ -27,7 +28,7 @@ async function createOpenApi() {
             cookieAuth: {
               type: 'apiKey',
               in: 'cookie',
-              name: 'sessionId',
+              name: 'chatsTierListSessionId',
             },
           },
         },
@@ -36,6 +37,7 @@ async function createOpenApi() {
   };
   const swaggerPlugin = fastifyPlugin(swagger, { name: 'swagger' });
 
+  env.NODE_ENV = 'production';
   const fastify = Fastify();
   await fastify.register(swaggerPlugin);
   await fastify.register(serverPlugin);

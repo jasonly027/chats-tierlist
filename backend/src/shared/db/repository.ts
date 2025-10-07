@@ -1,6 +1,6 @@
 import * as pg from 'pg';
 
-import type { TierList } from '@/lib/tierlist/models';
+import type { TierList } from '@/modules/tierlist/tierlist.types';
 import * as model from '@/shared/db/models';
 
 export class Repository {

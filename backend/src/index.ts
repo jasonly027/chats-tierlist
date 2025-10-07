@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 
-import { baseLogger } from '@/lib/util';
 import serverPlugin from '@/server';
+import { baseLogger } from '@/shared/util';
 
 async function init() {
   const server = Fastify({

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import Sinon from 'sinon';
 
-import type { TierList } from '@/lib/tierlist/models';
-import { TierListEditor } from '@/lib/tierlist/tierListEditor';
+import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
+import type { TierList } from '@/modules/tierlist/tierlist.types';
 import { Repository } from '@/shared/db/repository';
 
 describe('TierListEditor', function () {

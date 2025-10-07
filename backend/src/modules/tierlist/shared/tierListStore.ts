@@ -1,6 +1,6 @@
 import { LRUCache } from 'lru-cache';
 
-import type { TierListEditor } from '@/lib/tierlist/tierListEditor';
+import type { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
 
 export class TierListStore {
   private readonly cache: LRUCache<string, TierListEditor>;

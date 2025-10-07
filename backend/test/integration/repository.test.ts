@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { runner as migration_runner } from 'node-pg-migrate';
 import { Client } from 'pg';
 
+import type { TierList } from '@/modules/tierlist/tierlist.types';
 import { Repository } from '@/shared/db/repository';
-import type { TierList } from '@/lib/tierlist/models';
 
 describe('Repository', function () {
   let client: Client;

@@ -1,126 +1,140 @@
-import z from 'zod';
+import T, { Static } from 'typebox';
+import { Compile } from 'typebox/compile';
 
 const baseMessageMetadata = {
-  message_id: z.string(),
-  message_timestamp: z.iso.datetime(),
+  message_id: T.String(),
+  message_timestamp: T.String({ format: 'date-time' }),
 };
 
 // https://dev.twitch.tv/docs/eventsub/websocket-reference#welcome-message
-export const WelcomeMessageSchema = z.object({
-  metadata: z.object({
+export const WelcomeMessageSchema = T.Object({
+  metadata: T.Object({
     ...baseMessageMetadata,
-    message_type: z.literal('session_welcome'),
+    message_type: T.Literal('session_welcome'),
   }),
-  payload: z.object({
-    session: z.object({
-      id: z.string(),
-      status: z.literal('connected'),
-      keepalive_timeout_seconds: z.int(),
-      reconnect_url: z.null(),
-      connected_at: z.iso.datetime(),
+  payload: T.Object({
+    session: T.Object({
+      id: T.String(),
+      status: T.Literal('connected'),
+      keepalive_timeout_seconds: T.Number(),
+      reconnect_url: T.Null(),
+      connected_at: T.String({ format: 'date-time' }),
     }),
   }),
 });
-export type WelcomeMessage = z.infer<typeof WelcomeMessageSchema>;
+export type WelcomeMessage = Static<typeof WelcomeMessageSchema>;
 
 // https://dev.twitch.tv/docs/eventsub/websocket-reference#keepalive-message
-export const KeepAliveMessageSchema = z.object({
-  metadata: z.object({
+export const KeepAliveMessageSchema = T.Object({
+  metadata: T.Object({
     ...baseMessageMetadata,
-    message_type: z.literal('session_keepalive'),
+    message_type: T.Literal('session_keepalive'),
   }),
-  payload: z.object(),
+  payload: T.Unknown(),
 });
-export type KeepAliveMessage = z.infer<typeof KeepAliveMessageSchema>;
+export type KeepAliveMessage = Static<typeof KeepAliveMessageSchema>;
 
 // https://dev.twitch.tv/docs/eventsub/websocket-reference#notification-message
-export const NotificationMessageSchema = z.object({
-  metadata: z.object({
+export const NotificationMessageSchema = T.Object({
+  metadata: T.Object({
     ...baseMessageMetadata,
-    message_type: z.literal('notification'),
-    subscription_type: z.string(),
-    subscription_version: z.string(),
+    message_type: T.Literal('notification'),
+    subscription_type: T.String(),
+    subscription_version: T.String(),
   }),
-  payload: z.object({
-    subscription: z.object({
-      id: z.string(),
-      status: z.literal('enabled'),
-      type: z.string(),
-      version: z.string(),
-      cost: z.int(),
-      condition: z.unknown(),
-      transport: z.object({
-        method: z.literal('websocket'),
-        session_id: z.string(),
+  payload: T.Object({
+    subscription: T.Object({
+      id: T.String(),
+      status: T.Literal('enabled'),
+      type: T.String(),
+      version: T.String(),
+      cost: T.Number(),
+      condition: T.Unknown(),
+      transport: T.Object({
+        method: T.Literal('websocket'),
+        session_id: T.String(),
       }),
-      created_at: z.iso.datetime(),
+      created_at: T.String({ format: 'date-time' }),
     }),
-    event: z.unknown(),
+    event: T.Unknown(),
   }),
 });
-export type NotifcationMessage = z.infer<typeof NotificationMessageSchema>;
+export type NotifcationMessage = Static<typeof NotificationMessageSchema>;
 
 // https://dev.twitch.tv/docs/eventsub/websocket-reference#reconnect-message
-export const ReconnectMessageSchema = z.object({
-  metadata: z.object({
+export const ReconnectMessageSchema = T.Object({
+  metadata: T.Object({
     ...baseMessageMetadata,
-    message_type: z.literal('session_reconnect'),
+    message_type: T.Literal('session_reconnect'),
   }),
-  payload: z.object({
-    session: z.object({
-      id: z.string(),
-      status: z.literal('reconnecting'),
-      keepalive_timeout_seconds: z.null(),
-      reconnect_url: z.url(),
-      connected_at: z.iso.datetime(),
+  payload: T.Object({
+    session: T.Object({
+      id: T.String(),
+      status: T.Literal('reconnecting'),
+      keepalive_timeout_seconds: T.Null(),
+      reconnect_url: T.String({ format: 'url' }),
+      connected_at: T.String({ format: 'date-time' }),
     }),
   }),
 });
-export type ReconnectMessage = z.infer<typeof ReconnectMessageSchema>;
+export type ReconnectMessage = Static<typeof ReconnectMessageSchema>;
 
 // https://dev.twitch.tv/docs/eventsub/websocket-reference#revocation-message
-export const RevocationMessageSchema = z.object({
-  metadata: z.object({
+export const RevocationMessageSchema = T.Object({
+  metadata: T.Object({
     ...baseMessageMetadata,
-    message_type: z.literal('revocation'),
-    subscription_type: z.string(),
-    subscription_version: z.string(),
+    message_type: T.Literal('revocation'),
+    subscription_type: T.String(),
+    subscription_version: T.String(),
   }),
-  payload: z.object({
-    subscription: z.object({
-      id: z.string(),
-      status: z.union([
-        z.literal('authorization_revoked'),
-        z.literal('user_removed'),
-        z.literal('version_removed'),
+  payload: T.Object({
+    subscription: T.Object({
+      id: T.String(),
+      status: T.Union([
+        T.Literal('authorization_revoked'),
+        T.Literal('user_removed'),
+        T.Literal('version_removed'),
       ]),
-      type: z.string(),
-      version: z.string(),
-      cost: z.int(),
-      condition: z.unknown(),
-      transport: z.object({
-        method: z.literal('websocket'),
-        session_id: z.string(),
+      type: T.String(),
+      version: T.String(),
+      cost: T.Number(),
+      condition: T.Unknown(),
+      transport: T.Object({
+        method: T.Literal('websocket'),
+        session_id: T.String(),
       }),
-      created_at: z.iso.datetime(),
+      created_at: T.String({ format: 'date-time' }),
     }),
-    event: z.unknown(),
+    event: T.Unknown(),
   }),
 });
-export type RevocationMessage = z.infer<typeof RevocationMessageSchema>;
+export type RevocationMessage = Static<typeof RevocationMessageSchema>;
+
+export const WebSocketMessageSchema = T.Union([
+  WelcomeMessageSchema,
+  KeepAliveMessageSchema,
+  NotificationMessageSchema,
+  ReconnectMessageSchema,
+  RevocationMessageSchema,
+]);
+export type WebSocketMessage = Static<typeof WebSocketMessageSchema>;
+
+export const WebSocketMessageCompiler = Compile(WebSocketMessageSchema);
 
 // https://dev.twitch.tv/docs/eventsub/eventsub-reference/#channel-chat-message-event
-export const ChatMessageEventSchema = z.object({
-  broadcaster_user_id: z.string(),
-  broadcaster_user_name: z.string(),
-  broadcaster_user_login: z.string(),
-  chatter_user_id: z.string(),
-  chatter_user_name: z.string(),
-  chatter_user_login: z.string(),
-  message_id: z.string(),
-  message: z.object({
-    text: z.string(),
+export const ChatMessageEventSchema = T.Object({
+  broadcaster_user_id: T.String(),
+  broadcaster_user_name: T.String(),
+  broadcaster_user_login: T.String(),
+  chatter_user_id: T.String(),
+  chatter_user_name: T.String(),
+  chatter_user_login: T.String(),
+  message_id: T.String(),
+  message: T.Object({
+    text: T.String(),
   }),
-  message_type: z.string(),
+  message_type: T.String(),
 });
-export type ChatMessageEvent = z.infer<typeof ChatMessageEventSchema>;
+export type ChatMessageEvent = Static<typeof ChatMessageEventSchema>;
+
+export const ChatMessageEventCompiler = Compile(ChatMessageEventSchema);

@@ -2,8 +2,8 @@ import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 
 import { env } from '@/config';
-import { baseLogger } from '@/lib/util';
 import { TwitchClient } from '@/shared/twitch/twitchClient';
+import { baseLogger } from '@/shared/util';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -33,12 +33,16 @@ export default fastifyPlugin(twitch, {
 function startValidationInterval(client: TwitchClient): void {
   const logger = baseLogger.child({ module: 'TwitchClientValidator' });
 
-  client.validate();
+  client.validate().catch((err: unknown) => {
+    logger.error({ err }, 'Initial validation failed');
+    throw err;
+  });
+
   const VALIDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
   setInterval(() => {
     logger.info('Validating Twitch Token...');
 
-    client.validate().catch((err: Error) => {
+    client.validate().catch((err: unknown) => {
       logger.error({ err }, 'Failed to validate token');
     });
   }, VALIDATE_INTERVAL);

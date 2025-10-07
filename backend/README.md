@@ -10,5 +10,5 @@ TODO
 - [x] Update tier list routes
 - [x] Change when tier list locking happens
 - [x] Add tier list versioning for sync
-- [ ] Module user
-- [ ] Module tierlist
+- [x] Module user
+- [x] Module tierlist

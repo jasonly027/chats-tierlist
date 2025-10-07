@@ -1,57 +1,37 @@
-import { Type as T } from '@fastify/type-provider-typebox';
 import type { WebSocket } from '@fastify/websocket';
-import type { FastifyBaseLogger, FastifySchema } from 'fastify';
+import type { FastifyBaseLogger } from 'fastify';
+import T from 'typebox';
 
+import type { TierListListener } from '@/modules/tierlist/shared/tierListListener';
+import type { TierListStore } from '@/modules/tierlist/shared/tierListStore';
 import {
-  FreshTierListSchema,
+  AddItemRequest,
+  AddTierRequest,
+  ItemNameSchema,
+  ListenChannelParamsSchema,
+  OverwriteTierListRequest,
   tierListFromFreshTierList,
-} from '@/lib/tierlist/models';
-import type { TierListListener } from '@/lib/tierlist/tierListListener';
-import type { TierListStore } from '@/lib/tierlist/tierListStore';
-import type {
-  FastifyReplyTypeBox,
-  FastifyRequestTypeBox,
-  FastifyTypeBox,
-} from '@/lib/util';
+  TierNameSchema,
+  UpdateItemRequest,
+  UpdateTierListRequest,
+  UpdateTierRequest,
+} from '@/modules/tierlist/tierlist.schemas';
 import { requireAuth } from '@/server/plugins/auth';
+import { nullSchema } from '@/shared/api/null.response';
 import { Channel } from '@/shared/twitch/models';
 
 export default function (fastify: FastifyTypeBox) {
-  fastify.register(devRoutes);
-  fastify.register(tierListRoutes, { prefix: '/tierlist' });
-}
-
-function tierListRoutes(fastify: FastifyTypeBox) {
-  const ListenChannelSchema = {
-    params: T.Object({
-      name: T.String({ maxLength: 1 }),
-    }),
-  } satisfies FastifySchema;
-
-  // Attaches the channel associated with name to req.custom.
-  async function ListenChannelPreHandler(
-    req: FastifyRequestTypeBox<typeof ListenChannelSchema>,
-    res: FastifyReplyTypeBox<typeof ListenChannelSchema>
-  ): Promise<void> {
-    const { name } = req.params;
-
-    const ch = await fastify.twitch.client.searchChannel(name);
-    if (!ch) {
-      return res.notFound();
-    }
-
-    (req as typeof req & { custom: Channel }).custom = new Channel(ch);
-  }
-
   fastify.get(
     '/:name',
     {
-      schema: ListenChannelSchema,
+      schema: {
+        params: ListenChannelParamsSchema,
+      },
       preHandler: [ListenChannelPreHandler],
       websocket: true,
     },
     (socket, req) => {
-      // Attached by listenPreHandler
+      // Attached by prehandler
       const channel = (req as typeof req & { custom: Channel }).custom;
 
       socket.once('pong', () => {
@@ -66,6 +46,21 @@ function tierListRoutes(fastify: FastifyTypeBox) {
     }
   );
 
+  // Attaches the channel associated with name to req.custom.
+  async function ListenChannelPreHandler(
+    req: FastifyRequestTypeBox<{ params: typeof ListenChannelParamsSchema }>,
+    res: FastifyReplyTypeBox<{ params: typeof ListenChannelParamsSchema }>
+  ): Promise<void> {
+    const { name } = req.params;
+
+    const ch = await fastify.twitch.client.searchChannel(name);
+    if (!ch) {
+      return res.notFound();
+    }
+
+    (req as typeof req & { custom: Channel }).custom = new Channel(ch);
+  }
+
   // Starts periodically sending the tier list to the client.
   // Channel info is sent once as the first message.
   function startSendingTierList(
@@ -76,21 +71,26 @@ function tierListRoutes(fastify: FastifyTypeBox) {
     socket.send(JSON.stringify(channel.channel));
 
     const sendTierList = async () => {
-      await store.getEditor(channel.id()).then((editor) => {
-        const tierList = editor?.getTierList();
-        socket.send(
-          JSON.stringify({
-            type: 'tierlist',
-            success: tierList !== undefined,
-            tier_list: tierList,
-          })
-        );
-      });
+      await store
+        .getEditor(channel.id())
+        .then((editor) => {
+          const tierList = editor?.getTierList();
+          socket.send(
+            JSON.stringify({
+              type: 'tierlist',
+              success: tierList !== undefined,
+              tier_list: tierList,
+            })
+          );
+        })
+        .catch((err: unknown) => {
+          fastify.log.error({ err }, 'Failed to send tier list');
+        });
     };
-    sendTierList();
+    void sendTierList();
 
     const SEND_INTERVAL = 3 * 1000; // 3 secs
-    const intervalId = setInterval(sendTierList, SEND_INTERVAL);
+    const intervalId = setInterval(() => void sendTierList(), SEND_INTERVAL);
 
     socket.on('close', () => clearInterval(intervalId));
   }
@@ -116,32 +116,29 @@ function tierListRoutes(fastify: FastifyTypeBox) {
           socket.send(JSON.stringify({ type: 'listen', status: 'error' }));
         });
     };
-    reportKeepAlive();
+    void reportKeepAlive();
 
     const ALIVE_INTERVAL = 10 * 1000; // 10 secs
-    const intervalId = setInterval(reportKeepAlive, ALIVE_INTERVAL);
+    const intervalId = setInterval(() => void reportKeepAlive, ALIVE_INTERVAL);
 
     socket.on('close', () => clearInterval(intervalId));
   }
 
-  fastify.register(tierListAuthedRoutes);
+  registerAuthRoutes(fastify);
 }
 
-function tierListAuthedRoutes(fastify: FastifyTypeBox) {
+function registerAuthRoutes(fastify: FastifyTypeBox) {
   fastify.addHook('onRequest', requireAuth);
 
-  const OverwriteTierListBody = T.Object({
-    tier_list: FreshTierListSchema,
-  });
   fastify.put(
     '',
     {
       schema: {
         summary: 'Overwrite entire tier list',
         tags: ['Tier List'],
-        body: OverwriteTierListBody,
+        body: OverwriteTierListRequest,
         response: {
-          204: T.Null({ description: 'Successfully overwrote tier list' }),
+          204: nullSchema('Successfully overwrote tier list'),
         },
         security: [{ cookieAuth: [] }],
       },
@@ -159,30 +156,15 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
     }
   );
 
-  const FocusSchema = T.String({
-    minLength: 1,
-    description: 'Name of the item to focus',
-  });
-
-  const IsVotingSchema = T.Boolean({
-    description: 'Determine whether votes should be parsed or ignored',
-  });
-
-  const UpdateTierListBody = T.Object({
-    focus: T.Optional(FocusSchema),
-    is_voting: T.Optional(IsVotingSchema),
-  });
   fastify.patch(
     '',
     {
       schema: {
         summary: 'Update settings on the tier list',
         tags: ['Tier List'],
-        body: UpdateTierListBody,
+        body: UpdateTierListRequest,
         response: {
-          204: T.Null({
-            description: 'Successfully updated settings on the tier list',
-          }),
+          204: nullSchema('Successfully updated settings on the tier list'),
           404: T.Object(
             { message: T.String() },
             { description: 'Focus target does not exist' }
@@ -212,29 +194,15 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
     }
   );
 
-  const TierNameSchema = T.String({
-    minLength: 1,
-    description: 'Name of the tier',
-  });
-
-  const TierColorSchema = T.String({
-    minLength: 1,
-    description: 'Background color of the tier',
-  });
-
-  const AddTierBody = T.Object({
-    name: TierNameSchema,
-    color: TierColorSchema,
-  });
   fastify.post(
     '/tier',
     {
       schema: {
         summary: 'Add a new tier',
         tags: ['Tier List'],
-        body: AddTierBody,
+        body: AddTierRequest,
         response: {
-          201: T.Null({ description: 'Successfully added tier' }),
+          201: nullSchema('Successfully added tier'),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -258,20 +226,16 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
     }
   );
 
-  const UpdateTierBody = T.Object({
-    name: T.Optional(TierNameSchema),
-    color: T.Optional(TierColorSchema),
-  });
   fastify.patch(
     '/tier/:name',
     {
       schema: {
         summary: 'Update an existing tier',
         tags: ['Tier List'],
-        body: UpdateTierBody,
+        body: UpdateTierRequest,
         params: T.Object({ name: TierNameSchema }),
         response: {
-          204: T.Null({ description: 'Successfully updated tier' }),
+          204: nullSchema('Successfully updated tier'),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -301,29 +265,15 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
     }
   );
 
-  const ItemNameSchema = T.String({
-    minLength: 1,
-    description: 'Name of the item',
-  });
-
-  const ItemImageUrlSchema = T.String({
-    minLength: 1,
-    description: 'Image url of the item',
-  });
-
-  const AddItemBody = T.Object({
-    name: ItemNameSchema,
-    image_url: T.Optional(ItemImageUrlSchema),
-  });
   fastify.post(
     '/item',
     {
       schema: {
         summary: 'Adds a new item',
         tags: ['Tier List'],
-        body: AddItemBody,
+        body: AddItemRequest,
         response: {
-          201: T.Null({ description: 'Successfully added item' }),
+          201: nullSchema('Successfully added item'),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -347,10 +297,6 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
     }
   );
 
-  const UpdateItemBody = T.Object({
-    name: T.Optional(ItemNameSchema),
-    image_url: T.Optional(ItemImageUrlSchema),
-  });
   fastify.patch(
     '/item/:name',
     {
@@ -358,9 +304,9 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
         summary: 'Updates an item',
         tags: ['Tier List'],
         params: T.Object({ name: ItemNameSchema }),
-        body: UpdateItemBody,
+        body: UpdateItemRequest,
         response: {
-          204: T.Null({ description: 'Successfully updated item' }),
+          204: nullSchema('Successfully updated item'),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -398,7 +344,7 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
         tags: ['Tier List'],
         params: T.Object({ name: ItemNameSchema }),
         response: {
-          204: T.Null({ description: 'Successfully deleted item' }),
+          204: nullSchema('Successfully deleted item'),
         },
         security: [{ cookieAuth: [] }],
       },
@@ -415,40 +361,4 @@ function tierListAuthedRoutes(fastify: FastifyTypeBox) {
       return res.code(204).send(null);
     }
   );
-}
-
-function devRoutes(fastify: FastifyTypeBox) {
-  fastify.get('/', { onRequest: requireAuth }, (req) => {
-    return `Hello World ${JSON.stringify(req.user)}`;
-  });
-
-  fastify.get(
-    '/subscribe',
-    {
-      schema: {
-        querystring: T.Object({
-          name: T.String({ minLength: 1 }),
-        }),
-      },
-    },
-    async (req) => {
-      const { name } = req.query;
-
-      const ch = await fastify.twitch.client.searchChannel(name);
-      if (!ch) return 'unknown channel';
-      const channel = new Channel(ch);
-
-      return fastify.tierlist.listener.listen(channel);
-    }
-  );
-
-  fastify.get('/subscriptions', async () => {
-    return await fastify.twitch.client.subscriptions();
-  });
-
-  fastify.get('/revoke', async () => {
-    const res = await fastify.twitch.client.revoke();
-    fastify.log.info({ res });
-    return 'ok';
-  });
 }

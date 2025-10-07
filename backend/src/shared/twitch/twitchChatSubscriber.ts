@@ -1,17 +1,16 @@
 import { Mutex } from 'async-mutex';
 import { AxiosError } from 'axios';
 
-import { baseLogger } from '@/lib/util';
 import type { Channel } from '@/shared/twitch/models';
 import type { TwitchClient } from '@/shared/twitch/twitchClient';
 import { TwitchWebSocket } from '@/shared/twitch/twitchWebSocket';
-
 import {
-  ChatMessageEventSchema,
+  ChatMessageEventCompiler,
   type ChatMessageEvent,
   type NotifcationMessage,
   type RevocationMessage,
 } from '@/shared/twitch/types/webSocket';
+import { baseLogger } from '@/shared/util';
 
 const logger = baseLogger.child({ module: 'TwitchChatSubscriber' });
 
@@ -89,7 +88,7 @@ export class TwitchChatSubscriber {
 
       await this.client
         .deleteChatMessageSubscription(broadcast.subscriptionId)
-        .catch((err: Error) =>
+        .catch((err: unknown) =>
           logger.error({ err }, 'Failed to delete subscription')
         );
 
@@ -123,7 +122,15 @@ export class TwitchChatSubscriber {
   }
 
   private onNotification(msg: NotifcationMessage): void {
-    const event = ChatMessageEventSchema.parse(msg.payload.event);
+    const event = msg.payload.event;
+    if (!ChatMessageEventCompiler.Check(event)) {
+      logger.error(
+        { event },
+        'Received unexpected non-Chat message event in notification'
+      );
+      return;
+    }
+
     this.findBroadcastByName(event.broadcaster_user_login)?.messageAll({
       type: 'message',
       event,
@@ -131,7 +138,7 @@ export class TwitchChatSubscriber {
   }
 
   private onRevocation(msg: RevocationMessage): void {
-    this.mutex.runExclusive(() => {
+    void this.mutex.runExclusive(() => {
       const subscriptionId = msg.payload.subscription.id;
       const broadcast = this.findBroadcastBySubscriptionId(subscriptionId);
       if (!broadcast) {
@@ -148,7 +155,7 @@ export class TwitchChatSubscriber {
   }
 
   private onClose(): void {
-    this.mutex.runExclusive(() => {
+    void this.mutex.runExclusive(() => {
       this.staleConnection = undefined;
       this.broadcasts.forEach((bd) => bd.messageAll({ type: 'close' }));
       this.broadcasts = [];

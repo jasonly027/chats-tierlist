@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import type { WebSocket } from 'ws';
 
-import { baseLogger } from '@/lib/util';
+import { baseLogger } from '@/shared/util';
 
 const logger = baseLogger.child({ module: 'WebSocket' });
 

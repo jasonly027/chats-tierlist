@@ -1,22 +1,14 @@
 import { readFileSync } from 'fs';
 
-import { Type as T } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value';
 import dotenv from 'dotenv';
+import { Type as T } from 'typebox';
+import { Value } from 'typebox/value';
 
 dotenv.config({ quiet: true });
 
 const schema = T.Object({
-  NODE_ENV: T.Enum({
-    development: 'development',
-    production: 'production',
-  }),
-  LOG_LEVEL: T.Enum({
-    error: 'error',
-    warn: 'warn',
-    info: 'info',
-    debug: 'debug',
-  }),
+  NODE_ENV: T.Enum(['development', 'production']),
+  LOG_LEVEL: T.Enum(['error', 'warn', 'info', 'debug']),
   HOST: T.String({ default: 'localhost' }),
   PORT: T.Number({ default: 3000 }),
 

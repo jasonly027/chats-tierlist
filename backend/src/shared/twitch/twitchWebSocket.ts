@@ -1,15 +1,23 @@
+import Value from 'typebox/value';
 import * as ws from 'ws';
 
-import { baseLogger } from '@/lib/util';
-
-import * as tw from './types/webSocket';
+import {
+  KeepAliveMessage,
+  NotifcationMessage,
+  ReconnectMessage,
+  RevocationMessage,
+  WebSocketMessageCompiler,
+  WelcomeMessage,
+  WelcomeMessageSchema,
+} from '@/shared/twitch/types/webSocket';
+import { baseLogger } from '@/shared/util';
 
 const logger = baseLogger.child({ module: 'TwitchWebSocket' });
 
 type ListenerArgs = {
-  welcome: [msg: tw.WelcomeMessage];
-  notification: [msg: tw.NotifcationMessage];
-  revocation: [msg: tw.RevocationMessage];
+  welcome: [msg: WelcomeMessage];
+  notification: [msg: NotifcationMessage];
+  revocation: [msg: RevocationMessage];
   close: [code: number, reason: string];
   error: [err: Error];
 };
@@ -87,27 +95,33 @@ export class TwitchWebSocket {
   }
 
   private onMessage(data: ws.RawData): void {
-    const obj = JSON.parse(data.toString());
-    const messageType = obj?.metadata?.message_type;
+    if (!Buffer.isBuffer(data)) {
+      logger.error({ data }, 'Received unexpected non-Buffer data');
+      return;
+    }
 
-    switch (messageType) {
+    const msg: unknown = JSON.parse(data.toString());
+    if (!WebSocketMessageCompiler.Check(msg)) {
+      logger.error({ msg }, 'Unexpected WebSocket message received');
+      return;
+    }
+
+    switch (msg.metadata.message_type) {
       case 'session_welcome':
-        this.onWelcome(tw.WelcomeMessageSchema.parse(obj));
+        this.onWelcome(msg as WelcomeMessage);
         break;
       case 'session_keepalive':
-        this.onKeepAlive(tw.KeepAliveMessageSchema.parse(obj));
+        this.onKeepAlive(msg as KeepAliveMessage);
         break;
       case 'notification':
-        this.onNotification(tw.NotificationMessageSchema.parse(obj));
+        this.onNotification(msg as NotifcationMessage);
         break;
       case 'session_reconnect':
-        this.onReconnect(tw.ReconnectMessageSchema.parse(obj));
+        this.onReconnect(msg as ReconnectMessage);
         break;
       case 'revocation':
-        this.onRevocation(tw.RevocationMessageSchema.parse(obj));
+        this.onRevocation(msg as RevocationMessage);
         break;
-      default:
-        logger.warn({ messageType, obj }, 'Unexpected message received');
     }
   }
 
@@ -135,7 +149,7 @@ export class TwitchWebSocket {
     });
   }
 
-  private onWelcome(msg: tw.WelcomeMessage): void {
+  private onWelcome(msg: WelcomeMessage): void {
     logger.info({ id: msg.payload.session.id }, 'Received welcome message');
 
     this.startKeepAliveCheck(msg.payload.session.keepalive_timeout_seconds);
@@ -148,12 +162,12 @@ export class TwitchWebSocket {
     });
   }
 
-  private onKeepAlive(_msg: tw.KeepAliveMessage): void {
+  private onKeepAlive(_msg: KeepAliveMessage): void {
     logger.debug('Received keep-alive message');
     this.lastKeepAlive = Date.now();
   }
 
-  private onNotification(msg: tw.NotifcationMessage): void {
+  private onNotification(msg: NotifcationMessage): void {
     logger.debug('Received notification message');
     this.lastKeepAlive = Date.now();
     this.listeners.notification.forEach((fn) => {
@@ -165,7 +179,7 @@ export class TwitchWebSocket {
     });
   }
 
-  private onReconnect(msg: tw.ReconnectMessage): void {
+  private onReconnect(msg: ReconnectMessage): void {
     logger.info('Received reconnect message');
 
     const newSocket = new ws.WebSocket(msg.payload.session.reconnect_url, {
@@ -177,14 +191,28 @@ export class TwitchWebSocket {
 
       this.socket = this.registerSocket(newSocket);
 
-      const obj = JSON.parse(data.toString());
-      const msg = tw.WelcomeMessageSchema.parse(obj);
+      if (!Buffer.isBuffer(data)) {
+        logger.error(
+          { data },
+          'Received unexpected non-Buffer data while reconnecting'
+        );
+        return;
+      }
+      const msg: unknown = JSON.parse(data.toString());
+      if (!Value.Check(WelcomeMessageSchema, msg)) {
+        logger.error(
+          { msg },
+          'Received unexpected non-Welcome message while reconnecting'
+        );
+        return;
+      }
+
       logger.info('Successfully reconnected');
       this.onWelcome(msg);
     });
   }
 
-  private onRevocation(msg: tw.RevocationMessage): void {
+  private onRevocation(msg: RevocationMessage): void {
     logger.info({ msg }, 'Received revocation message');
     this.listeners.revocation.forEach((fn) => {
       try {
@@ -196,6 +224,8 @@ export class TwitchWebSocket {
   }
 
   private startKeepAliveCheck(timeoutSecs: number): void {
+    this.clearKeepAliveCheck();
+
     const CHECK_INTERVAL = 10 * 1000; // 10 seconds
     const ALIVE_TIMEOUT = timeoutSecs * 1000;
 

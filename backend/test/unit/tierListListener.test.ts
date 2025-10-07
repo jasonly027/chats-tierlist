@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import Sinon from 'sinon';
 
-import { TierListEditor } from '@/lib/tierlist/tierListEditor';
-import { TierListListener } from '@/lib/tierlist/tierListListener';
-import { TierListStore } from '@/lib/tierlist/tierListStore';
+import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
+import { TierListListener } from '@/modules/tierlist/shared/tierListListener';
+import { TierListStore } from '@/modules/tierlist/shared/tierListStore';
 import { Channel } from '@/shared/twitch/models';
 import {
   TwitchChatSubscriber,
@@ -96,7 +96,7 @@ describe('TierListListener', function () {
       subscriber.subscribe.yield(msg);
       await Promise.resolve();
 
-      Sinon.assert.called(editor.vote);
+      Sinon.assert.called(editor['vote']);
     });
 
     it('should remove the broadcast when subscriber message is not a regular message', async function () {
@@ -107,7 +107,7 @@ describe('TierListListener', function () {
       await Promise.resolve();
 
       expect(listener['broadcasts']).to.be.empty;
-      Sinon.assert.called(subscriber.unsubscribe);
+      Sinon.assert.called(subscriber['unsubscribe']);
     });
   });
 });
