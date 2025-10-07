@@ -1,13 +1,14 @@
-import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
-import { TierListListener } from '@lib/tierlist/tierListListener.js';
-import { TierListStore } from '@lib/tierlist/tierListStore.js';
-import { Channel } from '@lib/twitch/models.js';
+import { expect } from 'chai';
+import Sinon from 'sinon';
+
+import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
+import { TierListListener } from '@/modules/tierlist/shared/tierListListener';
+import { TierListStore } from '@/modules/tierlist/shared/tierListStore';
+import { Channel } from '@/shared/twitch/models';
 import {
   TwitchChatSubscriber,
   type SubscriberEvent,
-} from '@lib/twitch/twitchChatSubscriber.js';
-import { expect } from 'chai';
-import Sinon from 'sinon';
+} from '@/shared/twitch/twitchChatSubscriber';
 
 describe('TierListListener', function () {
   let listener: TierListListener;
@@ -95,7 +96,7 @@ describe('TierListListener', function () {
       subscriber.subscribe.yield(msg);
       await Promise.resolve();
 
-      Sinon.assert.called(editor.vote);
+      Sinon.assert.called(editor['vote']);
     });
 
     it('should remove the broadcast when subscriber message is not a regular message', async function () {
@@ -106,7 +107,7 @@ describe('TierListListener', function () {
       await Promise.resolve();
 
       expect(listener['broadcasts']).to.be.empty;
-      Sinon.assert.called(subscriber.unsubscribe);
+      Sinon.assert.called(subscriber['unsubscribe']);
     });
   });
 });

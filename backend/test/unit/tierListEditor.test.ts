@@ -1,8 +1,9 @@
-import { Repository } from '@lib/db/repository.js';
-import type { TierList } from '@lib/tierlist/models.js';
-import { TierListEditor } from '@lib/tierlist/tierListEditor.js';
 import { expect } from 'chai';
 import Sinon from 'sinon';
+
+import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
+import type { TierList } from '@/modules/tierlist/tierlist.types';
+import { Repository } from '@/shared/db/repository';
 
 describe('TierListEditor', function () {
   let editor: TierListEditor;

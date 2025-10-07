@@ -5,14 +5,16 @@
     "@tsconfig/node-ts/tsconfig.json"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
+    "verbatimModuleSyntax": false,
+
     "paths": {
-      "@plugins/*": ["src/plugins/*"],
-      "@routes/*": ["src/routes/*"],
-      "@lib/*": ["src/lib/*"]
+      "@/*": ["./src/*"]
     },
     "outDir": "dist"
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules"],
+  "tsc-alias": {
+    "verbose": true,
+    "resolveFullPaths": true
+  }
 }

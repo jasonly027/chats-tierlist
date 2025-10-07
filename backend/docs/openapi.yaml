@@ -22,49 +22,10 @@ components:
           type: string
       title: HttpError
 paths:
-  /login/callback:
-    get:
-      responses:
-        "200":
-          description: Default Response
-  /logout:
-    get:
-      summary: Signs out the user
-      tags:
-        - Auth
-      responses:
-        "200":
-          description: Successfully logged out
   /login:
     get:
-      tags: []
-      responses:
-        "200":
-          description: Default Response
-  /:
-    get:
-      responses:
-        "200":
-          description: Default Response
-  /subscribe:
-    get:
-      parameters:
-        - schema:
-            type: string
-            minLength: 1
-          in: query
-          name: name
-          required: true
-      responses:
-        "200":
-          description: Default Response
-  /subscriptions:
-    get:
-      responses:
-        "200":
-          description: Default Response
-  /revoke:
-    get:
+      tags:
+        - Auth
       responses:
         "200":
           description: Default Response
@@ -333,6 +294,21 @@ paths:
       responses:
         "204":
           description: Successfully deleted item
+  /login/callback:
+    get:
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Default Response
+  /logout:
+    get:
+      summary: Signs out the user
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Successfully logged out
 servers:
   - url: http://localhost:3000
     description: Development server
