@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { env } from '@/config/env';
+import { useUser } from '@/hooks/use-user';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -61,11 +61,13 @@ function BallBackground() {
 }
 
 function LogInButton() {
+  const { logIn } = useUser();
+
   return (
-    <a
+    <button
       className="absolute top-4 right-4 flex flex-row items-center gap-px fill-gray-50 p-1 font-semibold transition-colors duration-300 select-none hover:fill-violet-600 hover:text-violet-600 md:text-lg"
-      draggable={false}
-      href={env.LOGIN_URL}
+      type="button"
+      onClick={logIn}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -80,6 +82,6 @@ function LogInButton() {
         <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z" />
       </svg>
       Log In With Twitch
-    </a>
+    </button>
   );
 }

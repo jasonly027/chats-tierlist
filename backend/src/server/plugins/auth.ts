@@ -58,7 +58,7 @@ const auth: FastifyPluginAsync = async (fastify) => {
       cookie: {
         maxAge: SESSION_TTL,
         secure: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         domain: env.COOKIE_DOMAIN,
       },
     });

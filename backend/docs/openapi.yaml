@@ -7,7 +7,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: sessionId
+      name: chatsTierListSessionId
   schemas:
     def-0:
       type: object
@@ -302,13 +302,44 @@ paths:
         "200":
           description: Default Response
   /logout:
-    get:
+    post:
       summary: Signs out the user
       tags:
         - Auth
       responses:
         "200":
           description: Successfully logged out
+  /auth/me:
+    get:
+      summary: Gets the authenticated user's profile
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - twitch_id
+                      - display_name
+                      - profile_image_url
+                    properties:
+                      twitch_id:
+                        type: string
+                      display_name:
+                        type: string
+                      profile_image_url:
+                        type: string
+                        format: url
 servers:
   - url: http://localhost:3000
     description: Development server

@@ -8,6 +8,8 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import eslintReact from '@eslint-react/eslint-plugin';
+import tanstackRouter from '@tanstack/eslint-plugin-router';
+import reactQuery from '@tanstack/eslint-plugin-query';
 import prettier from 'eslint-plugin-prettier/recommended';
 import { globalIgnores, defineConfig } from 'eslint/config';
 
@@ -26,8 +28,10 @@ export default defineConfig([
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
       eslintReact.configs['recommended-typescript'],
+      tanstackRouter.configs['flat/recommended'],
+      reactQuery.configs['flat/recommended'],
       // Must be last to override
-      prettier
+      prettier,
     ],
     languageOptions: {
       ecmaVersion: 2020,
@@ -83,4 +87,3 @@ export default defineConfig([
     },
   },
 ]);
-

@@ -7,7 +7,7 @@ import parent from '../.prettierrc.js';
  */
 const config = {
   ...parent,
-  plugins: ["prettier-plugin-tailwindcss"]
+  plugins: ["prettier-plugin-tailwindcss"],
 };
 
 export default config;

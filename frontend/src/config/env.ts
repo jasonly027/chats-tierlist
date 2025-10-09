@@ -1,9 +1,9 @@
-import { Type as T } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value';
+import { Type as T } from 'typebox';
+import { Value } from 'typebox/value';
 
 function createEnv() {
   const EnvSchema = T.Object({
-    LOGIN_URL: T.String(),
+    BACKEND_URL: T.String(),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

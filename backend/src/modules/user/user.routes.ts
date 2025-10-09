@@ -33,7 +33,7 @@ export default function (fastify: FastifyTypeBox) {
       const createSession = req.session.save();
 
       return Promise.all([createUser, createSession]).then(() =>
-        res.redirect(env.LOGIN_REDIRECT_URL)
+        res.redirect(env.FRONTEND_URL)
       );
     }
   );
@@ -67,7 +67,7 @@ export default function (fastify: FastifyTypeBox) {
     );
   }
 
-  fastify.get(
+  fastify.post(
     '/logout',
     {
       schema: {
@@ -94,6 +94,7 @@ export default function (fastify: FastifyTypeBox) {
         response: {
           200: UserProfileResponse,
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
