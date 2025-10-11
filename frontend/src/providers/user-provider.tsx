@@ -1,10 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, type ReactNode } from 'react';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useEffect, useMemo, type ReactNode } from 'react';
+import toast from 'react-hot-toast';
 
 import { env } from '@/config/env';
 import { UserContext } from '@/hooks/use-user';
-import { api } from '@/lib/api-client';
-import type { User } from '@/types/api';
+import { api, FetchError } from '@/lib/api-client';
+import { queryConfig } from '@/lib/react-query';
+import { type User } from '@/types/api';
 import type { paths } from '@/types/dto';
 
 export interface UserProviderProps {
@@ -12,12 +19,12 @@ export interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { isLoading, data: resp } = useUserQuery();
+  const { user, isLoading } = useUserInternal();
   const logOutMutation = useLogOutMutation();
 
   const context: UserContext = useMemo(
     () => ({
-      user: resp?.data ? dtoToUser(resp.data.data) : null,
+      user,
 
       isLoading,
 
@@ -29,41 +36,63 @@ export function UserProvider({ children }: UserProviderProps) {
         logOutMutation.mutate();
       },
     }),
-    [resp?.data, isLoading, logOutMutation]
+    [user, isLoading, logOutMutation]
   );
 
   return <UserContext value={context}>{children}</UserContext>;
 }
 
-function getUserQueryKey() {
-  return ['auth', 'me'];
+function useUserInternal() {
+  const { data, isLoading, error } = useQuery(getUserQueryOptions());
+
+  const user = useMemo(() => {
+    const dto = data?.data?.data;
+    return dto ? dtoToUser(dto) : null;
+  }, [data]);
+
+  useEffect(
+    function handleError() {
+      if (!error) return;
+      // User not logged in
+      if (error instanceof FetchError && error.response.status === 401) {
+        return;
+      }
+
+      toast.error('Failed to get login info');
+    },
+    [error]
+  );
+
+  return { user, isLoading };
 }
 
-function useUserQuery() {
-  return useQuery({
-    queryKey: getUserQueryKey(),
+function getUserQueryOptions() {
+  return queryOptions({
+    queryKey: ['auth', 'me'],
     queryFn: () => api.GET('/auth/me'),
     staleTime: Infinity,
-    retry: false,
     refetchOnWindowFocus: false,
+    retry(failureCount, error) {
+      if (error instanceof FetchError && error.response.status === 401) {
+        return false;
+      }
+      return failureCount < queryConfig.queries.retry;
+    },
+    meta: {
+      preventDefaultErrorHandler: true,
+    },
   });
-}
-
-function getLogOutQueryKey() {
-  return ['logout'];
 }
 
 function useLogOutMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: getLogOutQueryKey(),
+    mutationKey: ['logout'],
     mutationFn: () => api.POST('/logout'),
-    onSuccess(data) {
-      if (!data.response.ok) return;
-
-      return queryClient.cancelQueries({
-        queryKey: getUserQueryKey(),
+    onSuccess() {
+      return queryClient.removeQueries({
+        queryKey: getUserQueryOptions().queryKey,
       });
     },
   });
@@ -76,6 +105,6 @@ function dtoToUser(user: DtoUser): User {
   return {
     name: user.display_name,
     twitchId: user.twitch_id,
-    imageUrl: user.twitch_id,
+    imageUrl: user.profile_image_url,
   };
 }

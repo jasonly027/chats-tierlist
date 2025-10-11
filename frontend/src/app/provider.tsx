@@ -11,7 +11,16 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   return (
     <>
-      <Toaster position="bottom-right" />
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            backgroundColor: 'var(--color-gray-800)',
+            borderRadius: 'var(--radius-xs)',
+            color: 'var(--color-gray-50)',
+          },
+        }}
+      />
       <QueryProvider>
         <UserProvider>{children}</UserProvider>
       </QueryProvider>
