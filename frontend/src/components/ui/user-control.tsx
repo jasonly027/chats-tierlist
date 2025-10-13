@@ -1,26 +1,10 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 
 import Skeleton from '@/components/ui/skeleton';
 import { useUser } from '@/hooks/use-user';
 import type { User } from '@/types/api';
 
 export default function UserControl() {
-  return (
-    <Layout>
-      <Inner />
-    </Layout>
-  );
-}
-
-interface LayoutProps {
-  children: ReactNode;
-}
-
-function Layout({ children }: LayoutProps) {
-  return <div className="absolute top-4 right-4">{children}</div>;
-}
-
-function Inner() {
   const { user, isLoading, logIn } = useUser();
 
   if (isLoading) {
@@ -53,7 +37,7 @@ function LogInButton({ onClick }: LogInButtonProps) {
       >
         <path d="M10,17V14H3V10H10V7L15,12L10,17M10,2H19A2,2 0 0,1 21,4V20A2,2 0 0,1 19,22H10A2,2 0 0,1 8,20V18H10V20H19V4H10V6H8V4A2,2 0 0,1 10,2Z" />
       </svg>
-      Log In With Twitch
+      <span className="truncate">Log In With Twitch</span>
     </button>
   );
 }

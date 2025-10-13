@@ -10,7 +10,6 @@ import toast from 'react-hot-toast';
 import { env } from '@/config/env';
 import { UserContext } from '@/hooks/use-user';
 import { api, FetchError } from '@/lib/api-client';
-import { queryConfig } from '@/lib/react-query';
 import { type User } from '@/types/api';
 import type { paths } from '@/types/dto';
 
@@ -67,6 +66,8 @@ function useUserInternal() {
 }
 
 function getUserQueryOptions() {
+  const MAX_RETRY = 2;
+
   return queryOptions({
     queryKey: ['auth', 'me'],
     queryFn: () => api.GET('/auth/me'),
@@ -76,7 +77,7 @@ function getUserQueryOptions() {
       if (error instanceof FetchError && error.response.status === 401) {
         return false;
       }
-      return failureCount < queryConfig.queries.retry;
+      return failureCount < MAX_RETRY;
     },
     meta: {
       preventDefaultErrorHandler: true,

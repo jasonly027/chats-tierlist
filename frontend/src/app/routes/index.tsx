@@ -1,18 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import Background from '@/components/layout/background';
 import UserControl from '@/components/ui/user-control';
 import { useUser } from '@/hooks/use-user';
 
 export const Route = createFileRoute('/')({
-  component: Index,
+  component: IndexComponent,
 });
 
-function Index() {
+function IndexComponent() {
   return (
     <>
-      <BallBackground />
-      <main className="mx-4 flex h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
+      <Background />
+      <div className="absolute top-4 right-4">
         <UserControl />
+      </div>
+      <main className="mx-4 flex h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
         <article>
           <h1 className="text-center font-[Lexend_Deca,_Arial] text-6xl font-semibold sm:text-7xl md:text-8xl">
             Chat's TierList
@@ -43,16 +46,6 @@ function Index() {
         </article>
       </main>
     </>
-  );
-}
-
-function BallBackground() {
-  return (
-    <div className="ballsContainer absolute -z-50">
-      <div className="redBall top-[10vh] left-[20vw]"></div>
-      <div className="greenBall top-[20vh] left-[50vw]"></div>
-      <div className="yellowBall top-[65vh] left-[30vw]"></div>
-    </div>
   );
 }
 
