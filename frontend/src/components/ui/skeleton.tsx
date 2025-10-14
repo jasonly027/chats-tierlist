@@ -8,7 +8,7 @@ export default function Skeleton({
 }: ComponentProps<'div'>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-gray-700', className)}
+      className={cn('bg-surface animate-pulse rounded-lg', className)}
       {...props}
     />
   );

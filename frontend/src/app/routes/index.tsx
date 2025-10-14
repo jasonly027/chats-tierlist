@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import Background from '@/components/layout/background';
+import Background from '@/components/ui/background';
+import TierListSearchBar from '@/components/ui/tier-list-search';
 import UserControl from '@/components/ui/user-control';
 import { useUser } from '@/hooks/use-user';
 
@@ -12,10 +13,10 @@ function IndexComponent() {
   return (
     <>
       <Background />
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-5 right-5">
         <UserControl />
       </div>
-      <main className="mx-4 flex h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
+      <main className="mx-4 flex min-h-screen flex-col place-content-center gap-4 sm:gap-6 md:mx-18 md:gap-8">
         <article>
           <h1 className="text-center font-[Lexend_Deca,_Arial] text-6xl font-semibold sm:text-7xl md:text-8xl">
             Chat's TierList
@@ -36,12 +37,7 @@ function IndexComponent() {
             >
               View a TierList
             </label>
-            <input
-              className="focus:border-accent w-full rounded-xs border-2 border-gray-50 px-4 py-2 text-xl transition-colors duration-300 focus:outline-none"
-              id="streamerName"
-              type="text"
-              placeholder="Twitch Channel Name"
-            />
+            <TierListSearchBar className="sm:text-lg md:text-xl" />
           </div>
         </article>
       </main>

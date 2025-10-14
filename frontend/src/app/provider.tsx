@@ -17,7 +17,7 @@ export function AppProvider({ children }: AppProviderProps) {
           style: {
             backgroundColor: 'var(--color-gray-800)',
             borderRadius: 'var(--radius-xs)',
-            color: 'var(--color-gray-50)',
+            color: 'currentColor',
           },
         }}
       />
