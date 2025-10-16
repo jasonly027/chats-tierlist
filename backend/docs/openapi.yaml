@@ -330,10 +330,13 @@ paths:
                     type: object
                     required:
                       - twitch_id
+                      - name
                       - display_name
                       - profile_image_url
                     properties:
                       twitch_id:
+                        type: string
+                      name:
                         type: string
                       display_name:
                         type: string

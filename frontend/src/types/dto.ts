@@ -464,6 +464,7 @@ export interface paths {
                         "application/json": {
                             data: {
                                 twitch_id: string;
+                                name: string;
                                 display_name: string;
                                 /** Format: url */
                                 profile_image_url: string;

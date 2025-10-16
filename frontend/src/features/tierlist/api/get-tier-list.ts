@@ -1,6 +1,11 @@
-import { queryOptions } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 
-import type { TierList } from '@/features/tierlist/types/tier-list';
+import type {
+  Item,
+  TieredItem,
+  TierList,
+  TierListDto,
+} from '@/features/tierlist/types/tier-list';
 import type { QueryConfig } from '@/lib/react-query';
 
 interface UseTierListOptions {
@@ -8,8 +13,22 @@ interface UseTierListOptions {
   queryConfig?: QueryConfig<typeof getTierListOptions>;
 }
 
-export function useTierList(_opts: UseTierListOptions) {
-  const dummy: TierList = {
+export function useTierList({ queryConfig, name }: UseTierListOptions) {
+  return useQuery({
+    ...getTierListOptions(name),
+    ...queryConfig,
+  });
+}
+
+export function getTierListOptions(name: string) {
+  return queryOptions({
+    queryKey: ['tierlist', name],
+    queryFn: getTierList,
+  });
+}
+
+function getTierList() {
+  const dummy: TierListDto = {
     tiers: [
       {
         name: 'S',
@@ -42,23 +61,80 @@ export function useTierList(_opts: UseTierListOptions) {
     version: 1,
   };
 
-  return {
-    isLoading: true,
-    data: {
-      data: {
-        type: 'tierlist',
-        success: true,
-        tier_list: dummy,
-      },
-    },
-  };
+  const tierList = dtoToTierList(dummy);
+
+  return tierList;
 }
 
-export function getTierListOptions(twitchId: string) {
-  return queryOptions({
-    queryKey: ['tierlist', twitchId],
-    queryFn: () => {
-      return null;
-    },
-  });
+function dtoToTierList(dto: TierListDto): TierList {
+  const tierList: TierList = {
+    tiers: [],
+    pool: [],
+    focus: dto.focus,
+    isVoting: dto.isVoting,
+    version: dto.version,
+  };
+
+  // Add tiers
+  for (const { name, color } of dto.tiers) {
+    tierList.tiers.push({ name, color, items: [] });
+  }
+
+  for (const [name, { imageUrl, votes }] of Object.entries(dto.items)) {
+    const item: Item = { name, imageUrl };
+
+    const tierIndices = Object.values(votes);
+    // Just place in the pool if there are no votes.
+    if (tierIndices.length === 0) {
+      tierList.pool.push(item);
+      continue;
+    }
+
+    // Otherwise, calculate stats
+    const tierStats: Record<number, number> = {};
+    for (const tierIdx of tierIndices) {
+      if (tierStats[tierIdx] === undefined) {
+        tierStats[tierIdx] = 0;
+      }
+      tierStats[tierIdx] += 1;
+    }
+    const stats: TieredItem['stats'] = Object.entries(tierStats)
+      .map(([tierIdx, votes]) => ({
+        tierIdx: Number(tierIdx),
+        votes,
+      }))
+      .sort((a, b) => b.votes - a.votes);
+
+    const { score, totalVotes } = stats.reduce(
+      (acc, { tierIdx, votes }) => {
+        acc.score += votes * tierIdx;
+        acc.totalVotes += votes;
+
+        return acc;
+      },
+      { score: 0, totalVotes: 0 }
+    );
+    const weightedAverage = score / totalVotes;
+
+    const tieredItem: TieredItem = {
+      ...item,
+      totalVotes,
+      weightedAverage,
+      stats,
+      votes,
+    };
+
+    const numberOfTiers = tierList.tiers.length;
+    const tierIdx =
+      numberOfTiers > 1
+        ? Math.floor((weightedAverage * numberOfTiers) / (numberOfTiers - 1))
+        : 0;
+    tierList.tiers[tierIdx]!.items.push(tieredItem);
+  }
+
+  tierList.tiers.forEach((tier) =>
+    tier.items.sort((a, b) => a.weightedAverage - b.weightedAverage)
+  );
+
+  return tierList;
 }

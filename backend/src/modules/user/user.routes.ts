@@ -27,7 +27,8 @@ export default function (fastify: FastifyTypeBox) {
       const createUser = fastify.repo.createUserIfNotExists(user.id);
       req.session.set('user', {
         twitch_id: user.id,
-        name: user.display_name,
+        name: user.login,
+        displayName: user.display_name,
         profileImageUrl: user.profile_image_url,
       });
       const createSession = req.session.save();
@@ -98,12 +99,13 @@ export default function (fastify: FastifyTypeBox) {
       },
     },
     async (req, res) => {
-      const { twitch_id, name, profileImageUrl } = req.user;
+      const { twitch_id, name, displayName, profileImageUrl } = req.user;
 
       return res.code(200).send({
         data: {
           twitch_id,
-          display_name: name,
+          name,
+          display_name: displayName,
           profile_image_url: profileImageUrl,
         },
       });

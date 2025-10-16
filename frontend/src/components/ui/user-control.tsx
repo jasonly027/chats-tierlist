@@ -56,7 +56,7 @@ function User({ user }: UserProps) {
         className="size-7 rounded-full select-none"
         draggable="false"
       />
-      <div>{user.name}</div>
+      <div>{user.displayName}</div>
       <div className="w-px self-stretch bg-current select-none" />
       <button
         type="button"

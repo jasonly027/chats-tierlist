@@ -33,7 +33,7 @@ export default function TierListSearchBar({
         type="text"
         placeholder="Enter Twitch Channel"
         size={1}
-        className="flex-1 overflow-hidden px-2 py-1 focus:outline-0"
+        className="flex-1 overflow-hidden p-1 px-2 focus:outline-0"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />

@@ -1,8 +1,9 @@
 import T, { type Static } from 'typebox';
 
 export const UserSchema = T.Object({
-  name: T.String(),
   twitchId: T.String(),
+  name: T.String(),
+  displayName: T.String(),
   imageUrl: T.String(),
 });
 

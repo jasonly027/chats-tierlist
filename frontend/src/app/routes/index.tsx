@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import Background from '@/components/ui/background';
 import TierListSearchBar from '@/components/ui/tier-list-search';
@@ -47,6 +47,7 @@ function IndexComponent() {
 
 function EditTierListButton() {
   const { user, logIn, isLoading } = useUser();
+  const navigate = useNavigate();
 
   return (
     <button
@@ -54,7 +55,7 @@ function EditTierListButton() {
       disabled={isLoading}
       onClick={() => {
         if (user) {
-          //
+          void navigate({ to: '/$name', params: { name: user.name } });
         } else {
           logIn();
         }

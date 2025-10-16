@@ -35,6 +35,7 @@ declare module 'fastify' {
 export interface SessionProfile {
   twitch_id: string;
   name: string;
+  displayName: string;
   profileImageUrl: string;
 }
 

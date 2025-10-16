@@ -18,12 +18,12 @@ export interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { user, isLoading } = useUserInternal();
+  const { user: data, isLoading } = useUserInternal();
   const logOutMutation = useLogOutMutation();
 
   const context: UserContext = useMemo(
     () => ({
-      user,
+      user: data ?? null,
 
       isLoading,
 
@@ -35,7 +35,7 @@ export function UserProvider({ children }: UserProviderProps) {
         logOutMutation.mutate();
       },
     }),
-    [user, isLoading, logOutMutation]
+    [data, isLoading, logOutMutation]
   );
 
   return <UserContext value={context}>{children}</UserContext>;
@@ -43,11 +43,6 @@ export function UserProvider({ children }: UserProviderProps) {
 
 function useUserInternal() {
   const { data, isLoading, error } = useQuery(getUserQueryOptions());
-
-  const user = useMemo(() => {
-    const dto = data?.data?.data;
-    return dto ? dtoToUser(dto) : null;
-  }, [data]);
 
   useEffect(
     function handleError() {
@@ -62,7 +57,7 @@ function useUserInternal() {
     [error]
   );
 
-  return { user, isLoading };
+  return { user: data, isLoading };
 }
 
 function getUserQueryOptions() {
@@ -70,7 +65,7 @@ function getUserQueryOptions() {
 
   return queryOptions({
     queryKey: ['auth', 'me'],
-    queryFn: () => api.GET('/auth/me'),
+    queryFn: getUser,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     retry(failureCount, error) {
@@ -82,6 +77,14 @@ function getUserQueryOptions() {
     meta: {
       preventDefaultErrorHandler: true,
     },
+  });
+}
+
+async function getUser() {
+  return api.GET('/auth/me').then((res) => {
+    const dto = res.data?.data;
+    if (!dto) return null;
+    return dtoToUser(dto);
   });
 }
 
@@ -104,8 +107,9 @@ type DtoUser =
 
 function dtoToUser(user: DtoUser): User {
   return {
-    name: user.display_name,
     twitchId: user.twitch_id,
+    name: user.name,
+    displayName: user.display_name,
     imageUrl: user.profile_image_url,
   };
 }
