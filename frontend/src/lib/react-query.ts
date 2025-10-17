@@ -2,6 +2,7 @@ import type { DefaultOptions, UseMutationOptions } from '@tanstack/react-query';
 
 export const queryConfig = {
   queries: {
+    refetchOnWindowFocus: false,
     retry: 3,
   },
 } satisfies DefaultOptions;

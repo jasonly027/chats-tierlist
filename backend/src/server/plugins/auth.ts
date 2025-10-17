@@ -92,7 +92,9 @@ const auth: FastifyPluginAsync = async (fastify) => {
     startRedirectPath: '/login',
     callbackUri: env.TWITCH_CALLBACK_URL,
 
-    tags: ['Auth'],
+    schema: {
+      hide: true,
+    },
 
     cookie: {
       secure: true,

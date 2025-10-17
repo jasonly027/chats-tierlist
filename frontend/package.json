@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "check": "tsc --project tsconfig.json --pretty --noEmit",
+    "orval": "orval --config orval.config.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-router": "^1.132.26",
     "@tanstack/react-router-devtools": "^1.132.26",
+    "axios": "^1.12.2",
     "clsx": "^2.1.1",
     "openapi-fetch": "^0.14.1",
     "react": "^19.1.1",
@@ -25,7 +27,8 @@
     "react-hot-toast": "^2.6.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
-    "typebox": "^1.0.29"
+    "typebox": "^1.0.29",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^1.53.0",
@@ -50,6 +53,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
     "openapi-typescript": "^7.9.1",
+    "orval": "^7.13.2",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "typescript": "~5.8.3",

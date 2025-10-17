@@ -14,7 +14,7 @@ import prettier from 'eslint-plugin-prettier/recommended';
 import { globalIgnores, defineConfig } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'src/lib/gen']),
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {

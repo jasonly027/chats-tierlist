@@ -13,7 +13,7 @@ import {
 export default function (fastify: FastifyTypeBox) {
   fastify.get(
     '/login/callback',
-    { schema: { tags: ['Auth'] } },
+    { schema: { hide: true } },
     async (req, res) => {
       const tw = fastify.twitchOAuth2;
       const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
@@ -74,6 +74,7 @@ export default function (fastify: FastifyTypeBox) {
       schema: {
         summary: 'Signs out the user',
         tags: ['Auth'],
+        operationId: 'logOutUser',
         response: {
           200: nullSchema('Successfully logged out'),
         },
@@ -92,6 +93,7 @@ export default function (fastify: FastifyTypeBox) {
       schema: {
         summary: "Gets the authenticated user's profile",
         tags: ['Auth'],
+        operationId: 'getUserProfile',
         response: {
           200: UserProfileResponse,
         },

@@ -22,15 +22,9 @@ components:
           type: string
       title: HttpError
 paths:
-  /login:
-    get:
-      tags:
-        - Auth
-      responses:
-        "200":
-          description: Default Response
   /tierlist:
     put:
+      operationId: setTierList
       summary: Overwrite entire tier list
       tags:
         - Tier List
@@ -77,6 +71,7 @@ paths:
         "204":
           description: Successfully overwrote tier list
     patch:
+      operationId: updateTierList
       summary: Update settings on the tier list
       tags:
         - Tier List
@@ -112,6 +107,7 @@ paths:
                 description: Focus target does not exist
   /tierlist/tier:
     post:
+      operationId: addTier
       summary: Add a new tier
       tags:
         - Tier List
@@ -152,6 +148,7 @@ paths:
                 description: Conflict
   /tierlist/tier/{name}:
     patch:
+      operationId: updateTier
       summary: Update an existing tier
       tags:
         - Tier List
@@ -196,6 +193,7 @@ paths:
                 description: Conflict
   /tierlist/item:
     post:
+      operationId: addItem
       summary: Adds a new item
       tags:
         - Tier List
@@ -235,6 +233,7 @@ paths:
                 description: Conflict
   /tierlist/item/{name}:
     patch:
+      operationId: updateItem
       summary: Updates an item
       tags:
         - Tier List
@@ -278,6 +277,7 @@ paths:
                     type: string
                 description: Conflict
     delete:
+      operationId: deleteItem
       summary: Deletes an item
       tags:
         - Tier List
@@ -294,15 +294,9 @@ paths:
       responses:
         "204":
           description: Successfully deleted item
-  /login/callback:
-    get:
-      tags:
-        - Auth
-      responses:
-        "200":
-          description: Default Response
   /logout:
     post:
+      operationId: logOutUser
       summary: Signs out the user
       tags:
         - Auth
@@ -311,6 +305,7 @@ paths:
           description: Successfully logged out
   /auth/me:
     get:
+      operationId: getUserProfile
       summary: Gets the authenticated user's profile
       tags:
         - Auth

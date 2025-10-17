@@ -136,6 +136,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Overwrite entire tier list',
         tags: ['Tier List'],
+        operationId: 'setTierList',
         body: OverwriteTierListRequest,
         response: {
           204: nullSchema('Successfully overwrote tier list'),
@@ -162,6 +163,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Update settings on the tier list',
         tags: ['Tier List'],
+        operationId: 'updateTierList',
         body: UpdateTierListRequest,
         response: {
           204: nullSchema('Successfully updated settings on the tier list'),
@@ -200,6 +202,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Add a new tier',
         tags: ['Tier List'],
+        operationId: 'addTier',
         body: AddTierRequest,
         response: {
           201: nullSchema('Successfully added tier'),
@@ -232,6 +235,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Update an existing tier',
         tags: ['Tier List'],
+        operationId: 'updateTier',
         body: UpdateTierRequest,
         params: T.Object({ name: TierNameSchema }),
         response: {
@@ -271,6 +275,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Adds a new item',
         tags: ['Tier List'],
+        operationId: 'addItem',
         body: AddItemRequest,
         response: {
           201: nullSchema('Successfully added item'),
@@ -303,6 +308,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Updates an item',
         tags: ['Tier List'],
+        operationId: 'updateItem',
         params: T.Object({ name: ItemNameSchema }),
         body: UpdateItemRequest,
         response: {
@@ -342,6 +348,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       schema: {
         summary: 'Deletes an item',
         tags: ['Tier List'],
+        operationId: 'deleteItem',
         params: T.Object({ name: ItemNameSchema }),
         response: {
           204: nullSchema('Successfully deleted item'),
