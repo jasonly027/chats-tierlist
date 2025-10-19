@@ -52,6 +52,7 @@ function useUserInternal() {
         }
         return failureCount < MAX_RETRY;
       },
+
       meta: {
         preventDefaultErrorHandler: true,
       },
@@ -62,7 +63,7 @@ function useUserInternal() {
     function handleError() {
       if (!error) return;
       // User not logged in
-      if (error.status == 401) {
+      if (error.status === 401) {
         return;
       }
 
@@ -71,7 +72,7 @@ function useUserInternal() {
     [error]
   );
 
-  return { user: data?.data.data, isLoading };
+  return { user: data?.data, isLoading };
 }
 
 function useLogOutMutation() {

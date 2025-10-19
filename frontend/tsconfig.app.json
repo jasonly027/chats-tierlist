@@ -17,6 +17,7 @@
 
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": false,
 
     "paths": {
       "@/*": ["./src/*"]

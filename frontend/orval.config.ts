@@ -8,6 +8,13 @@ export default defineConfig({
       target: 'src/lib/gen/endpoints',
       schemas: 'src/lib/gen/models',
       client: 'react-query',
+
+      override: {
+        mutator: {
+          path: 'src/lib/axios.ts',
+          name: 'customInstance',
+        },
+      },
     },
     hooks: {
       afterAllFilesWrite: 'prettier --write',

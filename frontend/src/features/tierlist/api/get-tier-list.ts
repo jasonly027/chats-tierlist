@@ -8,12 +8,12 @@ import type {
 } from '@/features/tierlist/types/tier-list';
 import type { QueryConfig } from '@/lib/react-query';
 
-interface UseTierListOptions {
+interface UseGetTierListOptions {
   name: string;
   queryConfig?: QueryConfig<typeof getTierListOptions>;
 }
 
-export function useTierList({ queryConfig, name }: UseTierListOptions) {
+export function useGetTierList({ queryConfig, name }: UseGetTierListOptions) {
   return useQuery({
     ...getTierListOptions(name),
     ...queryConfig,

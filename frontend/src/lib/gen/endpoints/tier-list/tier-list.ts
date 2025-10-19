@@ -12,9 +12,6 @@ import type {
   UseMutationResult,
 } from '@tanstack/react-query';
 
-import * as axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-
 import type {
   AddItem409,
   AddItemBody,
@@ -29,49 +26,62 @@ import type {
   UpdateTierListBody,
 } from '../../models';
 
+import { customInstance } from '../../../axios';
+import type { ErrorType, BodyType } from '../../../axios';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * @summary Overwrite entire tier list
  */
 export const setTierList = (
-  setTierListBody: SetTierListBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.put(`/tierlist`, setTierListBody, options);
+  setTierListBody: BodyType<SetTierListBody>,
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: setTierListBody,
+    },
+    options
+  );
 };
 
 export const getSetTierListMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof setTierList>>,
     TError,
-    { data: SetTierListBody },
+    { data: BodyType<SetTierListBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof setTierList>>,
   TError,
-  { data: SetTierListBody },
+  { data: BodyType<SetTierListBody> },
   TContext
 > => {
   const mutationKey = ['setTierList'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof setTierList>>,
-    { data: SetTierListBody }
+    { data: BodyType<SetTierListBody> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return setTierList(data, axiosOptions);
+    return setTierList(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -80,30 +90,27 @@ export const getSetTierListMutationOptions = <
 export type SetTierListMutationResult = NonNullable<
   Awaited<ReturnType<typeof setTierList>>
 >;
-export type SetTierListMutationBody = SetTierListBody;
-export type SetTierListMutationError = AxiosError<unknown>;
+export type SetTierListMutationBody = BodyType<SetTierListBody>;
+export type SetTierListMutationError = ErrorType<unknown>;
 
 /**
  * @summary Overwrite entire tier list
  */
-export const useSetTierList = <
-  TError = AxiosError<unknown>,
-  TContext = unknown,
->(
+export const useSetTierList = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof setTierList>>,
       TError,
-      { data: SetTierListBody },
+      { data: BodyType<SetTierListBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof setTierList>>,
   TError,
-  { data: SetTierListBody },
+  { data: BodyType<SetTierListBody> },
   TContext
 > => {
   const mutationOptions = getSetTierListMutationOptions(options);
@@ -114,45 +121,53 @@ export const useSetTierList = <
  * @summary Update settings on the tier list
  */
 export const updateTierList = (
-  updateTierListBody: UpdateTierListBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.patch(`/tierlist`, updateTierListBody, options);
+  updateTierListBody: BodyType<UpdateTierListBody>,
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateTierListBody,
+    },
+    options
+  );
 };
 
 export const getUpdateTierListMutationOptions = <
-  TError = AxiosError<UpdateTierList404>,
+  TError = ErrorType<UpdateTierList404>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTierList>>,
     TError,
-    { data: UpdateTierListBody },
+    { data: BodyType<UpdateTierListBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTierList>>,
   TError,
-  { data: UpdateTierListBody },
+  { data: BodyType<UpdateTierListBody> },
   TContext
 > => {
   const mutationKey = ['updateTierList'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTierList>>,
-    { data: UpdateTierListBody }
+    { data: BodyType<UpdateTierListBody> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return updateTierList(data, axiosOptions);
+    return updateTierList(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -161,30 +176,30 @@ export const getUpdateTierListMutationOptions = <
 export type UpdateTierListMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateTierList>>
 >;
-export type UpdateTierListMutationBody = UpdateTierListBody;
-export type UpdateTierListMutationError = AxiosError<UpdateTierList404>;
+export type UpdateTierListMutationBody = BodyType<UpdateTierListBody>;
+export type UpdateTierListMutationError = ErrorType<UpdateTierList404>;
 
 /**
  * @summary Update settings on the tier list
  */
 export const useUpdateTierList = <
-  TError = AxiosError<UpdateTierList404>,
+  TError = ErrorType<UpdateTierList404>,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTierList>>,
       TError,
-      { data: UpdateTierListBody },
+      { data: BodyType<UpdateTierListBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTierList>>,
   TError,
-  { data: UpdateTierListBody },
+  { data: BodyType<UpdateTierListBody> },
   TContext
 > => {
   const mutationOptions = getUpdateTierListMutationOptions(options);
@@ -195,45 +210,55 @@ export const useUpdateTierList = <
  * @summary Add a new tier
  */
 export const addTier = (
-  addTierBody: AddTierBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.post(`/tierlist/tier`, addTierBody, options);
+  addTierBody: BodyType<AddTierBody>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist/tier`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: addTierBody,
+      signal,
+    },
+    options
+  );
 };
 
 export const getAddTierMutationOptions = <
-  TError = AxiosError<AddTier409>,
+  TError = ErrorType<AddTier409>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof addTier>>,
     TError,
-    { data: AddTierBody },
+    { data: BodyType<AddTierBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof addTier>>,
   TError,
-  { data: AddTierBody },
+  { data: BodyType<AddTierBody> },
   TContext
 > => {
   const mutationKey = ['addTier'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof addTier>>,
-    { data: AddTierBody }
+    { data: BodyType<AddTierBody> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return addTier(data, axiosOptions);
+    return addTier(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -242,27 +267,27 @@ export const getAddTierMutationOptions = <
 export type AddTierMutationResult = NonNullable<
   Awaited<ReturnType<typeof addTier>>
 >;
-export type AddTierMutationBody = AddTierBody;
-export type AddTierMutationError = AxiosError<AddTier409>;
+export type AddTierMutationBody = BodyType<AddTierBody>;
+export type AddTierMutationError = ErrorType<AddTier409>;
 
 /**
  * @summary Add a new tier
  */
-export const useAddTier = <TError = AxiosError<AddTier409>, TContext = unknown>(
+export const useAddTier = <TError = ErrorType<AddTier409>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof addTier>>,
       TError,
-      { data: AddTierBody },
+      { data: BodyType<AddTierBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof addTier>>,
   TError,
-  { data: AddTierBody },
+  { data: BodyType<AddTierBody> },
   TContext
 > => {
   const mutationOptions = getAddTierMutationOptions(options);
@@ -274,45 +299,53 @@ export const useAddTier = <TError = AxiosError<AddTier409>, TContext = unknown>(
  */
 export const updateTier = (
   name: string,
-  updateTierBody: UpdateTierBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.patch(`/tierlist/tier/${name}`, updateTierBody, options);
+  updateTierBody: BodyType<UpdateTierBody>,
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist/tier/${name}`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateTierBody,
+    },
+    options
+  );
 };
 
 export const getUpdateTierMutationOptions = <
-  TError = AxiosError<UpdateTier409>,
+  TError = ErrorType<UpdateTier409>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTier>>,
     TError,
-    { name: string; data: UpdateTierBody },
+    { name: string; data: BodyType<UpdateTierBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTier>>,
   TError,
-  { name: string; data: UpdateTierBody },
+  { name: string; data: BodyType<UpdateTierBody> },
   TContext
 > => {
   const mutationKey = ['updateTier'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTier>>,
-    { name: string; data: UpdateTierBody }
+    { name: string; data: BodyType<UpdateTierBody> }
   > = (props) => {
     const { name, data } = props ?? {};
 
-    return updateTier(name, data, axiosOptions);
+    return updateTier(name, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -321,30 +354,30 @@ export const getUpdateTierMutationOptions = <
 export type UpdateTierMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateTier>>
 >;
-export type UpdateTierMutationBody = UpdateTierBody;
-export type UpdateTierMutationError = AxiosError<UpdateTier409>;
+export type UpdateTierMutationBody = BodyType<UpdateTierBody>;
+export type UpdateTierMutationError = ErrorType<UpdateTier409>;
 
 /**
  * @summary Update an existing tier
  */
 export const useUpdateTier = <
-  TError = AxiosError<UpdateTier409>,
+  TError = ErrorType<UpdateTier409>,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTier>>,
       TError,
-      { name: string; data: UpdateTierBody },
+      { name: string; data: BodyType<UpdateTierBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTier>>,
   TError,
-  { name: string; data: UpdateTierBody },
+  { name: string; data: BodyType<UpdateTierBody> },
   TContext
 > => {
   const mutationOptions = getUpdateTierMutationOptions(options);
@@ -355,45 +388,55 @@ export const useUpdateTier = <
  * @summary Adds a new item
  */
 export const addItem = (
-  addItemBody: AddItemBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.post(`/tierlist/item`, addItemBody, options);
+  addItemBody: BodyType<AddItemBody>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist/item`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: addItemBody,
+      signal,
+    },
+    options
+  );
 };
 
 export const getAddItemMutationOptions = <
-  TError = AxiosError<AddItem409>,
+  TError = ErrorType<AddItem409>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof addItem>>,
     TError,
-    { data: AddItemBody },
+    { data: BodyType<AddItemBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof addItem>>,
   TError,
-  { data: AddItemBody },
+  { data: BodyType<AddItemBody> },
   TContext
 > => {
   const mutationKey = ['addItem'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof addItem>>,
-    { data: AddItemBody }
+    { data: BodyType<AddItemBody> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return addItem(data, axiosOptions);
+    return addItem(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -402,27 +445,27 @@ export const getAddItemMutationOptions = <
 export type AddItemMutationResult = NonNullable<
   Awaited<ReturnType<typeof addItem>>
 >;
-export type AddItemMutationBody = AddItemBody;
-export type AddItemMutationError = AxiosError<AddItem409>;
+export type AddItemMutationBody = BodyType<AddItemBody>;
+export type AddItemMutationError = ErrorType<AddItem409>;
 
 /**
  * @summary Adds a new item
  */
-export const useAddItem = <TError = AxiosError<AddItem409>, TContext = unknown>(
+export const useAddItem = <TError = ErrorType<AddItem409>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof addItem>>,
       TError,
-      { data: AddItemBody },
+      { data: BodyType<AddItemBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof addItem>>,
   TError,
-  { data: AddItemBody },
+  { data: BodyType<AddItemBody> },
   TContext
 > => {
   const mutationOptions = getAddItemMutationOptions(options);
@@ -434,45 +477,53 @@ export const useAddItem = <TError = AxiosError<AddItem409>, TContext = unknown>(
  */
 export const updateItem = (
   name: string,
-  updateItemBody: UpdateItemBody,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.patch(`/tierlist/item/${name}`, updateItemBody, options);
+  updateItemBody: BodyType<UpdateItemBody>,
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    {
+      url: `/tierlist/item/${name}`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateItemBody,
+    },
+    options
+  );
 };
 
 export const getUpdateItemMutationOptions = <
-  TError = AxiosError<UpdateItem409>,
+  TError = ErrorType<UpdateItem409>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateItem>>,
     TError,
-    { name: string; data: UpdateItemBody },
+    { name: string; data: BodyType<UpdateItemBody> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateItem>>,
   TError,
-  { name: string; data: UpdateItemBody },
+  { name: string; data: BodyType<UpdateItemBody> },
   TContext
 > => {
   const mutationKey = ['updateItem'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateItem>>,
-    { name: string; data: UpdateItemBody }
+    { name: string; data: BodyType<UpdateItemBody> }
   > = (props) => {
     const { name, data } = props ?? {};
 
-    return updateItem(name, data, axiosOptions);
+    return updateItem(name, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -481,30 +532,30 @@ export const getUpdateItemMutationOptions = <
 export type UpdateItemMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateItem>>
 >;
-export type UpdateItemMutationBody = UpdateItemBody;
-export type UpdateItemMutationError = AxiosError<UpdateItem409>;
+export type UpdateItemMutationBody = BodyType<UpdateItemBody>;
+export type UpdateItemMutationError = ErrorType<UpdateItem409>;
 
 /**
  * @summary Updates an item
  */
 export const useUpdateItem = <
-  TError = AxiosError<UpdateItem409>,
+  TError = ErrorType<UpdateItem409>,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateItem>>,
       TError,
-      { name: string; data: UpdateItemBody },
+      { name: string; data: BodyType<UpdateItemBody> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateItem>>,
   TError,
-  { name: string; data: UpdateItemBody },
+  { name: string; data: BodyType<UpdateItemBody> },
   TContext
 > => {
   const mutationOptions = getUpdateItemMutationOptions(options);
@@ -516,13 +567,16 @@ export const useUpdateItem = <
  */
 export const deleteItem = (
   name: string,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.delete(`/tierlist/item/${name}`, options);
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    { url: `/tierlist/item/${name}`, method: 'DELETE' },
+    options
+  );
 };
 
 export const getDeleteItemMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -531,7 +585,7 @@ export const getDeleteItemMutationOptions = <
     { name: string },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteItem>>,
   TError,
@@ -539,13 +593,13 @@ export const getDeleteItemMutationOptions = <
   TContext
 > => {
   const mutationKey = ['deleteItem'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteItem>>,
@@ -553,7 +607,7 @@ export const getDeleteItemMutationOptions = <
   > = (props) => {
     const { name } = props ?? {};
 
-    return deleteItem(name, axiosOptions);
+    return deleteItem(name, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -563,12 +617,12 @@ export type DeleteItemMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteItem>>
 >;
 
-export type DeleteItemMutationError = AxiosError<unknown>;
+export type DeleteItemMutationError = ErrorType<unknown>;
 
 /**
  * @summary Deletes an item
  */
-export const useDeleteItem = <TError = AxiosError<unknown>, TContext = unknown>(
+export const useDeleteItem = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteItem>>,
@@ -576,7 +630,7 @@ export const useDeleteItem = <TError = AxiosError<unknown>, TContext = unknown>(
       { name: string },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<

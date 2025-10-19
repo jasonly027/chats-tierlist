@@ -20,22 +20,28 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import * as axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-
 import type { GetUserProfile200 } from '../../models';
+
+import { customInstance } from '../../../axios';
+import type { ErrorType } from '../../../axios';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * @summary Signs out the user
  */
 export const logOutUser = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<void>> => {
-  return axios.default.post(`/logout`, undefined, options);
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>(
+    { url: `/logout`, method: 'POST', signal },
+    options
+  );
 };
 
 export const getLogOutUserMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -44,7 +50,7 @@ export const getLogOutUserMutationOptions = <
     void,
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof logOutUser>>,
   TError,
@@ -52,19 +58,19 @@ export const getLogOutUserMutationOptions = <
   TContext
 > => {
   const mutationKey = ['logOutUser'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof logOutUser>>,
     void
   > = () => {
-    return logOutUser(axiosOptions);
+    return logOutUser(requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -74,12 +80,12 @@ export type LogOutUserMutationResult = NonNullable<
   Awaited<ReturnType<typeof logOutUser>>
 >;
 
-export type LogOutUserMutationError = AxiosError<unknown>;
+export type LogOutUserMutationError = ErrorType<unknown>;
 
 /**
  * @summary Signs out the user
  */
-export const useLogOutUser = <TError = AxiosError<unknown>, TContext = unknown>(
+export const useLogOutUser = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof logOutUser>>,
@@ -87,7 +93,7 @@ export const useLogOutUser = <TError = AxiosError<unknown>, TContext = unknown>(
       void,
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -104,9 +110,13 @@ export const useLogOutUser = <TError = AxiosError<unknown>, TContext = unknown>(
  * @summary Gets the authenticated user's profile
  */
 export const getUserProfile = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<GetUserProfile200>> => {
-  return axios.default.get(`/auth/me`, options);
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<GetUserProfile200>(
+    { url: `/auth/me`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetUserProfileQueryKey = () => {
@@ -115,20 +125,20 @@ export const getGetUserProfileQueryKey = () => {
 
 export const getGetUserProfileQueryOptions = <
   TData = Awaited<ReturnType<typeof getUserProfile>>,
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getUserProfile>>, TError, TData>
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof customInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetUserProfileQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserProfile>>> = ({
     signal,
-  }) => getUserProfile({ signal, ...axiosOptions });
+  }) => getUserProfile(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getUserProfile>>,
@@ -140,11 +150,11 @@ export const getGetUserProfileQueryOptions = <
 export type GetUserProfileQueryResult = NonNullable<
   Awaited<ReturnType<typeof getUserProfile>>
 >;
-export type GetUserProfileQueryError = AxiosError<unknown>;
+export type GetUserProfileQueryError = ErrorType<unknown>;
 
 export function useGetUserProfile<
   TData = Awaited<ReturnType<typeof getUserProfile>>,
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
 >(
   options: {
     query: Partial<
@@ -158,7 +168,7 @@ export function useGetUserProfile<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -166,7 +176,7 @@ export function useGetUserProfile<
 };
 export function useGetUserProfile<
   TData = Awaited<ReturnType<typeof getUserProfile>>,
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
 >(
   options?: {
     query?: Partial<
@@ -180,7 +190,7 @@ export function useGetUserProfile<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -188,13 +198,13 @@ export function useGetUserProfile<
 };
 export function useGetUserProfile<
   TData = Awaited<ReturnType<typeof getUserProfile>>,
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUserProfile>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -206,13 +216,13 @@ export function useGetUserProfile<
 
 export function useGetUserProfile<
   TData = Awaited<ReturnType<typeof getUserProfile>>,
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUserProfile>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof customInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
