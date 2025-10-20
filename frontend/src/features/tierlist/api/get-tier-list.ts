@@ -38,6 +38,10 @@ function getTierList() {
         name: 'A',
         color: 'blue',
       },
+      {
+        name: 'B',
+        color: 'green',
+      },
     ],
     items: {
       egg: {
@@ -46,9 +50,10 @@ function getTierList() {
         votes: {
           Alex: 0,
           Jason: 1,
+          Alice: 2,
         },
       },
-      chicken: {
+      ['One Two Three Four Five Six Seven Eight Nine Ten Eleven']: {
         imageUrl:
           'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Rooster_portrait2.jpg/1024px-Rooster_portrait2.jpg',
         votes: {
@@ -129,6 +134,7 @@ function dtoToTierList(dto: TierListDto): TierList {
       numberOfTiers > 1
         ? Math.floor((weightedAverage * numberOfTiers) / (numberOfTiers - 1))
         : 0;
+
     tierList.tiers[tierIdx]!.items.push(tieredItem);
   }
 
