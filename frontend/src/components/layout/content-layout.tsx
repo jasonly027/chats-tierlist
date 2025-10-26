@@ -16,7 +16,7 @@ export default function ContentLayout({ children }: ContentLayoutProps) {
       <Background />
       <div className="flex flex-col">
         <NavigationBar />
-        {children}
+        <div className="sm:mx-[10%]">{children}</div>
       </div>
     </>
   );

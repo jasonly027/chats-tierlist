@@ -8,9 +8,12 @@ import {
 } from '@/features/tierlist/api/get-tier-list';
 import {
   TierListContext,
-  type TierListSetAction,
+  type TierListContextValues,
 } from '@/features/tierlist/hooks/use-tier-list';
-import { useUpdateTier as useUpdateTierApi } from '@/lib/gen/endpoints/tier-list/tier-list';
+import {
+  useUpdateTier as useUpdateTierApi,
+  useUpdateItem as useUpdateItemApi,
+} from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export interface TierListProviderProps {
   name: string;
@@ -19,59 +22,94 @@ export interface TierListProviderProps {
 
 export function TierListProvider({ name, children }: TierListProviderProps) {
   const { data, isLoading } = useGetTierList({ name });
-  const setTierList = useSetTierList(name);
+  const updateTier = useUpdateTier(name);
+  const updateItem = useUpdateItem(name);
 
-  const context: TierListContext = useMemo(
+  const context: TierListContextValues = useMemo(
     () => ({
       tierList: data,
-
       isLoading,
-
       getQueryKey: () => getTierListOptions(name).queryKey,
-
-      setTierList,
+      updateTier,
+      updateItem,
     }),
-    [data, isLoading, name, setTierList]
+    [data, isLoading, name, updateTier, updateItem]
   );
 
   return <TierListContext value={context}>{children}</TierListContext>;
 }
 
-function useSetTierList(name: string): (data: TierListSetAction) => void {
-  const { mutate: mutateUpdateTier } = useUpdateTier(name);
-
-  const fn = useCallback(
-    ({ action, payload }: TierListSetAction) => {
-      if (action === 'updateTier') {
-        mutateUpdateTier({ name: payload.tierName, data: payload.data });
-      }
-    },
-    [mutateUpdateTier]
-  );
-
-  return fn;
-}
-
 function useUpdateTier(name: string) {
+  const { mutate } = useUpdateTierApi();
   const queryClient = useQueryClient();
 
-  return useUpdateTierApi({
-    mutation: {
-      onMutate(variables) {
-        queryClient.setQueryData(getTierListOptions(name).queryKey, (prev) => {
-          if (!prev) return undefined;
+  return useCallback(
+    (tierName, data) => {
+      const success = !!queryClient.setQueryData(
+        getTierListOptions(name).queryKey,
+        (prev) => {
+          if (!prev || data.name === '') {
+            return undefined;
+          }
+          // Prevent duplicate name
+          if (
+            data.name !== tierName &&
+            prev.tiers.find((t) => t.name === data.name)
+          ) {
+            return undefined;
+          }
 
           return produce(prev, (draft) => {
-            const tier = draft.tiers.find(
-              (tier) => tier.name === variables.name
-            );
+            const tier = draft.tiers.find((t) => t.name === tierName);
             if (!tier) return;
-
-            tier.name = variables.data.name ?? tier.name;
-            tier.color = variables.data.color ?? tier.color;
+            tier.name = data.name ?? tier.name;
+            tier.color = data.color ?? tier.color;
           });
-        });
-      },
+        }
+      );
+
+      if (success) mutate({ name: tierName, data });
+
+      return success;
     },
-  });
+    [mutate, name, queryClient]
+  ) satisfies TierListContextValues['updateTier'];
+}
+
+function useUpdateItem(name: string) {
+  const { mutate } = useUpdateItemApi();
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    (itemName, data) => {
+      const success = !!queryClient.setQueryData(
+        getTierListOptions(name).queryKey,
+        (prev) => {
+          if (!prev || data.name === '') {
+            return undefined;
+          }
+          // Prevent duplicate name
+          if (
+            data.name !== itemName &&
+            prev._items.find((i) => i.name === data.name)
+          ) {
+            return undefined;
+          }
+
+          return produce(prev, (draft) => {
+            const item = draft._items.find((i) => i.name === itemName);
+            if (!item) return;
+
+            item.name = data.name ?? item.name;
+            item.imageUrl = data.image_url ?? item.imageUrl;
+          });
+        }
+      );
+
+      if (success) mutate({ name: itemName, data });
+
+      return success;
+    },
+    [mutate, name, queryClient]
+  ) satisfies TierListContextValues['updateItem'];
 }

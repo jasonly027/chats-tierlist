@@ -30,6 +30,8 @@ export interface TierList {
   isVoting: boolean;
   focus: string | null;
   version: number;
+  // Global reference to all items in tiers and pool
+  _items: Item[];
 }
 
 export interface Tier {
@@ -45,7 +47,7 @@ export interface Item {
 }
 
 export interface TieredItem extends Item {
-  weightedAverage: number;
+  average: number;
   totalVotes: number;
   /** Sorted by non-decreasing votes. */
   stats: { tierIdx: number; votes: number }[];

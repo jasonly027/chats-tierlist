@@ -78,6 +78,7 @@ function dtoToTierList(dto: TierListDto): TierList {
     focus: dto.focus,
     isVoting: dto.isVoting,
     version: dto.version,
+    _items: [],
   };
 
   // Add tiers
@@ -92,6 +93,7 @@ function dtoToTierList(dto: TierListDto): TierList {
     // Just place in the pool if there are no votes.
     if (tierIndices.length === 0) {
       tierList.pool.push(item);
+      tierList._items.push(item);
       continue;
     }
 
@@ -119,12 +121,12 @@ function dtoToTierList(dto: TierListDto): TierList {
       },
       { score: 0, totalVotes: 0 }
     );
-    const weightedAverage = score / totalVotes;
+    const average = score / totalVotes;
 
     const tieredItem: TieredItem = {
       ...item,
       totalVotes,
-      weightedAverage,
+      average,
       stats,
       votes,
     };
@@ -132,14 +134,15 @@ function dtoToTierList(dto: TierListDto): TierList {
     const numberOfTiers = tierList.tiers.length;
     const tierIdx =
       numberOfTiers > 1
-        ? Math.floor((weightedAverage * numberOfTiers) / (numberOfTiers - 1))
+        ? Math.floor((average * numberOfTiers) / (numberOfTiers - 1))
         : 0;
 
     tierList.tiers[tierIdx]!.items.push(tieredItem);
+    tierList._items.push(tieredItem);
   }
 
   tierList.tiers.forEach((tier) =>
-    tier.items.sort((a, b) => a.weightedAverage - b.weightedAverage)
+    tier.items.sort((a, b) => a.average - b.average)
   );
 
   return tierList;

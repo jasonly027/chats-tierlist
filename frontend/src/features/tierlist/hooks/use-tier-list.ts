@@ -1,28 +1,21 @@
 import { createContext, use } from 'react';
 
 import type { TierList } from '@/features/tierlist/types/tier-list';
-import type { UpdateTierBody } from '@/lib/gen/models';
+import type { UpdateItemBody, UpdateTierBody } from '@/lib/gen/models';
 
-export interface TierListContext {
+export interface TierListContextValues {
   getQueryKey: () => string[];
   tierList: TierList | undefined;
   isLoading: boolean;
-  setTierList: (action: TierListSetAction) => void;
+  updateTier: (tierName: string, data: UpdateTierBody) => boolean;
+  updateItem: (itemName: string, data: UpdateItemBody) => boolean;
 }
 
-export type TierListSetAction = {
-  action: 'updateTier';
-  payload: {
-    tierName: string;
-    data: UpdateTierBody;
-  };
-};
-
-export const TierListContext = createContext<TierListContext | undefined>(
+export const TierListContext = createContext<TierListContextValues | undefined>(
   undefined
 );
 
-export function useTierList(): TierListContext {
+export function useTierList(): TierListContextValues {
   const context = use(TierListContext);
 
   if (context === undefined) {
@@ -31,5 +24,3 @@ export function useTierList(): TierListContext {
 
   return context;
 }
-
-export type setTierListFn = () => void;

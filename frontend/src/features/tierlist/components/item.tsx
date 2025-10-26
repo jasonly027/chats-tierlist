@@ -1,10 +1,10 @@
-import type { TieredItem } from '@/features/tierlist/types/tier-list';
+import type { Item } from '@/features/tierlist/types/tier-list';
 
-export interface TierItemProps {
-  item: TieredItem;
+export interface ItemProps {
+  item: Item;
 }
 
-export default function TierItem({ item }: TierItemProps) {
+export default function Item({ item }: ItemProps) {
   return (
     <div
       className="relative flex size-24 items-end justify-end bg-cover bg-center"
