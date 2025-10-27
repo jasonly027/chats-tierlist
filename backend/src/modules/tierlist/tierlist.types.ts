@@ -1,55 +1,76 @@
 import { Static, Type as T } from 'typebox';
 
+import { idSchema } from '@/shared/api/id.response';
+import { TextSchema } from '@/shared/api/text.schema';
+
+export const TierColorSchema = T.Union(
+  [
+    T.Literal('red'),
+    T.Literal('orange'),
+    T.Literal('gold'),
+    T.Literal('yellow'),
+    T.Literal('lightgreen'),
+    T.Literal('green'),
+    T.Literal('skyblue'),
+    T.Literal('blue'),
+  ],
+  { description: 'Tier background color' }
+);
+export type TierColor = Static<typeof TierColorSchema>;
+
+export const TierNameSchema = TextSchema({ description: 'Name of the tier' });
+export const ItemNameSchema = TextSchema({ description: 'Name of the item' });
+
 export const TierListTierSchema = T.Object({
-  id: T.String(),
-  name: T.String(),
-  color: T.String(),
+  id: idSchema,
+  name: TierNameSchema,
+  color: TierColorSchema,
 });
+export type Tier = Static<typeof TierListTierSchema>;
 
-export type TierListTier = Static<typeof TierListTierSchema>;
-
-export const TierListItemSchema = T.Object({
-  id: T.String(),
-  imageUrl: T.Union([T.String(), T.Null()]),
-  votes: T.Record(T.String(), T.Number()),
+export const ItemSchema = T.Object({
+  id: idSchema,
+  imageUrl: T.Union([TextSchema(), T.Null()], { description: 'Image URL' }),
+  votes: T.Record(
+    T.String({ description: 'Name of the voter' }),
+    T.Number({ description: 'Tier index' })
+  ),
 });
-
-export type TierListItem = Static<typeof TierListItemSchema>;
+export type Item = Static<typeof ItemSchema>;
 
 export const TierListSchema = T.Object({
   tiers: T.Array(TierListTierSchema),
-  items: T.Record(T.String(), TierListItemSchema),
-  isVoting: T.Boolean(),
-  focus: T.Union([T.String(), T.Null()]),
-  version: T.Number(),
+  items: T.Record(ItemNameSchema, ItemSchema),
+  isVoting: T.Boolean({
+    description: 'Whether votes should be parsed or ignored',
+  }),
+  focus: T.Union([T.String(), T.Null()], {
+    description: 'Name of the item to focus',
+  }),
+  version: T.Number({ description: 'Version number of the list' }),
 });
-
 export type TierList = Static<typeof TierListSchema>;
 
 export const FreshTierListSchema = T.Object({
   tiers: T.Record(
-    T.String({ minLength: 1, description: 'Name of the tier' }),
+    TierNameSchema,
     T.Object({
-      color: T.String({
-        minLength: 1,
-        description: 'Background color of the tier',
-      }),
+      color: TierColorSchema,
     }),
     {
       maxProperties: 50,
+      description: 'Max 50 tiers',
     }
   ),
   items: T.Record(
-    T.String({ minLength: 1, description: 'Name of the item' }),
+    ItemNameSchema,
     T.Object({
-      image_url: T.Optional(
-        T.String({ minLength: 1, description: 'An optional image URL' })
-      ),
+      image_url: T.Optional(TextSchema({ description: 'Image URL' })),
     }),
     {
       maxProperties: 500,
+      description: 'Max 500 items',
     }
   ),
 });
-
 export type FreshTierList = Static<typeof FreshTierListSchema>;

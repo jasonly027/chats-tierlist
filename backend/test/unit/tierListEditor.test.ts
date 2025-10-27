@@ -188,46 +188,46 @@ describe('TierListEditor', function () {
 
   describe('addTier', function () {
     it('should add the tier', function () {
-      const id = editor.addTier('tier', 'color');
+      const id = editor.addTier('tier', 'red');
 
       expect(id).to.not.be.null;
       expect(editor.getTierList().tiers).to.have.lengthOf(1);
       expect(editor.getTierList().tiers[0]).to.be.deep.equal({
         id,
         name: 'tier',
-        color: 'color',
+        color: 'red',
       });
     });
 
     it('should fail if name is already in use by a preexisting tier', function () {
-      editor.addTier('tier', 'color');
+      editor.addTier('tier', 'red');
 
-      const id = editor.addTier('tier', 'color');
+      const id = editor.addTier('tier', 'red');
 
       expect(id).to.be.null;
     });
 
     it('should fail if name is empty', function () {
-      const id = editor.addTier('', 'color');
+      const id = editor.addTier('', 'red');
       expect(id).to.be.null;
     });
   });
 
   describe('updateTier', function () {
     it('should update the tier', function () {
-      const id = editor.addTier('old', 'old color');
+      const id = editor.addTier('old', 'red');
       assert.isNotNull(id);
 
       const res = editor.updateTier(id, {
         name: 'new',
-        color: 'new color',
+        color: 'blue',
       });
 
       expect(res).to.be.true;
       expect(editor.getTierList().tiers[0]).to.deep.equal({
         id,
         name: 'new',
-        color: 'new color',
+        color: 'blue',
       });
     });
 
@@ -237,7 +237,7 @@ describe('TierListEditor', function () {
     });
 
     it('should fail on empty new name', function () {
-      editor.addTier('old', 'old color');
+      editor.addTier('old', 'red');
 
       const res = editor.updateTier('old', {
         name: '',
@@ -246,8 +246,8 @@ describe('TierListEditor', function () {
     });
 
     it('should fail on preexisting item with new name', function () {
-      editor.addTier('old', 'old color');
-      editor.addTier('new', 'new color');
+      editor.addTier('old', 'red');
+      editor.addTier('new', 'blue');
 
       const res = editor.updateTier('old', {
         name: 'new',

@@ -1,9 +1,13 @@
 import T from 'typebox';
 
 import {
+  TierColorSchema,
   FreshTierListSchema,
   TierListSchema,
+  TierNameSchema,
+  ItemNameSchema,
 } from '@/modules/tierlist/tierlist.types';
+import { TextSchema } from '@/shared/api/text.schema';
 
 export const ListenChannelParamsSchema = T.Object({
   name: T.String({ minLength: 1 }),
@@ -17,28 +21,13 @@ export const SetTierListResponse = T.Object({
   tier_list: TierListSchema,
 });
 
-export const FocusSchema = T.String({
-  minLength: 1,
-  description: 'Name of the item to focus',
-});
-
-export const IsVotingSchema = T.Boolean({
-  description: 'Determine whether votes should be parsed or ignored',
-});
-
 export const UpdateTierListRequest = T.Object({
-  focus: T.Optional(FocusSchema),
-  is_voting: T.Optional(IsVotingSchema),
-});
-
-export const TierNameSchema = T.String({
-  minLength: 1,
-  description: 'Name of the tier',
-});
-
-export const TierColorSchema = T.String({
-  minLength: 1,
-  description: 'Background color of the tier',
+  focus: T.Optional(TextSchema({ description: 'Name of the item to focus' })),
+  is_voting: T.Optional(
+    T.Boolean({
+      description: 'Determine whether votes should be parsed or ignored',
+    })
+  ),
 });
 
 export const AddTierRequest = T.Object({
@@ -51,13 +40,7 @@ export const UpdateTierRequest = T.Object({
   color: T.Optional(TierColorSchema),
 });
 
-export const ItemNameSchema = T.String({
-  minLength: 1,
-  description: 'Name of the item',
-});
-
-export const ItemImageUrlSchema = T.String({
-  minLength: 1,
+export const ItemImageUrlSchema = TextSchema({
   description: 'Image url of the item',
 });
 

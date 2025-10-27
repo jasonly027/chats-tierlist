@@ -45,25 +45,43 @@ paths:
                     tiers:
                       type: object
                       maxProperties: 50
+                      description: Max 50 tiers
                       additionalProperties:
                         type: object
                         required:
                           - color
                         properties:
                           color:
-                            type: string
-                            minLength: 1
-                            description: Background color of the tier
+                            anyOf:
+                              - enum:
+                                  - red
+                              - enum:
+                                  - orange
+                              - enum:
+                                  - gold
+                              - enum:
+                                  - yellow
+                              - enum:
+                                  - lightgreen
+                              - enum:
+                                  - green
+                              - enum:
+                                  - skyblue
+                              - enum:
+                                  - blue
+                            description: Tier background color
                     items:
                       type: object
                       maxProperties: 500
+                      description: Max 500 items
                       additionalProperties:
                         type: object
                         properties:
                           image_url:
                             type: string
                             minLength: 1
-                            description: An optional image URL
+                            maxLength: 255
+                            description: Image URL
         required: true
       security:
         - cookieAuth: []
@@ -97,10 +115,31 @@ paths:
                           properties:
                             id:
                               type: string
+                              description: Entity's id
                             name:
                               type: string
+                              minLength: 1
+                              maxLength: 255
+                              description: Name of the tier
                             color:
-                              type: string
+                              anyOf:
+                                - enum:
+                                    - red
+                                - enum:
+                                    - orange
+                                - enum:
+                                    - gold
+                                - enum:
+                                    - yellow
+                                - enum:
+                                    - lightgreen
+                                - enum:
+                                    - green
+                                - enum:
+                                    - skyblue
+                                - enum:
+                                    - blue
+                              description: Tier background color
                       items:
                         type: object
                         additionalProperties:
@@ -112,22 +151,30 @@ paths:
                           properties:
                             id:
                               type: string
+                              description: Entity's id
                             imageUrl:
                               anyOf:
                                 - type: string
+                                  minLength: 1
+                                  maxLength: 255
                                 - type: "null"
+                              description: Image URL
                             votes:
                               type: object
                               additionalProperties:
                                 type: number
+                                description: Tier index
                       isVoting:
                         type: boolean
+                        description: Whether votes should be parsed or ignored
                       focus:
                         anyOf:
                           - type: string
                           - type: "null"
+                        description: Name of the item to focus
                       version:
                         type: number
+                        description: Version number of the list
     patch:
       operationId: updateTierList
       summary: Update settings on the tier list
@@ -142,6 +189,7 @@ paths:
                 focus:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the item to focus
                 is_voting:
                   type: boolean
@@ -181,11 +229,27 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the tier
                 color:
-                  type: string
-                  minLength: 1
-                  description: Background color of the tier
+                  anyOf:
+                    - enum:
+                        - red
+                    - enum:
+                        - orange
+                    - enum:
+                        - gold
+                    - enum:
+                        - yellow
+                    - enum:
+                        - lightgreen
+                    - enum:
+                        - green
+                    - enum:
+                        - skyblue
+                    - enum:
+                        - blue
+                  description: Tier background color
         required: true
       security:
         - cookieAuth: []
@@ -230,11 +294,27 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the tier
                 color:
-                  type: string
-                  minLength: 1
-                  description: Background color of the tier
+                  anyOf:
+                    - enum:
+                        - red
+                    - enum:
+                        - orange
+                    - enum:
+                        - gold
+                    - enum:
+                        - yellow
+                    - enum:
+                        - lightgreen
+                    - enum:
+                        - green
+                    - enum:
+                        - skyblue
+                    - enum:
+                        - blue
+                  description: Tier background color
       parameters:
         - schema:
             type: string
@@ -276,10 +356,12 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the item
                 image_url:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Image url of the item
         required: true
       security:
@@ -325,10 +407,12 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the item
                 image_url:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Image url of the item
       parameters:
         - schema:

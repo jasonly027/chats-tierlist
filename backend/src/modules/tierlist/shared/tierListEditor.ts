@@ -2,10 +2,11 @@ import escapeStringRegexp from 'escape-string-regexp';
 import { nanoid } from 'nanoid';
 
 import {
-  TierListTier,
+  Tier,
   type FreshTierList,
   type TierList,
-  type TierListItem,
+  type Item,
+  TierColor,
 } from '@/modules/tierlist/tierlist.types';
 import type { Repository } from '@/shared/db/repository';
 import { baseLogger } from '@/shared/util';
@@ -112,7 +113,7 @@ export class TierListEditor {
     return true;
   }
 
-  addTier(name: string, color: string): string | null {
+  addTier(name: string, color: TierColor): string | null {
     if (!name || this.tierList.tiers.find((t) => t.name === name)) {
       return null;
     }
@@ -126,7 +127,7 @@ export class TierListEditor {
 
   updateTier(
     id: string,
-    { name, color }: { name?: string; color?: string }
+    { name, color }: { name?: string; color?: TierColor }
   ): boolean {
     const tier = this.tierById(id);
     if (!tier) {
@@ -179,13 +180,11 @@ export class TierListEditor {
       });
   }
 
-  private tierById(id: string): TierListTier | undefined {
+  private tierById(id: string): Tier | undefined {
     return this.tierList.tiers.find((t) => t.id === id);
   }
 
-  private itemById(
-    id: string
-  ): [string, TierListItem] | [undefined, undefined] {
+  private itemById(id: string): [string, Item] | [undefined, undefined] {
     const entry = Object.entries(this.tierList.items).find(
       ([, value]) => value.id === id
     );
@@ -248,15 +247,13 @@ export class TierListEditor {
 }
 
 function tierListFromFreshTierList(list: FreshTierList): TierList {
-  const tiers = Object.entries(list.tiers).map<TierListTier>(
-    ([name, { color }]) => ({
-      id: nanoid(),
-      name,
-      color,
-    })
-  );
+  const tiers = Object.entries(list.tiers).map<Tier>(([name, { color }]) => ({
+    id: nanoid(),
+    name,
+    color,
+  }));
 
-  const items = Object.entries(list.items).reduce<Record<string, TierListItem>>(
+  const items = Object.entries(list.items).reduce<Record<string, Item>>(
     (prev, [name, { image_url }]) => ({
       ...prev,
       [name]: {

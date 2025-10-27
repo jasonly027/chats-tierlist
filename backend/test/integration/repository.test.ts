@@ -144,7 +144,7 @@ describe('Repository', function () {
         [twitchId, JSON.stringify(tierList)]
       );
 
-      tierList.tiers.push({ id: nanoid(), name: '', color: '' });
+      tierList.tiers.push({ id: nanoid(), name: '', color: 'red' });
       await repo.setTierList(twitchId, tierList);
 
       const expected = JSON.stringify(tierList);
