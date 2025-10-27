@@ -68,8 +68,66 @@ paths:
       security:
         - cookieAuth: []
       responses:
-        "204":
-          description: Successfully overwrote tier list
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - tier_list
+                properties:
+                  tier_list:
+                    type: object
+                    required:
+                      - tiers
+                      - items
+                      - isVoting
+                      - focus
+                      - version
+                    properties:
+                      tiers:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - color
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            color:
+                              type: string
+                      items:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          required:
+                            - id
+                            - imageUrl
+                            - votes
+                          properties:
+                            id:
+                              type: string
+                            imageUrl:
+                              anyOf:
+                                - type: string
+                                - type: "null"
+                            votes:
+                              type: object
+                              additionalProperties:
+                                type: number
+                      isVoting:
+                        type: boolean
+                      focus:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                      version:
+                        type: number
     patch:
       operationId: updateTierList
       summary: Update settings on the tier list
@@ -133,7 +191,18 @@ paths:
         - cookieAuth: []
       responses:
         "201":
-          description: Successfully added tier
+          description: Entity's id
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Entity's id
+                description: Entity's id
         "409":
           description: Conflict
           content:
@@ -146,7 +215,7 @@ paths:
                   message:
                     type: string
                 description: Conflict
-  /tierlist/tier/{name}:
+  /tierlist/tier/{id}:
     patch:
       operationId: updateTier
       summary: Update an existing tier
@@ -169,11 +238,10 @@ paths:
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the tier
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:
@@ -218,7 +286,18 @@ paths:
         - cookieAuth: []
       responses:
         "201":
-          description: Successfully added item
+          description: Entity's id
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Entity's id
+                description: Entity's id
         "409":
           description: Conflict
           content:
@@ -231,7 +310,7 @@ paths:
                   message:
                     type: string
                 description: Conflict
-  /tierlist/item/{name}:
+  /tierlist/item/{id}:
     patch:
       operationId: updateItem
       summary: Updates an item
@@ -254,11 +333,10 @@ paths:
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the item
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:
@@ -284,11 +362,10 @@ paths:
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the item
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { nanoid } from 'nanoid';
 import { runner as migration_runner } from 'node-pg-migrate';
 import { Client } from 'pg';
 
@@ -143,7 +144,7 @@ describe('Repository', function () {
         [twitchId, JSON.stringify(tierList)]
       );
 
-      tierList.tiers.push({ name: '', color: '' });
+      tierList.tiers.push({ id: nanoid(), name: '', color: '' });
       await repo.setTierList(twitchId, tierList);
 
       const expected = JSON.stringify(tierList);

@@ -7,16 +7,15 @@ import type { TierListStore } from '@/modules/tierlist/shared/tierListStore';
 import {
   AddItemRequest,
   AddTierRequest,
-  ItemNameSchema,
   ListenChannelParamsSchema,
-  OverwriteTierListRequest,
-  tierListFromFreshTierList,
-  TierNameSchema,
+  SetTierListRequest,
+  SetTierListResponse,
   UpdateItemRequest,
   UpdateTierListRequest,
   UpdateTierRequest,
 } from '@/modules/tierlist/tierlist.schemas';
 import { requireAuth } from '@/server/plugins/auth';
+import { idDtoSchema } from '@/shared/api/id.response';
 import { nullSchema } from '@/shared/api/null.response';
 import { Channel } from '@/shared/twitch/models';
 
@@ -137,9 +136,9 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         summary: 'Overwrite entire tier list',
         tags: ['Tier List'],
         operationId: 'setTierList',
-        body: OverwriteTierListRequest,
+        body: SetTierListRequest,
         response: {
-          204: nullSchema('Successfully overwrote tier list'),
+          200: SetTierListResponse,
         },
         security: [{ cookieAuth: [] }],
       },
@@ -150,10 +149,12 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const tierList = tierListFromFreshTierList(req.body.tier_list);
-      editor.setTierList(tierList);
+      const list = req.body.tier_list;
+      editor.setTierList(list);
 
-      return res.code(204).send(null);
+      return res.code(200).send({
+        tier_list: editor.getTierList(),
+      });
     }
   );
 
@@ -182,7 +183,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       }
 
       const { focus, is_voting } = req.body;
-      if (focus) {
+      if (focus !== undefined) {
         const success = editor.setFocus(focus);
         if (!success) {
           return res.code(404).send({ message: 'Focus target does not exist' });
@@ -205,7 +206,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         operationId: 'addTier',
         body: AddTierRequest,
         response: {
-          201: nullSchema('Successfully added tier'),
+          201: idDtoSchema,
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -218,26 +219,26 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       }
 
       const { name, color } = req.body;
-      const success = editor.addTier(name, color);
-      if (!success) {
+      const id = editor.addTier(name, color);
+      if (!id) {
         return res
           .code(409)
           .send({ message: 'A tier exists with the same name' });
       }
 
-      return res.code(201).send(null);
+      return res.code(201).send({ id });
     }
   );
 
   fastify.patch(
-    '/tier/:name',
+    '/tier/:id',
     {
       schema: {
         summary: 'Update an existing tier',
         tags: ['Tier List'],
         operationId: 'updateTier',
         body: UpdateTierRequest,
-        params: T.Object({ name: TierNameSchema }),
+        params: idDtoSchema,
         response: {
           204: nullSchema('Successfully updated tier'),
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
@@ -251,14 +252,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const oldName = req.params.name;
-      const newName = 'name' in req.body ? req.body.name : undefined;
-      const color = 'color' in req.body ? req.body.color : undefined;
-
-      const success = editor.updateTier(oldName, {
-        ...(newName !== undefined && { newName }),
-        ...(color !== undefined && { color }),
-      });
+      const success = editor.updateTier(req.params.id, req.body);
       if (!success) {
         return res
           .code(409)
@@ -278,7 +272,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         operationId: 'addItem',
         body: AddItemRequest,
         response: {
-          201: nullSchema('Successfully added item'),
+          201: idDtoSchema,
           409: T.Object({ message: T.String() }, { description: 'Conflict' }),
         },
         security: [{ cookieAuth: [] }],
@@ -291,25 +285,25 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       }
 
       const { name, image_url } = req.body;
-      const success = editor.addItem(name, image_url);
-      if (!success) {
+      const id = editor.addItem(name, image_url);
+      if (!id) {
         return res
           .code(409)
           .send({ message: 'An item exists with the same name' });
       }
 
-      return res.code(201).send(null);
+      return res.code(201).send({ id });
     }
   );
 
   fastify.patch(
-    '/item/:name',
+    '/item/:id',
     {
       schema: {
         summary: 'Updates an item',
         tags: ['Tier List'],
         operationId: 'updateItem',
-        params: T.Object({ name: ItemNameSchema }),
+        params: idDtoSchema,
         body: UpdateItemRequest,
         response: {
           204: nullSchema('Successfully updated item'),
@@ -324,14 +318,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const oldName = req.params.name;
-      const newName = 'name' in req.body ? req.body.name : undefined;
-      const imageUrl = 'image_url' in req.body ? req.body.image_url : undefined;
-
-      const success = editor.updateItem(oldName, {
-        ...(newName !== undefined && { newName }),
-        ...(imageUrl !== undefined && { imageUrl }),
-      });
+      const success = editor.updateItem(req.params.id, req.body);
       if (!success) {
         return res
           .code(409)
@@ -343,13 +330,13 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
   );
 
   fastify.delete(
-    '/item/:name',
+    '/item/:id',
     {
       schema: {
         summary: 'Deletes an item',
         tags: ['Tier List'],
         operationId: 'deleteItem',
-        params: T.Object({ name: ItemNameSchema }),
+        params: idDtoSchema,
         response: {
           204: nullSchema('Successfully deleted item'),
         },
@@ -362,8 +349,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const name = req.params.name;
-      editor.removeItem(name);
+      editor.removeItem(req.params.id);
 
       return res.code(204).send(null);
     }
