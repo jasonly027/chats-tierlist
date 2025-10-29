@@ -1,4 +1,5 @@
 import {
+  MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -19,10 +20,15 @@ export default function QueryProvider({ children }: QueryProviderProps) {
       new QueryClient({
         defaultOptions: queryConfig,
         queryCache: new QueryCache({
-          onError: (error, query) => {
+          onError(error, query) {
             if (query.meta?.preventDefaultErrorHandler) return;
-
-            toast.error(`Something went wrong: ${error.message}`);
+            toast.error(`Error: ${error.message}`);
+          },
+        }),
+        mutationCache: new MutationCache({
+          onError(error, _variables, _onMutateResult, _mutation, context) {
+            if (context.meta?.preventDefaultErrorHandler) return;
+            toast.error(`Error: ${error.message}`);
           },
         }),
       })

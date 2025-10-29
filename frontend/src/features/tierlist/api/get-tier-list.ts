@@ -31,20 +31,24 @@ function getTierList() {
   const dummy: TierListDto = {
     tiers: [
       {
+        id: '0',
         name: 'S',
         color: 'red',
       },
       {
+        id: '1',
         name: 'A',
         color: 'blue',
       },
       {
+        id: '2',
         name: 'B',
         color: 'green',
       },
     ],
     items: {
       egg: {
+        id: '3',
         imageUrl:
           'https://www.freefoodphotos.com/imagelibrary/dairy/egg_basket.jpg',
         votes: {
@@ -54,6 +58,7 @@ function getTierList() {
         },
       },
       ['One Two Three Four Five Six Seven Eight Nine Ten Eleven']: {
+        id: '4',
         imageUrl:
           'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Rooster_portrait2.jpg/1024px-Rooster_portrait2.jpg',
         votes: {
@@ -82,12 +87,12 @@ function dtoToTierList(dto: TierListDto): TierList {
   };
 
   // Add tiers
-  for (const { name, color } of dto.tiers) {
-    tierList.tiers.push({ name, color, items: [] });
+  for (const { id, name, color } of dto.tiers) {
+    tierList.tiers.push({ id, name, color, items: [] });
   }
 
-  for (const [name, { imageUrl, votes }] of Object.entries(dto.items)) {
-    const item: Item = { name, imageUrl };
+  for (const [name, { id, imageUrl, votes }] of Object.entries(dto.items)) {
+    const item: Item = { id, name, imageUrl };
 
     const tierIndices = Object.values(votes);
     // Just place in the pool if there are no votes.
@@ -110,7 +115,7 @@ function dtoToTierList(dto: TierListDto): TierList {
         tierIdx: Number(tierIdx),
         votes,
       }))
-      .sort((a, b) => b.votes - a.votes);
+      .sort((a, b) => a.tierIdx - b.tierIdx);
 
     const { score, totalVotes } = stats.reduce(
       (acc, { tierIdx, votes }) => {

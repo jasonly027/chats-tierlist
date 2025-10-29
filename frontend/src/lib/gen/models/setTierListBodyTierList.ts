@@ -8,6 +8,8 @@ import type { SetTierListBodyTierListTiers } from './setTierListBodyTierListTier
 import type { SetTierListBodyTierListItems } from './setTierListBodyTierListItems';
 
 export type SetTierListBodyTierList = {
+  /** Max 50 tiers */
   tiers: SetTierListBodyTierListTiers;
+  /** Max 500 items */
   items: SetTierListBodyTierListItems;
 };

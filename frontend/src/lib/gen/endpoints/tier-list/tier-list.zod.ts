@@ -10,69 +10,101 @@ import * as zod from 'zod';
 /**
  * @summary Overwrite entire tier list
  */
+export const setTierListBodyTierListItemsImageUrlMax = 255;
+
 export const setTierListBody = zod.object({
   "tier_list": zod.object({
   "tiers": zod.record(zod.string(), zod.object({
-  "color": zod.string().min(1).describe('Background color of the tier')
+  "color": zod.union([zod.enum(['red']),zod.enum(['orange']),zod.enum(['gold']),zod.enum(['yellow']),zod.enum(['lightgreen']),zod.enum(['green']),zod.enum(['skyblue']),zod.enum(['blue'])]).describe('Tier background color')
+})).describe('Max 50 tiers'),
+  "items": zod.record(zod.string(), zod.object({
+  "image_url": zod.string().min(1).max(setTierListBodyTierListItemsImageUrlMax).optional().describe('Image URL')
+})).describe('Max 500 items')
+})
+})
+
+export const setTierListResponseTierListTiersItemNameMax = 255;export const setTierListResponseTierListItemsImageUrlMaxOne = 255;
+
+export const setTierListResponse = zod.object({
+  "tier_list": zod.object({
+  "tiers": zod.array(zod.object({
+  "id": zod.string().describe('Entity\'s id'),
+  "name": zod.string().min(1).max(setTierListResponseTierListTiersItemNameMax).describe('Name of the tier'),
+  "color": zod.union([zod.enum(['red']),zod.enum(['orange']),zod.enum(['gold']),zod.enum(['yellow']),zod.enum(['lightgreen']),zod.enum(['green']),zod.enum(['skyblue']),zod.enum(['blue'])]).describe('Tier background color')
 })),
   "items": zod.record(zod.string(), zod.object({
-  "image_url": zod.string().min(1).optional().describe('An optional image URL')
-}))
+  "id": zod.string().describe('Entity\'s id'),
+  "imageUrl": zod.union([zod.string().min(1).max(setTierListResponseTierListItemsImageUrlMaxOne),zod.null()]).describe('Image URL'),
+  "votes": zod.record(zod.string(), zod.number().describe('Tier index'))
+})),
+  "isVoting": zod.boolean().describe('Whether votes should be parsed or ignored'),
+  "focus": zod.union([zod.string(),zod.null()]).describe('Name of the item to focus'),
+  "version": zod.number().describe('Version number of the list')
 })
 })
 
 /**
  * @summary Update settings on the tier list
  */
+export const updateTierListBodyFocusMax = 255;
+
 export const updateTierListBody = zod.object({
-  "focus": zod.string().min(1).optional().describe('Name of the item to focus'),
+  "focus": zod.string().min(1).max(updateTierListBodyFocusMax).optional().describe('Name of the item to focus'),
   "is_voting": zod.boolean().optional().describe('Determine whether votes should be parsed or ignored')
 })
 
 /**
  * @summary Add a new tier
  */
+export const addTierBodyNameMax = 255;
+
 export const addTierBody = zod.object({
-  "name": zod.string().min(1).describe('Name of the tier'),
-  "color": zod.string().min(1).describe('Background color of the tier')
+  "name": zod.string().min(1).max(addTierBodyNameMax).describe('Name of the tier'),
+  "color": zod.union([zod.enum(['red']),zod.enum(['orange']),zod.enum(['gold']),zod.enum(['yellow']),zod.enum(['lightgreen']),zod.enum(['green']),zod.enum(['skyblue']),zod.enum(['blue'])]).describe('Tier background color')
 })
 
 /**
  * @summary Update an existing tier
  */
 export const updateTierParams = zod.object({
-  "name": zod.string().min(1).describe('Name of the tier')
+  "id": zod.string().describe('Entity\'s id')
 })
 
+export const updateTierBodyNameMax = 255;
+
 export const updateTierBody = zod.object({
-  "name": zod.string().min(1).optional().describe('Name of the tier'),
-  "color": zod.string().min(1).optional().describe('Background color of the tier')
+  "name": zod.string().min(1).max(updateTierBodyNameMax).optional().describe('Name of the tier'),
+  "color": zod.union([zod.enum(['red']),zod.enum(['orange']),zod.enum(['gold']),zod.enum(['yellow']),zod.enum(['lightgreen']),zod.enum(['green']),zod.enum(['skyblue']),zod.enum(['blue'])]).optional().describe('Tier background color')
 })
 
 /**
  * @summary Adds a new item
  */
+export const addItemBodyNameMax = 255;export const addItemBodyImageUrlMax = 255;
+
 export const addItemBody = zod.object({
-  "name": zod.string().min(1).describe('Name of the item'),
-  "image_url": zod.string().min(1).optional().describe('Image url of the item')
+  "name": zod.string().min(1).max(addItemBodyNameMax).describe('Name of the item'),
+  "image_url": zod.string().min(1).max(addItemBodyImageUrlMax).optional().describe('Image url of the item')
 })
 
 /**
  * @summary Updates an item
  */
 export const updateItemParams = zod.object({
-  "name": zod.string().min(1).describe('Name of the item')
+  "id": zod.string().describe('Entity\'s id')
 })
 
+export const updateItemBodyNameMax = 255;export const updateItemBodyImageUrlMax = 255;
+
 export const updateItemBody = zod.object({
-  "name": zod.string().min(1).optional().describe('Name of the item'),
-  "image_url": zod.string().min(1).optional().describe('Image url of the item')
+  "name": zod.string().min(1).max(updateItemBodyNameMax).optional().describe('Name of the item'),
+  "image_url": zod.string().min(1).max(updateItemBodyImageUrlMax).optional().describe('Image url of the item')
 })
 
 /**
  * @summary Deletes an item
  */
 export const deleteItemParams = zod.object({
-  "name": zod.string().min(1).describe('Name of the item')
+  "id": zod.string().describe('Entity\'s id')
 })
 

@@ -5,11 +5,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
+/**
+ * Max 500 items
+ */
 export type SetTierListBodyTierListItems = {
   [key: string]: {
     /**
-     * An optional image URL
+     * Image URL
      * @minLength 1
+     * @maxLength 255
      */
     image_url?: string;
   };

@@ -5,20 +5,33 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './addItem201';
 export * from './addItem409';
 export * from './addItemBody';
+export * from './addTier201';
 export * from './addTier409';
 export * from './addTierBody';
+export * from './addTierBodyColor';
 export * from './def0';
 export * from './getUserProfile200';
 export * from './getUserProfile200Data';
+export * from './setTierList200';
+export * from './setTierList200TierList';
+export * from './setTierList200TierListFocus';
+export * from './setTierList200TierListItems';
+export * from './setTierList200TierListItemsImageUrl';
+export * from './setTierList200TierListItemsVotes';
+export * from './setTierList200TierListTiersItem';
+export * from './setTierList200TierListTiersItemColor';
 export * from './setTierListBody';
 export * from './setTierListBodyTierList';
 export * from './setTierListBodyTierListItems';
 export * from './setTierListBodyTierListTiers';
+export * from './setTierListBodyTierListTiersColor';
 export * from './updateItem409';
 export * from './updateItemBody';
 export * from './updateTier409';
 export * from './updateTierBody';
+export * from './updateTierBodyColor';
 export * from './updateTierList404';
 export * from './updateTierListBody';

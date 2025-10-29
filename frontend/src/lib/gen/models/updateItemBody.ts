@@ -9,11 +9,13 @@ export type UpdateItemBody = {
   /**
    * Name of the item
    * @minLength 1
+   * @maxLength 255
    */
   name?: string;
   /**
    * Image url of the item
    * @minLength 1
+   * @maxLength 255
    */
   image_url?: string;
 };

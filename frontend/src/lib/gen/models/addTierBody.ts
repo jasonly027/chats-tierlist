@@ -4,16 +4,15 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
+import type { AddTierBodyColor } from './addTierBodyColor';
 
 export type AddTierBody = {
   /**
    * Name of the tier
    * @minLength 1
+   * @maxLength 255
    */
   name: string;
-  /**
-   * Background color of the tier
-   * @minLength 1
-   */
-  color: string;
+  /** Tier background color */
+  color: (typeof AddTierBodyColor)[keyof typeof AddTierBodyColor];
 };

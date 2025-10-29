@@ -1,15 +1,6 @@
 import { createContext, use } from 'react';
 
-import type { TierList } from '@/features/tierlist/types/tier-list';
-import type { UpdateItemBody, UpdateTierBody } from '@/lib/gen/models';
-
-export interface TierListContextValues {
-  getQueryKey: () => string[];
-  tierList: TierList | undefined;
-  isLoading: boolean;
-  updateTier: (tierName: string, data: UpdateTierBody) => boolean;
-  updateItem: (itemName: string, data: UpdateItemBody) => boolean;
-}
+import type { TierListContextValues } from '@/features/tierlist/providers/tier-list-provider';
 
 export const TierListContext = createContext<TierListContextValues | undefined>(
   undefined

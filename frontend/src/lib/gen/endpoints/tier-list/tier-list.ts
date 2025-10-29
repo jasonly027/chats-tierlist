@@ -13,10 +13,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddItem201,
   AddItem409,
   AddItemBody,
+  AddTier201,
   AddTier409,
   AddTierBody,
+  SetTierList200,
   SetTierListBody,
   UpdateItem409,
   UpdateItemBody,
@@ -38,7 +41,7 @@ export const setTierList = (
   setTierListBody: BodyType<SetTierListBody>,
   options?: SecondParameter<typeof customInstance>
 ) => {
-  return customInstance<void>(
+  return customInstance<SetTierList200>(
     {
       url: `/tierlist`,
       method: 'PUT',
@@ -214,7 +217,7 @@ export const addTier = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal
 ) => {
-  return customInstance<void>(
+  return customInstance<AddTier201>(
     {
       url: `/tierlist/tier`,
       method: 'POST',
@@ -298,13 +301,13 @@ export const useAddTier = <TError = ErrorType<AddTier409>, TContext = unknown>(
  * @summary Update an existing tier
  */
 export const updateTier = (
-  name: string,
+  id: string,
   updateTierBody: BodyType<UpdateTierBody>,
   options?: SecondParameter<typeof customInstance>
 ) => {
   return customInstance<void>(
     {
-      url: `/tierlist/tier/${name}`,
+      url: `/tierlist/tier/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateTierBody,
@@ -320,14 +323,14 @@ export const getUpdateTierMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTier>>,
     TError,
-    { name: string; data: BodyType<UpdateTierBody> },
+    { id: string; data: BodyType<UpdateTierBody> },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTier>>,
   TError,
-  { name: string; data: BodyType<UpdateTierBody> },
+  { id: string; data: BodyType<UpdateTierBody> },
   TContext
 > => {
   const mutationKey = ['updateTier'];
@@ -341,11 +344,11 @@ export const getUpdateTierMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTier>>,
-    { name: string; data: BodyType<UpdateTierBody> }
+    { id: string; data: BodyType<UpdateTierBody> }
   > = (props) => {
-    const { name, data } = props ?? {};
+    const { id, data } = props ?? {};
 
-    return updateTier(name, data, requestOptions);
+    return updateTier(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -368,7 +371,7 @@ export const useUpdateTier = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTier>>,
       TError,
-      { name: string; data: BodyType<UpdateTierBody> },
+      { id: string; data: BodyType<UpdateTierBody> },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -377,7 +380,7 @@ export const useUpdateTier = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTier>>,
   TError,
-  { name: string; data: BodyType<UpdateTierBody> },
+  { id: string; data: BodyType<UpdateTierBody> },
   TContext
 > => {
   const mutationOptions = getUpdateTierMutationOptions(options);
@@ -392,7 +395,7 @@ export const addItem = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal
 ) => {
-  return customInstance<void>(
+  return customInstance<AddItem201>(
     {
       url: `/tierlist/item`,
       method: 'POST',
@@ -476,13 +479,13 @@ export const useAddItem = <TError = ErrorType<AddItem409>, TContext = unknown>(
  * @summary Updates an item
  */
 export const updateItem = (
-  name: string,
+  id: string,
   updateItemBody: BodyType<UpdateItemBody>,
   options?: SecondParameter<typeof customInstance>
 ) => {
   return customInstance<void>(
     {
-      url: `/tierlist/item/${name}`,
+      url: `/tierlist/item/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateItemBody,
@@ -498,14 +501,14 @@ export const getUpdateItemMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateItem>>,
     TError,
-    { name: string; data: BodyType<UpdateItemBody> },
+    { id: string; data: BodyType<UpdateItemBody> },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateItem>>,
   TError,
-  { name: string; data: BodyType<UpdateItemBody> },
+  { id: string; data: BodyType<UpdateItemBody> },
   TContext
 > => {
   const mutationKey = ['updateItem'];
@@ -519,11 +522,11 @@ export const getUpdateItemMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateItem>>,
-    { name: string; data: BodyType<UpdateItemBody> }
+    { id: string; data: BodyType<UpdateItemBody> }
   > = (props) => {
-    const { name, data } = props ?? {};
+    const { id, data } = props ?? {};
 
-    return updateItem(name, data, requestOptions);
+    return updateItem(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -546,7 +549,7 @@ export const useUpdateItem = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateItem>>,
       TError,
-      { name: string; data: BodyType<UpdateItemBody> },
+      { id: string; data: BodyType<UpdateItemBody> },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -555,7 +558,7 @@ export const useUpdateItem = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateItem>>,
   TError,
-  { name: string; data: BodyType<UpdateItemBody> },
+  { id: string; data: BodyType<UpdateItemBody> },
   TContext
 > => {
   const mutationOptions = getUpdateItemMutationOptions(options);
@@ -566,11 +569,11 @@ export const useUpdateItem = <
  * @summary Deletes an item
  */
 export const deleteItem = (
-  name: string,
+  id: string,
   options?: SecondParameter<typeof customInstance>
 ) => {
   return customInstance<void>(
-    { url: `/tierlist/item/${name}`, method: 'DELETE' },
+    { url: `/tierlist/item/${id}`, method: 'DELETE' },
     options
   );
 };
@@ -582,14 +585,14 @@ export const getDeleteItemMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteItem>>,
     TError,
-    { name: string },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteItem>>,
   TError,
-  { name: string },
+  { id: string },
   TContext
 > => {
   const mutationKey = ['deleteItem'];
@@ -603,11 +606,11 @@ export const getDeleteItemMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteItem>>,
-    { name: string }
+    { id: string }
   > = (props) => {
-    const { name } = props ?? {};
+    const { id } = props ?? {};
 
-    return deleteItem(name, requestOptions);
+    return deleteItem(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -627,7 +630,7 @@ export const useDeleteItem = <TError = ErrorType<unknown>, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteItem>>,
       TError,
-      { name: string },
+      { id: string },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -636,7 +639,7 @@ export const useDeleteItem = <TError = ErrorType<unknown>, TContext = unknown>(
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteItem>>,
   TError,
-  { name: string },
+  { id: string },
   TContext
 > => {
   const mutationOptions = getDeleteItemMutationOptions(options);

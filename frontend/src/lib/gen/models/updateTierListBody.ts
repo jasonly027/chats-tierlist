@@ -9,6 +9,7 @@ export type UpdateTierListBody = {
   /**
    * Name of the item to focus
    * @minLength 1
+   * @maxLength 255
    */
   focus?: string;
   /** Determine whether votes should be parsed or ignored */

@@ -4,13 +4,14 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
+import type { SetTierListBodyTierListTiersColor } from './setTierListBodyTierListTiersColor';
 
+/**
+ * Max 50 tiers
+ */
 export type SetTierListBodyTierListTiers = {
   [key: string]: {
-    /**
-     * Background color of the tier
-     * @minLength 1
-     */
-    color: string;
+    /** Tier background color */
+    color: (typeof SetTierListBodyTierListTiersColor)[keyof typeof SetTierListBodyTierListTiersColor];
   };
 };

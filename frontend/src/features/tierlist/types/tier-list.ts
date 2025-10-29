@@ -1,28 +1,6 @@
-import { Type as T, type Static } from 'typebox';
+import type { SetTierList200TierList } from '@/lib/gen/models';
 
-export const TierDtoSchema = T.Object({
-  name: T.String(),
-  color: T.String(),
-});
-
-export type TierDto = Static<typeof TierDtoSchema>;
-
-export const ItemDtoSchema = T.Object({
-  imageUrl: T.Union([T.String(), T.Null()]),
-  votes: T.Record(T.String(), T.Number()),
-});
-
-export type ItemDto = Static<typeof ItemDtoSchema>;
-
-export const TierListDtoSchema = T.Object({
-  tiers: T.Array(TierDtoSchema),
-  items: T.Record(T.String(), ItemDtoSchema),
-  isVoting: T.Boolean(),
-  focus: T.Union([T.String(), T.Null()]),
-  version: T.Number(),
-});
-
-export type TierListDto = Static<typeof TierListDtoSchema>;
+export type TierListDto = SetTierList200TierList;
 
 export interface TierList {
   tiers: Tier[];
@@ -31,10 +9,11 @@ export interface TierList {
   focus: string | null;
   version: number;
   // Global reference to all items in tiers and pool
-  _items: Item[];
+  _items: (Item | TieredItem)[];
 }
 
 export interface Tier {
+  id: string;
   name: string;
   color: string;
   /** Sorted by non-decreasing weighted average. */
@@ -42,6 +21,7 @@ export interface Tier {
 }
 
 export interface Item {
+  id: string;
   name: string;
   imageUrl: string | null;
 }

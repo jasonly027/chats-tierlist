@@ -24,8 +24,12 @@ export default function TierListView() {
     <>
       <div className="flex flex-col-reverse border-2 border-gray-950 bg-gray-800 md:flex-row">
         <div className="flex flex-4 flex-col gap-1">
-          {tierList?.tiers.map((tier, idx) => (
-            <TierRow key={idx} tier={tier} setDetailedItem={setDetailedItem} />
+          {tierList?.tiers.map((tier) => (
+            <TierRow
+              key={tier.id}
+              tier={tier}
+              setDetailedItem={setDetailedItem}
+            />
           ))}
         </div>
         <div className="flex-2 border-gray-950 max-md:border-b-2 md:border-l-2">

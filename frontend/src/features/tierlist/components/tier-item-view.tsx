@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import type { TieredItem } from '@/features/tierlist/types/tier-list';
+import type { Item, TieredItem } from '@/features/tierlist/types/tier-list';
+import { useStaticToast } from '@/hooks/use-static-toast';
 
 export interface TierItemViewProps {
   item?: TieredItem;
@@ -27,42 +28,86 @@ export default function TierItemView({ item }: TierItemViewProps) {
           alt="Item Image"
           className="h-50 self-center rounded-sm object-cover"
         />
-        <ItemVotes item={item} />
-        <ChatterPicker stats={item.stats} votes={item.votes} />
+        {'stats' in item && (
+          <>
+            <ItemVotes item={item} />
+            <ChatterPicker stats={item.stats} votes={item.votes} />
+          </>
+        )}
       </div>
     </>
   );
 }
 
 interface TitleProps {
-  item: TieredItem;
+  item: Item;
 }
 
 function Title({ item }: TitleProps) {
-  const [name, setName] = useState(item.name);
-  useEffect(
-    function refreshOnNewName() {
-      // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
-      setName(item.name);
-    },
-    [item.name]
-  );
+  const [name, setName, canOverwrite] = useDeferredText(item.name);
 
-  const { updateItem } = useTierList();
+  const {
+    tierList,
+    updateItem: { mutate },
+  } = useTierList();
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value;
-    setName(newName);
-    updateItem(item.name, { name: newName });
-  };
+  const { setToast, clearToast } = useStaticToast('error');
 
   return (
     <input
       value={name}
-      onChange={onChange}
+      onChange={(e) => {
+        let newName = e.target.value;
+        if (newName.length > 255) {
+          newName = newName.substring(0, 255);
+        }
+
+        setName(newName);
+
+        if (newName === '') {
+          setToast('Item name cannot be empty');
+        } else if (
+          tierList?._items.find((i) => i.name === newName && i.id !== item.id)
+        ) {
+          setToast('Item name already in use');
+        } else {
+          clearToast();
+        }
+      }}
+      onFocus={() => (canOverwrite.current = false)}
+      onBlur={() => {
+        canOverwrite.current = true;
+
+        if (name === item.name) return;
+        if (
+          name !== '' &&
+          !tierList?._items.find((i) => i.name === name && i.id !== item.id)
+        ) {
+          mutate({ id: item.id, data: { name } });
+        } else {
+          setName(item.name);
+        }
+      }}
       className="text-center text-lg font-bold text-ellipsis"
     />
   );
+}
+
+function useDeferredText(value: string) {
+  const [text, setText] = useState(value);
+  const canOverwrite = useRef(true);
+
+  useEffect(
+    function refreshOnNewValue() {
+      if (canOverwrite.current) {
+        // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+        setText(value);
+      }
+    },
+    [value]
+  );
+
+  return [text, setText, canOverwrite] as const;
 }
 
 interface ItemVotesProps {
@@ -71,17 +116,13 @@ interface ItemVotesProps {
 
 function ItemVotes({ item }: ItemVotesProps) {
   const { tierList } = useTierList();
-  const orderedStats = useMemo(
-    () => [...item.stats].sort((a, b) => a.tierIdx - b.tierIdx),
-    [item]
-  );
 
   if (!tierList) return null;
 
   return (
     <div>
       <h3 className="text-center text-lg">Votes - ({item.totalVotes})</h3>
-      {orderedStats.map((stat) => (
+      {item.stats.map((stat) => (
         <ItemTierBar
           key={stat.tierIdx}
           stat={stat}
