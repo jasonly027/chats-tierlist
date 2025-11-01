@@ -29,6 +29,7 @@ export default function TierListSearchBar({
       )}
     >
       <input
+        id="streamerName"
         name="twitchChannel"
         type="text"
         placeholder="Enter Twitch Channel"

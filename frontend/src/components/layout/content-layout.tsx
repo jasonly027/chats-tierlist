@@ -16,7 +16,7 @@ export default function ContentLayout({ children }: ContentLayoutProps) {
       <Background />
       <div className="flex flex-col">
         <NavigationBar />
-        <div className="sm:mx-[10%]">{children}</div>
+        <div className="mb-24 sm:mx-[10%]">{children}</div>
       </div>
     </>
   );
@@ -24,10 +24,10 @@ export default function ContentLayout({ children }: ContentLayoutProps) {
 
 function NavigationBar() {
   return (
-    <nav className="flex w-full flex-col gap-4 bg-gray-900 p-3 sm:flex-row sm:items-center">
+    <nav className="flex w-full flex-col gap-4 border-b-1 border-gray-950 bg-gray-900 p-3 sm:flex-row sm:items-center">
       <div className="flex flex-1">
         <Link to={'/'} className="inline-block">
-          <div className="bg-surface hover:bg-surface-light rounded-sm p-2 transition-colors duration-300">
+          <div className="bg-surface hover:bg-surface-light rounded-sm border-1 border-gray-950 p-2 transition-colors duration-300">
             <Logo size="sm" />
           </div>
         </Link>

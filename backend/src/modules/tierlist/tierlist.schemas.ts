@@ -40,9 +40,12 @@ export const UpdateTierRequest = T.Object({
   color: T.Optional(TierColorSchema),
 });
 
-export const ItemImageUrlSchema = TextSchema({
-  description: 'Image url of the item',
-});
+export const ItemImageUrlSchema = T.Union([
+  TextSchema({
+    description: 'Image url of the item',
+  }),
+  T.Null(),
+]);
 
 export const AddItemRequest = T.Object({
   name: ItemNameSchema,

@@ -45,6 +45,41 @@ function getTierList() {
         name: 'B',
         color: 'green',
       },
+      {
+        id: 'tier4',
+        name: 'C',
+        color: 'green',
+      },
+      {
+        id: 'tier5',
+        name: 'D',
+        color: 'green',
+      },
+      {
+        id: 'tier6',
+        name: 'E',
+        color: 'green',
+      },
+      {
+        id: 'tier7',
+        name: 'F',
+        color: 'green',
+      },
+      {
+        id: 'tier8',
+        name: 'Z',
+        color: 'green',
+      },
+      {
+        id: 'tier9',
+        name: 'Za',
+        color: 'green',
+      },
+      {
+        id: 'tier10',
+        name: 'Za',
+        color: 'green',
+      },
     ],
     items: {
       egg: {
@@ -65,6 +100,18 @@ function getTierList() {
           Alex: 0,
         },
       },
+      Sandwich: {
+        id: '5',
+        imageUrl: null,
+        votes: {
+          Alex: 2,
+        },
+      },
+      Caramel: {
+        id: '6',
+        imageUrl: null,
+        votes: {},
+      },
     },
     focus: null,
     isVoting: true,
@@ -83,34 +130,37 @@ function dtoToTierList(dto: TierListDto): TierList {
     focus: dto.focus,
     isVoting: dto.isVoting,
     version: dto.version,
-    _items: [],
+    items: {},
   };
 
   // Add tiers
-  for (const { id, name, color } of dto.tiers) {
-    tierList.tiers.push({ id, name, color, items: [] });
+  for (const [idx, { id, name }] of dto.tiers.entries()) {
+    tierList.tiers.push({ id, name, idx });
   }
 
   for (const [name, { id, imageUrl, votes }] of Object.entries(dto.items)) {
     const item: Item = { id, name, imageUrl };
 
     const tierIndices = Object.values(votes);
-    // Just place in the pool if there are no votes.
+    // Push as item if no votes
     if (tierIndices.length === 0) {
-      tierList.pool.push(item);
-      tierList._items.push(item);
+      tierList.items[item.id] = item;
       continue;
     }
 
-    // Otherwise, calculate stats
-    const tierStats: Record<number, number> = {};
-    for (const tierIdx of tierIndices) {
-      if (tierStats[tierIdx] === undefined) {
-        tierStats[tierIdx] = 0;
-      }
-      tierStats[tierIdx] += 1;
-    }
-    const stats: TieredItem['stats'] = Object.entries(tierStats)
+    // Otherwise, create tiered item
+    const collectedVotes = tierIndices.reduce<Record<number, number>>(
+      (stats, tierIdx) => {
+        if (stats[tierIdx] === undefined) {
+          stats[tierIdx] = 0;
+        }
+        stats[tierIdx] += 1;
+
+        return stats;
+      },
+      {}
+    );
+    const stats = Object.entries(collectedVotes)
       .map(([tierIdx, votes]) => ({
         tierIdx: Number(tierIdx),
         votes,
@@ -128,27 +178,26 @@ function dtoToTierList(dto: TierListDto): TierList {
     );
     const average = score / totalVotes;
 
+    const numberOfTiers = tierList.tiers.length;
+    const tierIdx =
+      numberOfTiers > 1
+        ? Math.min(
+            Math.floor((average * numberOfTiers) / (numberOfTiers - 1)),
+            numberOfTiers - 1
+          )
+        : 0;
+
     const tieredItem: TieredItem = {
       ...item,
-      totalVotes,
       average,
+      tierIdx,
+      totalVotes,
       stats,
       votes,
     };
 
-    const numberOfTiers = tierList.tiers.length;
-    const tierIdx =
-      numberOfTiers > 1
-        ? Math.floor((average * numberOfTiers) / (numberOfTiers - 1))
-        : 0;
-
-    tierList.tiers[tierIdx]!.items.push(tieredItem);
-    tierList._items.push(tieredItem);
+    tierList.items[tieredItem.id] = tieredItem;
   }
-
-  tierList.tiers.forEach((tier) =>
-    tier.items.sort((a, b) => a.average - b.average)
-  );
 
   return tierList;
 }

@@ -1,6 +1,6 @@
 export default function VotingHelp() {
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="top-0 flex flex-col gap-3 p-4">
       <h1 className="text-center text-lg font-bold">
         How to Vote as a Chatter
       </h1>
@@ -14,13 +14,13 @@ export default function VotingHelp() {
         </span>
       </p>
       <p>Examples:</p>
-      <ul className="list-inside list-disc">
-        <li>sandwich S</li>
-        <li>bread A</li>
-        <li>soup B</li>
+      <ul className="list-inside list-disc text-sm">
+        <li>Apple Pie S</li>
+        <li>Sandwich A</li>
+        <li>Soup B</li>
       </ul>
       <p>Notes:</p>
-      <ul className="list-inside list-disc">
+      <ul className="list-inside list-disc text-sm">
         <li>It IS case sensitive.</li>
         <li>
           You can overwrite your vote on an item by sending a new message with

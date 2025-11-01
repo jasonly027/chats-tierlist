@@ -359,10 +359,12 @@ paths:
                   maxLength: 255
                   description: Name of the item
                 image_url:
-                  type: string
-                  minLength: 1
-                  maxLength: 255
-                  description: Image url of the item
+                  anyOf:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Image url of the item
+                    - type: "null"
         required: true
       security:
         - cookieAuth: []
@@ -410,10 +412,12 @@ paths:
                   maxLength: 255
                   description: Name of the item
                 image_url:
-                  type: string
-                  minLength: 1
-                  maxLength: 255
-                  description: Image url of the item
+                  anyOf:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Image url of the item
+                    - type: "null"
       parameters:
         - schema:
             type: string

@@ -1,3 +1,4 @@
+import { Label } from '@radix-ui/react-label';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import Background from '@/components/ui/background';
@@ -27,16 +28,14 @@ function IndexComponent() {
         </article>
         <article className="flex flex-col items-center">
           <EditTierListButton />
-          <div className="mt-2 mb-1 text-lg font-semibold text-gray-400">
-            or
-          </div>
+          <div className="text-muted mt-2 mb-1 text-lg font-semibold">or</div>
           <div className="w-full max-w-64 sm:max-w-96">
-            <label
+            <Label
               htmlFor="streamerName"
               className="mb-1 ml-1 block font-semibold"
             >
               View a TierList
-            </label>
+            </Label>
             <TierListSearchBar className="sm:text-lg md:text-xl" />
           </div>
         </article>

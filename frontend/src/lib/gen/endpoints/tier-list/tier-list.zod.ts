@@ -80,11 +80,11 @@ export const updateTierBody = zod.object({
 /**
  * @summary Adds a new item
  */
-export const addItemBodyNameMax = 255;export const addItemBodyImageUrlMax = 255;
+export const addItemBodyNameMax = 255;export const addItemBodyImageUrlMaxOne = 255;
 
 export const addItemBody = zod.object({
   "name": zod.string().min(1).max(addItemBodyNameMax).describe('Name of the item'),
-  "image_url": zod.string().min(1).max(addItemBodyImageUrlMax).optional().describe('Image url of the item')
+  "image_url": zod.union([zod.string().min(1).max(addItemBodyImageUrlMaxOne).describe('Image url of the item'),zod.null()]).optional()
 })
 
 /**
@@ -94,11 +94,11 @@ export const updateItemParams = zod.object({
   "id": zod.string().describe('Entity\'s id')
 })
 
-export const updateItemBodyNameMax = 255;export const updateItemBodyImageUrlMax = 255;
+export const updateItemBodyNameMax = 255;export const updateItemBodyImageUrlMaxOne = 255;
 
 export const updateItemBody = zod.object({
   "name": zod.string().min(1).max(updateItemBodyNameMax).optional().describe('Name of the item'),
-  "image_url": zod.string().min(1).max(updateItemBodyImageUrlMax).optional().describe('Image url of the item')
+  "image_url": zod.union([zod.string().min(1).max(updateItemBodyImageUrlMaxOne).describe('Image url of the item'),zod.null()]).optional()
 })
 
 /**

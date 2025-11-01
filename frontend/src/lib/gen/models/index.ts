@@ -8,6 +8,7 @@
 export * from './addItem201';
 export * from './addItem409';
 export * from './addItemBody';
+export * from './addItemBodyImageUrl';
 export * from './addTier201';
 export * from './addTier409';
 export * from './addTierBody';
@@ -30,6 +31,7 @@ export * from './setTierListBodyTierListTiers';
 export * from './setTierListBodyTierListTiersColor';
 export * from './updateItem409';
 export * from './updateItemBody';
+export * from './updateItemBodyImageUrl';
 export * from './updateTier409';
 export * from './updateTierBody';
 export * from './updateTierBodyColor';

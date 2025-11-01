@@ -4,6 +4,7 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
+import type { AddItemBodyImageUrl } from './addItemBodyImageUrl';
 
 export type AddItemBody = {
   /**
@@ -12,10 +13,5 @@ export type AddItemBody = {
    * @maxLength 255
    */
   name: string;
-  /**
-   * Image url of the item
-   * @minLength 1
-   * @maxLength 255
-   */
-  image_url?: string;
+  image_url?: AddItemBodyImageUrl;
 };

@@ -10,25 +10,36 @@ import {
 } from 'react';
 import ContentEditable from 'react-contenteditable';
 
-import Item from '@/features/tierlist/components/item';
+import ItemThumb from '@/features/tierlist/components/item-thumb';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
+import { useUpdateTier } from '@/features/tierlist/hooks/use-update-tier';
 import type { Tier, TieredItem } from '@/features/tierlist/types/tier-list';
+import { getTierColor } from '@/features/tierlist/utils/get-tier-color';
 import { useStaticToast } from '@/hooks/use-static-toast';
 
 export interface TierListRowProps {
   tier: Tier;
-  setDetailedItem: Dispatch<SetStateAction<TieredItem | undefined>>;
+  items: TieredItem[];
+  setDetailedItemId: Dispatch<SetStateAction<string | undefined>>;
 }
 
-export default function TierRow({ tier, setDetailedItem }: TierListRowProps) {
+export default function TierRow({
+  tier,
+  items,
+  setDetailedItemId,
+}: TierListRowProps) {
   return (
-    <div className="flex flex-row bg-gray-900">
+    <div className="flex flex-row border-gray-950">
       <TierName tier={tier} />
-      <div className="flex flex-row flex-wrap">
-        {tier.items.map((item) => (
-          <div key={item.id} onClick={() => setDetailedItem(item)}>
-            <Item item={item} />
-          </div>
+      <div className="bg-surface flex flex-1 flex-row flex-wrap">
+        {items.map((item) => (
+          <button
+            type="button"
+            key={item.id}
+            onClick={() => setDetailedItemId(item.id)}
+          >
+            <ItemThumb item={item} />
+          </button>
         ))}
       </div>
     </div>
@@ -43,10 +54,8 @@ function TierName({ tier }: TierNameProps) {
   const { htmlText, setHtmlText, canOverwrite } = useDeferredText(tier.name);
   const contentRef = useRef<HTMLDivElement>(undefined!);
 
-  const {
-    tierList,
-    updateTier: { mutate },
-  } = useTierList();
+  const { tierList } = useTierList();
+  const { mutate } = useUpdateTier();
 
   const { setToast, clearToast } = useStaticToast('error');
 
@@ -92,10 +101,10 @@ function TierName({ tier }: TierNameProps) {
       onFocus={() => (canOverwrite.current = false)}
       onBlur={() => onBlurRef.current()}
       style={{
-        backgroundColor: tier.color,
+        backgroundColor: getTierColor(tier.idx),
         caretColor: htmlText ? 'auto' : 'transparent',
       }}
-      className="flex min-h-24 w-24 items-center justify-center text-center font-bold wrap-anywhere"
+      className="text-surface flex min-h-24 w-24 items-center justify-center border-r-1 border-gray-950 text-center font-semibold wrap-anywhere"
     />
   );
 }

@@ -8,16 +8,14 @@ export interface TierList {
   isVoting: boolean;
   focus: string | null;
   version: number;
-  // Global reference to all items in tiers and pool
-  _items: (Item | TieredItem)[];
+  /** Item's id and item */
+  items: Record<string, Item | TieredItem>;
 }
 
 export interface Tier {
   id: string;
   name: string;
-  color: string;
-  /** Sorted by non-decreasing weighted average. */
-  items: TieredItem[];
+  idx: number;
 }
 
 export interface Item {
@@ -28,8 +26,9 @@ export interface Item {
 
 export interface TieredItem extends Item {
   average: number;
+  tierIdx: number;
   totalVotes: number;
-  /** Sorted by non-decreasing votes. */
+  /** Ordered by tierIdx ASC */
   stats: { tierIdx: number; votes: number }[];
   /** A chatter's name and their vote. */
   votes: Record<string, number>;
