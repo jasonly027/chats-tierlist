@@ -5,6 +5,7 @@ import type {
   TieredItem,
   TierList,
   TierListDto,
+  TierListRequest,
 } from '@/features/tierlist/types/tier-list';
 import type { QueryConfig } from '@/lib/react-query';
 
@@ -123,7 +124,7 @@ function getTierList() {
   return tierList;
 }
 
-function dtoToTierList(dto: TierListDto): TierList {
+export function dtoToTierList(dto: TierListDto): TierList {
   const tierList: TierList = {
     tiers: [],
     pool: [],
@@ -200,4 +201,28 @@ function dtoToTierList(dto: TierListDto): TierList {
   }
 
   return tierList;
+}
+
+export function tierListToDto(list: TierList): TierListRequest {
+  const tiers = list.tiers.reduce<TierListRequest['tiers']>((acc, { name }) => {
+    acc[name] = {
+      color: 'blue',
+    };
+    return acc;
+  }, {});
+
+  const items = Object.values(list.items).reduce<TierListRequest['items']>(
+    (acc, { name, imageUrl }) => {
+      acc[name] = {
+        image_url: imageUrl ?? undefined,
+      };
+      return acc;
+    },
+    {}
+  );
+
+  return {
+    tiers,
+    items,
+  };
 }

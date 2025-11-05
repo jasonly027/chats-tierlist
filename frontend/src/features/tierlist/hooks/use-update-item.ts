@@ -23,7 +23,9 @@ export function useUpdateItem() {
             if (!item) return;
 
             item.name = data.name ?? item.name;
-            item.imageUrl = data.image_url ?? item.imageUrl;
+            item.imageUrl =
+              data.image_url !== undefined ? data.image_url : item.imageUrl;
+
             draft.version = nextVersion;
           });
         });

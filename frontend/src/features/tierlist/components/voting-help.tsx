@@ -21,10 +21,13 @@ export default function VotingHelp() {
       </ul>
       <p>Notes:</p>
       <ul className="list-inside list-disc text-sm">
-        <li>It IS case sensitive.</li>
+        <li>Tier and item names are case sensitive.</li>
         <li>
           You can overwrite your vote on an item by sending a new message with
           your new vote.
+        </li>
+        <li>
+          If an item is <em>focused</em>, only that item can be voted on.
         </li>
       </ul>
     </div>

@@ -1,6 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { ComponentPropsWithRef } from 'react';
 
+import Cross from '@/components/ui/cross';
 import { cn } from '@/utils/cn';
 
 export const Dialog = DialogPrimitive.Root;
@@ -66,7 +67,7 @@ export function DialogContent({
             }
           }}
           className={cn(
-            'bg-surface relative w-[90vw] rounded-sm border-1 border-black p-4',
+            'bg-surface relative w-[90vw] rounded-sm border-1 border-black p-4 focus:outline-0',
             className
           )}
           {...props}
@@ -77,21 +78,8 @@ export function DialogContent({
             disabled={disableClose}
             className="hover:bg-surface-light absolute top-2 right-2 rounded-full p-px transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-              <span className="sr-only">Close Window</span>
-            </svg>
+            <Cross />
+            <span className="sr-only">Close Window</span>
           </DialogClose>
         </DialogPrimitive.Content>
       </DialogPrimitive.Overlay>

@@ -1,4 +1,9 @@
-import type { SetTierList200TierList } from '@/lib/gen/models';
+import type {
+  SetTierList200TierList,
+  SetTierListBodyTierList,
+} from '@/lib/gen/models';
+
+export type TierListRequest = SetTierListBodyTierList;
 
 export type TierListDto = SetTierList200TierList;
 

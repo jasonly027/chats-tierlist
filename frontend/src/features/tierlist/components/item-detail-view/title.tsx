@@ -24,6 +24,7 @@ export default function Title({ item }: TitleProps) {
     <div className="flex flex-row items-center justify-between gap-1">
       <input
         id="itemName"
+        name="itemName"
         size={1}
         maxLength={255}
         value={name}
@@ -35,8 +36,7 @@ export default function Title({ item }: TitleProps) {
           if (newName === '') {
             setToast('Item name cannot be empty');
           } else if (
-            tierList &&
-            Object.values(tierList.items).find(
+            Object.values(tierList?.items ?? {}).find(
               (i) => i.name === newName && i.id !== item.id
             )
           ) {
@@ -52,11 +52,8 @@ export default function Title({ item }: TitleProps) {
           if (name === item.name) return;
           if (
             name !== '' &&
-            !(
-              tierList &&
-              Object.values(tierList.items).find(
-                (i) => i.name === name && i.id !== item.id
-              )
+            !Object.values(tierList?.items ?? {}).find(
+              (i) => i.name === name && i.id !== item.id
             )
           ) {
             mutate({ id: item.id, data: { name } });

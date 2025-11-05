@@ -1,5 +1,6 @@
 import { Label } from '@radix-ui/react-label';
-import { useRef, useState } from 'react';
+import { useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 
 import Button from '@/components/ui/button';
 import {
@@ -10,64 +11,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
-import Trash from '@/components/ui/trash';
 import { useAddTier } from '@/features/tierlist/hooks/use-add-tier';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
-export default function Toolbar() {
-  return (
-    <>
-      <div className="bg-surface flex flex-wrap items-center gap-3 p-3">
-        <AddTierButton />
-        <Button className="flex items-center gap-1 text-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 6h.008v.008H6V6Z"
-            />
-          </svg>
-          Add Item
-        </Button>
-        <Button className="flex items-center gap-1 text-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-            />
-          </svg>
-          Hard Edit
-        </Button>
-        <Button className="bg-danger hover:bg-danger-light flex items-center gap-1 text-sm">
-          <Trash />
-          Reset Votes
-        </Button>
-      </div>
-    </>
-  );
-}
-
-function AddTierButton() {
+export default function AddTierButton() {
   const [tierName, setTierName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -113,9 +60,14 @@ function AddTierButton() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            if (!tierList) return;
 
-            if (tierList?.tiers.find((t) => t.name === tierName)) {
-              inputRef.current?.setCustomValidity('Tier name already exists');
+            if (tierList.tiers.length >= 50) {
+              toast.error('Cannot have more than 50 tiers.');
+              return;
+            }
+            if (tierList.tiers.find((t) => t.name === tierName)) {
+              inputRef.current?.setCustomValidity('Tier name already in use');
               inputRef.current?.reportValidity();
               return;
             }
@@ -134,6 +86,7 @@ function AddTierButton() {
             <Label htmlFor="tierName">Tier Name</Label>
             <Input
               id="tierName"
+              name="tierName"
               type="text"
               minLength={1}
               maxLength={255}
@@ -159,7 +112,7 @@ function AddTierButton() {
             <DialogClose disabled={isPending} asChild>
               <Button
                 type="button"
-                className="bg-slate-700 hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </Button>

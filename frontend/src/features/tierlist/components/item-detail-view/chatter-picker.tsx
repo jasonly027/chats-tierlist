@@ -49,8 +49,8 @@ export default function ChatterPicker({ stats, votes }: ChatterPickerProps) {
           Get a random chatter that voted for{' '}
         </span>
         <select
-          name="Tier Picker"
           id="tierPicker"
+          name="tierPicker"
           onChange={(e) => setTierFilter(Number(e.target.value))}
           className="rounded-sm border-2 border-gray-900 bg-slate-700 px-1"
         >

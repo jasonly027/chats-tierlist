@@ -87,6 +87,7 @@ function EditDialog({ item }: { item: Item }) {
               <Label htmlFor="imageUrl">Image URL</Label>
               <Input
                 id="imageUrl"
+                name="imageUrl"
                 type="url"
                 ref={inputRef}
                 value={input}
