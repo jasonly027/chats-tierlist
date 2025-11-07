@@ -4,7 +4,6 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
-import type { UpdateTierBodyColor } from './updateTierBodyColor';
 
 export type UpdateTierBody = {
   /**
@@ -13,6 +12,4 @@ export type UpdateTierBody = {
    * @maxLength 255
    */
   name?: string;
-  /** Tier background color */
-  color?: (typeof UpdateTierBodyColor)[keyof typeof UpdateTierBodyColor];
 };

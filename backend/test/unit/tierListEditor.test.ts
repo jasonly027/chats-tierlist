@@ -2,7 +2,11 @@ import { assert, expect } from 'chai';
 import Sinon from 'sinon';
 
 import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
-import type { TierList } from '@/modules/tierlist/tierlist.types';
+import {
+  MAX_ITEMS,
+  MAX_TIERS,
+  type TierList,
+} from '@/modules/tierlist/tierlist.types';
 import { Repository } from '@/shared/db/repository';
 
 describe('TierListEditor', function () {
@@ -37,7 +41,7 @@ describe('TierListEditor', function () {
     it('should set tier list', function () {
       const res = editor.setTierList({
         tiers: {
-          newTier: { color: 'red' },
+          newTier: {},
         },
         items: {},
       });
@@ -45,14 +49,13 @@ describe('TierListEditor', function () {
       expect(res).to.be.true;
       expect(editor.getTierList().tiers).to.have.lengthOf(1);
       expect(editor.getTierList().tiers[0]).to.have.property('name', 'newTier');
-      expect(editor.getTierList().tiers[0]).to.have.property('color', 'red');
     });
   });
 
   describe('setFocus', function () {
     beforeEach(function () {
-      editor.addTier('A', 'red');
-      editor.addTier('B', 'blue');
+      editor.addTier('A');
+      editor.addTier('B');
       editor.addItem('item');
     });
 
@@ -98,6 +101,16 @@ describe('TierListEditor', function () {
       const id = editor.addItem('');
 
       expect(id).to.be.null;
+    });
+
+    it('should fail if more than max number of items', function () {
+      for (let i = 0; i < MAX_ITEMS; ++i) {
+        const res = editor.addItem(i.toString());
+        expect(res, `At ${i}th`).to.not.be.null;
+      }
+
+      const res = editor.addItem('last');
+      expect(res).to.be.null;
     });
   });
 
@@ -188,46 +201,53 @@ describe('TierListEditor', function () {
 
   describe('addTier', function () {
     it('should add the tier', function () {
-      const id = editor.addTier('tier', 'red');
+      const id = editor.addTier('tier');
 
       expect(id).to.not.be.null;
       expect(editor.getTierList().tiers).to.have.lengthOf(1);
       expect(editor.getTierList().tiers[0]).to.be.deep.equal({
         id,
         name: 'tier',
-        color: 'red',
       });
     });
 
     it('should fail if name is already in use by a preexisting tier', function () {
-      editor.addTier('tier', 'red');
+      editor.addTier('tier');
 
-      const id = editor.addTier('tier', 'red');
+      const id = editor.addTier('tier');
 
       expect(id).to.be.null;
     });
 
     it('should fail if name is empty', function () {
-      const id = editor.addTier('', 'red');
+      const id = editor.addTier('');
       expect(id).to.be.null;
+    });
+
+    it('should fail if more than max number of tiers', function () {
+      for (let i = 0; i < MAX_TIERS; ++i) {
+        const res = editor.addTier(i.toString());
+        expect(res, `At ${i}th`).to.not.be.null;
+      }
+
+      const res = editor.addTier('last');
+      expect(res).to.be.null;
     });
   });
 
   describe('updateTier', function () {
     it('should update the tier', function () {
-      const id = editor.addTier('old', 'red');
+      const id = editor.addTier('old');
       assert.isNotNull(id);
 
       const res = editor.updateTier(id, {
         name: 'new',
-        color: 'blue',
       });
 
       expect(res).to.be.true;
       expect(editor.getTierList().tiers[0]).to.deep.equal({
         id,
         name: 'new',
-        color: 'blue',
       });
     });
 
@@ -237,7 +257,7 @@ describe('TierListEditor', function () {
     });
 
     it('should fail on empty new name', function () {
-      editor.addTier('old', 'red');
+      editor.addTier('old');
 
       const res = editor.updateTier('old', {
         name: '',
@@ -246,8 +266,8 @@ describe('TierListEditor', function () {
     });
 
     it('should fail on preexisting item with new name', function () {
-      editor.addTier('old', 'red');
-      editor.addTier('new', 'blue');
+      editor.addTier('old');
+      editor.addTier('new');
 
       const res = editor.updateTier('old', {
         name: 'new',
@@ -259,8 +279,8 @@ describe('TierListEditor', function () {
 
   describe('vote', function () {
     beforeEach(function () {
-      editor.addTier('A', 'red');
-      editor.addTier('B', 'blue');
+      editor.addTier('A');
+      editor.addTier('B');
       editor.addItem('item');
     });
 

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import Pencil from '@/components/ui/pencil';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import { useUpdateItem } from '@/features/tierlist/hooks/use-update-item';
+import { useUpdateItem } from '@/features/tierlist/api/update-item';
 import type { Item } from '@/features/tierlist/types/tier-list';
 import { useStaticToast } from '@/hooks/use-static-toast';
 

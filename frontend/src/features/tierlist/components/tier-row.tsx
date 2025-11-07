@@ -12,7 +12,7 @@ import ContentEditable from 'react-contenteditable';
 
 import ItemThumb from '@/features/tierlist/components/item-thumb';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import { useUpdateTier } from '@/features/tierlist/hooks/use-update-tier';
+import { useUpdateTier } from '@/features/tierlist/api/update-tier';
 import type { Tier, TieredItem } from '@/features/tierlist/types/tier-list';
 import { getTierColor } from '@/features/tierlist/utils/get-tier-color';
 import { useStaticToast } from '@/hooks/use-static-toast';

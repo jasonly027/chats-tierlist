@@ -1,5 +1,6 @@
 import ChatterPicker from '@/features/tierlist/components/item-detail-view/chatter-picker';
-import DeleteItemButton from '@/features/tierlist/components/item-detail-view/delete-item-button';
+import DeleteButton from '@/features/tierlist/components/item-detail-view/delete-button';
+import FocusButton from '@/features/tierlist/components/item-detail-view/focus-button';
 import Image from '@/features/tierlist/components/item-detail-view/image';
 import Title from '@/features/tierlist/components/item-detail-view/title';
 import Votes from '@/features/tierlist/components/item-detail-view/votes';
@@ -25,6 +26,10 @@ export default function ItemDetailView({ item }: ItemDetailViewProps) {
       <div className="flex flex-col justify-center gap-3 p-4">
         <Title item={item} />
         <Image item={item} />
+        <div className="flex items-center justify-center gap-1">
+          <FocusButton itemName={item.name} />
+          <DeleteButton itemId={item.id} />
+        </div>
         {'stats' in item ? (
           <>
             <Votes item={item} />
@@ -35,9 +40,6 @@ export default function ItemDetailView({ item }: ItemDetailViewProps) {
             No votes for this item at the moment...
           </p>
         )}
-        <div className="flex justify-center">
-          <DeleteItemButton itemId={item.id} />
-        </div>
       </div>
     </>
   );

@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import type { Item } from '@/features/tierlist/types/tier-list';
+import type { Item, TierList } from '@/features/tierlist/types/tier-list';
 import { useAddItem as useAddItemApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useAddItem() {
@@ -14,17 +14,19 @@ export function useAddItem() {
       onMutate(_variables, { client }) {
         const list = client.getQueryData(queryKey);
         if (!list) return;
-
         const prevVersion = list.version;
+
         const nextVersion = Date.now();
+        client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
 
-        client.setQueryData(queryKey, (prev) => {
-          return produce(prev, (draft) => {
-            if (!draft) return;
+            tierList.version = nextVersion;
 
-            draft.version = nextVersion;
-          });
-        });
+            return tierList;
+          })
+        );
 
         return { prevVersion, nextVersion };
       },
@@ -33,15 +35,18 @@ export function useAddItem() {
         if (!onMutateResult) return;
         const { prevVersion, nextVersion } = onMutateResult;
 
-        context.client.setQueryData(queryKey, (prev) => {
-          if (!prev) return;
+        context.client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
 
-          return produce(prev, (draft) => {
-            if (draft.version === nextVersion) {
-              draft.version = prevVersion;
+            if (tierList.version === nextVersion) {
+              tierList.version = prevVersion;
             }
-          });
-        });
+
+            return tierList;
+          })
+        );
       },
 
       onSuccess({ id }, { data: { name, image_url } }) {

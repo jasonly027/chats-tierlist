@@ -218,12 +218,10 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const { name, color } = req.body;
-      const id = editor.addTier(name, color);
+      const { name } = req.body;
+      const id = editor.addTier(name);
       if (!id) {
-        return res
-          .code(409)
-          .send({ message: 'A tier exists with the same name' });
+        return res.code(409).send({ message: 'Failed to add tier' });
       }
 
       return res.code(201).send({ id });
@@ -287,9 +285,7 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
       const { name, image_url } = req.body;
       const id = editor.addItem(name, image_url);
       if (!id) {
-        return res
-          .code(409)
-          .send({ message: 'An item exists with the same name' });
+        return res.code(409).send({ message: 'Failed to add item' });
       }
 
       return res.code(201).send({ id });

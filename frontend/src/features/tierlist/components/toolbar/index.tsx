@@ -1,7 +1,9 @@
 import AddItemButton from '@/features/tierlist/components/toolbar/add-item-button';
 import AddTierButton from '@/features/tierlist/components/toolbar/add-tier-button';
+import ClearVotesButton from '@/features/tierlist/components/toolbar/clear-votes-button';
+import FocusStatus from '@/features/tierlist/components/toolbar/focus-status';
 import HardEditButton from '@/features/tierlist/components/toolbar/hard-edit-button';
-import ResetVotesButton from '@/features/tierlist/components/toolbar/reset-votes-button';
+import VotingSwitch from '@/features/tierlist/components/toolbar/voting-switch';
 
 export default function Toolbar() {
   return (
@@ -10,7 +12,9 @@ export default function Toolbar() {
         <AddTierButton />
         <AddItemButton />
         <HardEditButton />
-        <ResetVotesButton />
+        <VotingSwitch />
+        <FocusStatus />
+        <ClearVotesButton />
       </div>
     </>
   );

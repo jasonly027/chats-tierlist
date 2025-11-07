@@ -4,7 +4,6 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
-import type { SetTierList200TierListTiersItemColor } from './setTierList200TierListTiersItemColor';
 
 export type SetTierList200TierListTiersItem = {
   /** Entity's id */
@@ -15,6 +14,4 @@ export type SetTierList200TierListTiersItem = {
    * @maxLength 255
    */
   name: string;
-  /** Tier background color */
-  color: (typeof SetTierList200TierListTiersItemColor)[keyof typeof SetTierList200TierListTiersItemColor];
 };

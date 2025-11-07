@@ -34,52 +34,38 @@ function getTierList() {
       {
         id: '0',
         name: 'S',
-        color: 'red',
       },
       {
         id: '1',
         name: 'A',
-        color: 'blue',
       },
       {
         id: '2',
         name: 'B',
-        color: 'green',
       },
       {
         id: 'tier4',
         name: 'C',
-        color: 'green',
       },
       {
         id: 'tier5',
         name: 'D',
-        color: 'green',
       },
       {
         id: 'tier6',
         name: 'E',
-        color: 'green',
       },
       {
         id: 'tier7',
         name: 'F',
-        color: 'green',
       },
       {
         id: 'tier8',
         name: 'Z',
-        color: 'green',
       },
       {
         id: 'tier9',
         name: 'Za',
-        color: 'green',
-      },
-      {
-        id: 'tier10',
-        name: 'Za',
-        color: 'green',
       },
     ],
     items: {
@@ -105,7 +91,7 @@ function getTierList() {
         id: '5',
         imageUrl: null,
         votes: {
-          Alex: 2,
+          ['Mr. OneTwoThreeFourFiveSixSevenEightNineTenEleveaflsdlfajdsfadsfadfasdfsdfsdfsdfsdfn']: 2,
         },
       },
       Caramel: {
@@ -114,8 +100,8 @@ function getTierList() {
         votes: {},
       },
     },
-    focus: null,
-    isVoting: true,
+    focus: 'Caramel',
+    isVoting: false,
     version: 1,
   };
 
@@ -205,9 +191,7 @@ export function dtoToTierList(dto: TierListDto): TierList {
 
 export function tierListToDto(list: TierList): TierListRequest {
   const tiers = list.tiers.reduce<TierListRequest['tiers']>((acc, { name }) => {
-    acc[name] = {
-      color: 'blue',
-    };
+    acc[name] = {};
     return acc;
   }, {});
 

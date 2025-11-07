@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
+import type { TierList } from '@/features/tierlist/types/tier-list';
 import { useDeleteItem as useDeleteItemApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useDeleteItem() {
@@ -15,13 +16,17 @@ export function useDeleteItem() {
         const prevVersion = list.version;
 
         const nextVersion = Date.now();
-        client.setQueryData(queryKey, (prev) => {
-          return produce(prev, (draft) => {
-            if (!draft) return;
-            delete draft.items[id];
-            draft.version = nextVersion;
-          });
-        });
+        client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
+
+            delete tierList.items[id];
+            tierList.version = nextVersion;
+
+            return tierList;
+          })
+        );
 
         return { prevItem, prevVersion, nextVersion };
       },
@@ -30,17 +35,19 @@ export function useDeleteItem() {
         if (!onMutateResult) return;
         const { prevItem, prevVersion, nextVersion } = onMutateResult;
 
-        context.client.setQueryData(queryKey, (prev) => {
-          if (!prev) return;
+        context.client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
 
-          return produce(prev, (draft) => {
-            draft.items[id] = prevItem;
-
-            if (draft.version === nextVersion) {
-              draft.version = prevVersion;
+            tierList.items[id] = prevItem;
+            if (tierList.version === nextVersion) {
+              tierList.version = prevVersion;
             }
-          });
-        });
+
+            return tierList;
+          })
+        );
       },
     },
   });

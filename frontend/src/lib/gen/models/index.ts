@@ -37,3 +37,4 @@ export * from './updateTierBody';
 export * from './updateTierBodyColor';
 export * from './updateTierList404';
 export * from './updateTierListBody';
+export * from './updateTierListBodyFocus';

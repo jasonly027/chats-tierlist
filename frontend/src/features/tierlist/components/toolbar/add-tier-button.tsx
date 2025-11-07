@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
-import { useAddTier } from '@/features/tierlist/hooks/use-add-tier';
+import { useAddTier } from '@/features/tierlist/api/add-tier';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
 export default function AddTierButton() {
@@ -22,6 +22,8 @@ export default function AddTierButton() {
 
   const { tierList } = useTierList();
   const { mutate, isPending } = useAddTier();
+
+  if (!tierList) return;
 
   return (
     <Dialog
@@ -60,7 +62,6 @@ export default function AddTierButton() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!tierList) return;
 
             if (tierList.tiers.length >= 50) {
               toast.error('Cannot have more than 50 tiers.');
@@ -73,7 +74,7 @@ export default function AddTierButton() {
             }
 
             mutate(
-              { data: { name: tierName, color: 'blue' } },
+              { data: { name: tierName } },
               {
                 onSettled() {
                   setOpen(false);
@@ -105,7 +106,7 @@ export default function AddTierButton() {
             <Button
               type="submit"
               disabled={isPending}
-              className="w-[6ch] bg-sky-800 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-accent hover:bg-accent-light w-[6ch] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? '...' : 'Add'}
             </Button>

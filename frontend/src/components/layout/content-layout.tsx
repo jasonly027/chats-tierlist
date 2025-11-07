@@ -24,12 +24,17 @@ export default function ContentLayout({ children }: ContentLayoutProps) {
 
 function NavigationBar() {
   return (
-    <nav className="flex w-full flex-col gap-4 border-b-1 border-gray-950 bg-gray-900 p-3 sm:flex-row sm:items-center">
-      <div className="flex flex-1">
-        <Link to={'/'} className="inline-block">
-          <div className="bg-surface hover:bg-surface-light rounded-sm border-1 border-gray-950 p-2 transition-colors duration-300">
-            <Logo size="sm" />
-          </div>
+    <nav className="flex w-full flex-col gap-4 border-b-1 border-gray-950 bg-gray-900 p-2.5 sm:flex-row sm:items-center">
+      <div className="flex flex-1 items-center gap-4">
+        <Link
+          to={'/'}
+          className="bg-surface hover:bg-surface-light flex items-center gap-2 rounded-sm border-1 border-gray-950 px-2.5 py-1.5 transition-colors duration-300"
+        >
+          <Logo size="sm" />
+
+          <span className="font-[Lexend_Deca,_Arial] text-sm font-semibold select-none">
+            Chat's TierList
+          </span>
         </Link>
       </div>
       <div className="flex flex-2 sm:justify-center">

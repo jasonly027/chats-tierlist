@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
 import Pencil from '@/components/ui/pencil';
-import { useUpdateItem } from '@/features/tierlist/hooks/use-update-item';
+import { useUpdateItem } from '@/features/tierlist/api/update-item';
 import type { Item } from '@/features/tierlist/types/tier-list';
 
 export default function Image({ item }: { item: Item }) {

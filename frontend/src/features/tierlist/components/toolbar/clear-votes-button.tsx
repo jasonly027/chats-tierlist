@@ -11,22 +11,24 @@ import {
 } from '@/components/ui/dialog';
 import Trash from '@/components/ui/trash';
 import { tierListToDto } from '@/features/tierlist/api/get-tier-list';
-import { useSetTierList } from '@/features/tierlist/hooks/use-set-tier-list';
+import { useSetTierList } from '@/features/tierlist/api/set-tier-list';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
-export default function ResetVotesButton() {
+export default function ClearVotesButton() {
   const [open, setOpen] = useState(false);
 
   const { tierList } = useTierList();
 
   const { mutate, isPending } = useSetTierList();
 
+  if (!tierList) return;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-danger hover:bg-danger-light flex items-center gap-1 text-sm">
+        <Button className="flex items-center gap-1 text-sm">
           <Trash />
-          Reset Votes
+          Clear Votes
         </Button>
       </DialogTrigger>
 
@@ -40,8 +42,6 @@ export default function ResetVotesButton() {
           <Button
             disabled={isPending}
             onClick={() => {
-              if (!tierList) return;
-
               mutate(
                 {
                   data: {

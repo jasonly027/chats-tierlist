@@ -62,7 +62,7 @@ export default function TierListView() {
             ))}
           </div>
 
-          <div className="flex-2 border-t-1 border-gray-950">
+          <div className="min-w-60 flex-2 border-t-1 border-gray-950">
             <div className="sticky top-0 max-h-screen overflow-y-auto">
               <ItemDetailView item={detailedItem} />
             </div>

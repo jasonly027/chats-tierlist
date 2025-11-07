@@ -8,6 +8,7 @@
 
 @theme {
   --color-accent: oklch(54.1% 0.281 293.009);
+  --color-accent-light: oklch(60.6% 0.25 292.717);
   --color-surface: oklch(27.9% 0.041 260.031);
   --color-surface-light: oklch(37.3% 0.034 259.733);
   --color-muted: oklch(70.7% 0.022 261.325);

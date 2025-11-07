@@ -11,7 +11,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
-import { useAddItem } from '@/features/tierlist/hooks/use-add-item';
+import { useAddItem } from '@/features/tierlist/api/add-item';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
 export default function AddItemButton() {
@@ -25,6 +25,8 @@ export default function AddItemButton() {
 
   const { tierList } = useTierList();
   const { mutate, isPending } = useAddItem();
+
+  if (!tierList) return;
 
   return (
     <Dialog
@@ -69,7 +71,6 @@ export default function AddItemButton() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!tierList) return;
 
             const items = Object.values(tierList.items);
             if (items.length >= 500) {
@@ -141,7 +142,7 @@ export default function AddItemButton() {
             <Button
               type="submit"
               disabled={isPending}
-              className="w-[6ch] bg-sky-800 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-accent hover:bg-accent-light w-[6ch] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? '...' : 'Add'}
             </Button>

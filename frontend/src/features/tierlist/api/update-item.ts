@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
+import type { TierList } from '@/features/tierlist/types/tier-list';
 import { useUpdateItem as useUpdateItemApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useUpdateItem() {
@@ -15,20 +16,25 @@ export function useUpdateItem() {
         const prevVersion = list.version;
 
         const nextVersion = Date.now();
-        client.setQueryData(queryKey, (prev) => {
-          if (!prev) return;
+        client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
 
-          return produce(prev, (draft) => {
-            const item = draft.items[id];
+            const item = tierList.items[id];
             if (!item) return;
 
-            item.name = data.name ?? item.name;
-            item.imageUrl =
-              data.image_url !== undefined ? data.image_url : item.imageUrl;
+            if (data.name !== undefined) {
+              item.name = data.name;
+            }
+            if (data.image_url !== undefined) {
+              item.imageUrl = data.image_url;
+            }
+            tierList.version = nextVersion;
 
-            draft.version = nextVersion;
-          });
-        });
+            return tierList;
+          })
+        );
 
         return { prevItem, prevVersion, nextVersion };
       },
@@ -36,11 +42,13 @@ export function useUpdateItem() {
       onError(_error, { data }, onMutateResult, context) {
         if (!onMutateResult) return;
         const { prevItem, prevVersion, nextVersion } = onMutateResult;
-        context.client.setQueryData(queryKey, (prev) => {
-          if (!prev) return;
 
-          return produce(prev, (draft) => {
-            const item = draft.items[prevItem.id];
+        context.client.setQueryData(
+          queryKey,
+          produce((tierList: TierList | undefined) => {
+            if (!tierList) return;
+
+            const item = tierList.items[prevItem.id];
             if (!item) return;
 
             if (data.name !== undefined) {
@@ -49,11 +57,13 @@ export function useUpdateItem() {
             if (data.image_url !== undefined) {
               item.imageUrl = prevItem.imageUrl;
             }
-            if (draft.version === nextVersion) {
-              draft.version = prevVersion;
+            if (tierList.version === nextVersion) {
+              tierList.version = prevVersion;
             }
-          });
-        });
+
+            return tierList;
+          })
+        );
       },
     },
   });

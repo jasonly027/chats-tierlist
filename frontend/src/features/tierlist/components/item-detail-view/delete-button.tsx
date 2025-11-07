@@ -10,13 +10,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import Trash from '@/components/ui/trash';
-import { useDeleteItem } from '@/features/tierlist/hooks/use-delete-item';
+import { useDeleteItem } from '@/features/tierlist/api/delete-item';
 
 export interface DeleteItemButtonProps {
   itemId: string;
 }
 
-export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
+export default function DeleteButton({ itemId }: DeleteItemButtonProps) {
   const [open, setOpen] = useState(false);
 
   const { mutate } = useDeleteItem();
@@ -24,9 +24,9 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-danger hover:bg-danger-light flex items-center gap-1">
+        <Button className="flex items-center gap-1 text-sm">
           <Trash />
-          Delete Item
+          <span className="sr-only">Delete Item</span>
         </Button>
       </DialogTrigger>
 

@@ -5,7 +5,7 @@ import { getTierColor } from '@/features/tierlist/utils/get-tier-color';
 export default function Votes({ item }: { item: TieredItem }) {
   return (
     <div>
-      <h3 className="text-center text-lg">Votes - ({item.totalVotes})</h3>
+      <h3 className="mb-1 text-center text-lg">Votes - ({item.totalVotes})</h3>
       {item.stats.map((stat) => (
         <TierBar key={stat.tierIdx} stat={stat} totalVotes={item.totalVotes} />
       ))}
@@ -20,7 +20,8 @@ interface TierBarProps {
 
 function TierBar({ stat, totalVotes }: TierBarProps) {
   const { tierList } = useTierList();
-  if (!tierList) return null;
+  if (!tierList) return;
+
   const tier = tierList.tiers[stat.tierIdx];
   if (!tier) return null;
 
@@ -28,19 +29,23 @@ function TierBar({ stat, totalVotes }: TierBarProps) {
   const percent = ((stat.votes / totalVotes) * 100).toFixed(0);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-between">
-        <span className="text-left">
-          <span style={{ color }} className="font-bold">
+    <div>
+      <div className="flex items-center justify-between gap-10">
+        <div className="flex min-w-0 items-center text-nowrap">
+          <span style={{ color }} className="truncate font-bold">
             {tier.name}
           </span>
-          <span> - ({stat.votes})</span>
-        </span>
-        <span className="text-right">{percent}%</span>
+          &nbsp;
+          {`- (${stat.votes})`}
+        </div>
+        {percent}%
       </div>
 
       <div className="flex h-3 overflow-hidden rounded-lg bg-gray-900">
-        <div style={{ backgroundColor: color, width: `${percent}%` }}></div>
+        <div
+          style={{ backgroundColor: color, width: `${percent}%` }}
+          className="transition-[width] duration-800"
+        ></div>
       </div>
     </div>
   );

@@ -5,9 +5,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Max 50 tiers
- */
-export type SetTierListBodyTierListTiers = {
-  [key: string]: { [key: string]: unknown };
-};
+export type UpdateTierListBodyFocus = string | null;

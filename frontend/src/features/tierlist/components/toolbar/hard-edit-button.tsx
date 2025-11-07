@@ -13,7 +13,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
-import { useSetTierList } from '@/features/tierlist/hooks/use-set-tier-list';
+import { useSetTierList } from '@/features/tierlist/api/set-tier-list';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import type {
   TierList,
@@ -93,12 +93,14 @@ export default function HardEditButton() {
 
   const { mutate, isPending } = useSetTierList();
 
+  if (!tierList) return;
+
   return (
     <Dialog
       open={open}
       onOpenChange={(open) => {
-        setTiers(() => createFormTiers(tierList?.tiers ?? []));
-        setItems(() => createFormItems(tierList?.items ?? {}));
+        setTiers(() => createFormTiers(tierList.tiers));
+        setItems(() => createFormItems(tierList.items));
         setOpen(open);
       }}
     >
@@ -162,7 +164,7 @@ export default function HardEditButton() {
                   tier_list: {
                     tiers: tiers.reduce<TierListRequest['tiers']>(
                       (tiers, { name }) => {
-                        tiers[name] = { color: 'blue' };
+                        tiers[name] = {};
                         return tiers;
                       },
                       {}

@@ -1,7 +1,6 @@
 import T from 'typebox';
 
 import {
-  TierColorSchema,
   FreshTierListSchema,
   TierListSchema,
   TierNameSchema,
@@ -22,7 +21,12 @@ export const SetTierListResponse = T.Object({
 });
 
 export const UpdateTierListRequest = T.Object({
-  focus: T.Optional(TextSchema({ description: 'Name of the item to focus' })),
+  focus: T.Optional(
+    T.Union([
+      TextSchema({ description: 'Name of the item to focus' }),
+      T.Null(),
+    ])
+  ),
   is_voting: T.Optional(
     T.Boolean({
       description: 'Determine whether votes should be parsed or ignored',
@@ -32,12 +36,10 @@ export const UpdateTierListRequest = T.Object({
 
 export const AddTierRequest = T.Object({
   name: TierNameSchema,
-  color: TierColorSchema,
 });
 
 export const UpdateTierRequest = T.Object({
   name: T.Optional(TierNameSchema),
-  color: T.Optional(TierColorSchema),
 });
 
 export const ItemImageUrlSchema = T.Union([

@@ -4,14 +4,10 @@
  * Chat's TierList
  * OpenAPI spec version: 0.1.0
  */
+import type { UpdateTierListBodyFocus } from './updateTierListBodyFocus';
 
 export type UpdateTierListBody = {
-  /**
-   * Name of the item to focus
-   * @minLength 1
-   * @maxLength 255
-   */
-  focus?: string;
+  focus?: UpdateTierListBodyFocus;
   /** Determine whether votes should be parsed or ignored */
   is_voting?: boolean;
 };

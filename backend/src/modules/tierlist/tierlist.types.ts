@@ -3,28 +3,12 @@ import { Static, Type as T } from 'typebox';
 import { idSchema } from '@/shared/api/id.response';
 import { TextSchema } from '@/shared/api/text.schema';
 
-export const TierColorSchema = T.Union(
-  [
-    T.Literal('red'),
-    T.Literal('orange'),
-    T.Literal('gold'),
-    T.Literal('yellow'),
-    T.Literal('lightgreen'),
-    T.Literal('green'),
-    T.Literal('skyblue'),
-    T.Literal('blue'),
-  ],
-  { description: 'Tier background color' }
-);
-export type TierColor = Static<typeof TierColorSchema>;
-
 export const TierNameSchema = TextSchema({ description: 'Name of the tier' });
 export const ItemNameSchema = TextSchema({ description: 'Name of the item' });
 
 export const TierListTierSchema = T.Object({
   id: idSchema,
   name: TierNameSchema,
-  color: TierColorSchema,
 });
 export type Tier = Static<typeof TierListTierSchema>;
 
@@ -51,24 +35,22 @@ export const TierListSchema = T.Object({
 });
 export type TierList = Static<typeof TierListSchema>;
 
+export const MAX_TIERS = 50;
+
+export const MAX_ITEMS = 500;
+
 export const FreshTierListSchema = T.Object({
-  tiers: T.Record(
-    TierNameSchema,
-    T.Object({
-      color: TierColorSchema,
-    }),
-    {
-      maxProperties: 50,
-      description: 'Max 50 tiers',
-    }
-  ),
+  tiers: T.Record(TierNameSchema, T.Object({}), {
+    maxProperties: MAX_TIERS,
+    description: 'Max 50 tiers',
+  }),
   items: T.Record(
     ItemNameSchema,
     T.Object({
       image_url: T.Optional(TextSchema({ description: 'Image URL' })),
     }),
     {
-      maxProperties: 500,
+      maxProperties: MAX_ITEMS,
       description: 'Max 500 items',
     }
   ),

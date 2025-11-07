@@ -6,7 +6,8 @@ import {
   type FreshTierList,
   type TierList,
   type Item,
-  TierColor,
+  MAX_ITEMS,
+  MAX_TIERS,
 } from '@/modules/tierlist/tierlist.types';
 import type { Repository } from '@/shared/db/repository';
 import { baseLogger } from '@/shared/util';
@@ -53,7 +54,11 @@ export class TierListEditor {
   }
 
   addItem(name: string, imageUrl: string | null = null): string | null {
-    if (!name || this.tierList.items[name]) {
+    if (
+      !name ||
+      this.tierList.items[name] ||
+      Object.values(this.tierList.items).length === MAX_ITEMS
+    ) {
       return null;
     }
 
@@ -113,22 +118,23 @@ export class TierListEditor {
     return true;
   }
 
-  addTier(name: string, color: TierColor): string | null {
-    if (!name || this.tierList.tiers.find((t) => t.name === name)) {
+  addTier(name: string): string | null {
+    if (
+      !name ||
+      this.tierList.tiers.find((t) => t.name === name) ||
+      this.tierList.tiers.length === MAX_TIERS
+    ) {
       return null;
     }
 
     const id = nanoid();
-    this.tierList.tiers.push({ id, name, color });
+    this.tierList.tiers.push({ id, name });
     this.update();
 
     return id;
   }
 
-  updateTier(
-    id: string,
-    { name, color }: { name?: string; color?: TierColor }
-  ): boolean {
+  updateTier(id: string, { name }: { name?: string }): boolean {
     const tier = this.tierById(id);
     if (!tier) {
       return false;
@@ -143,7 +149,6 @@ export class TierListEditor {
     }
 
     tier.name = name ?? tier.name;
-    tier.color = color ?? tier.color;
     this.update();
 
     return true;
@@ -164,7 +169,7 @@ export class TierListEditor {
     if (!votes) return false;
 
     votes[userId] = tierIdx;
-    this.update();
+    this.requestToSave();
 
     return true;
   }
@@ -247,10 +252,9 @@ export class TierListEditor {
 }
 
 function tierListFromFreshTierList(list: FreshTierList): TierList {
-  const tiers = Object.entries(list.tiers).map<Tier>(([name, { color }]) => ({
+  const tiers = Object.entries(list.tiers).map<Tier>(([name]) => ({
     id: nanoid(),
     name,
-    color,
   }));
 
   const items = Object.entries(list.items).reduce<Record<string, Item>>(
