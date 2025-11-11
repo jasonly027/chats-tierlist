@@ -4,6 +4,7 @@ import FocusButton from '@/features/tierlist/components/item-detail-view/focus-b
 import Image from '@/features/tierlist/components/item-detail-view/image';
 import Title from '@/features/tierlist/components/item-detail-view/title';
 import Votes from '@/features/tierlist/components/item-detail-view/votes';
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import type { Item, TieredItem } from '@/features/tierlist/types/tier-list';
 
 export interface ItemDetailViewProps {
@@ -11,6 +12,8 @@ export interface ItemDetailViewProps {
 }
 
 export default function ItemDetailView({ item }: ItemDetailViewProps) {
+  const { isOwner } = useTierList();
+
   if (!item) {
     return (
       <div className="min-h-51 p-3">
@@ -26,10 +29,12 @@ export default function ItemDetailView({ item }: ItemDetailViewProps) {
       <div className="flex flex-col justify-center gap-3 p-4">
         <Title item={item} />
         <Image item={item} />
-        <div className="flex items-center justify-center gap-1">
-          <FocusButton itemName={item.name} />
-          <DeleteButton itemId={item.id} />
-        </div>
+        {isOwner && (
+          <div className="flex items-center justify-center gap-1">
+            <FocusButton itemName={item.name} />
+            <DeleteButton itemId={item.id} />
+          </div>
+        )}
         {'stats' in item ? (
           <>
             <Votes item={item} />

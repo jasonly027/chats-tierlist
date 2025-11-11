@@ -50,7 +50,7 @@ function User({ user }: UserProps) {
   const { logOut } = useUser();
 
   return (
-    <div className="flex flex-row items-center justify-center gap-2 font-semibold sm:text-lg">
+    <div className="flex flex-row items-center justify-center gap-2 font-semibold">
       <img
         src={user.imageUrl}
         className="size-7 rounded-full select-none"

@@ -13,9 +13,12 @@ import {
 import Input from '@/components/ui/input';
 import Pencil from '@/components/ui/pencil';
 import { useUpdateItem } from '@/features/tierlist/api/update-item';
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import type { Item } from '@/features/tierlist/types/tier-list';
 
 export default function Image({ item }: { item: Item }) {
+  const { isOwner } = useTierList();
+
   return (
     <div className="flex justify-center">
       <div className="relative size-50">
@@ -31,7 +34,7 @@ export default function Image({ item }: { item: Item }) {
           </div>
         )}
 
-        <EditDialog item={item} />
+        {isOwner && <EditDialog item={item} />}
       </div>
     </div>
   );

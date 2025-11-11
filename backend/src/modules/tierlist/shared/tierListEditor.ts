@@ -90,7 +90,7 @@ export class TierListEditor {
 
   updateItem(
     id: string,
-    { name: newName, imageUrl }: { name?: string; imageUrl?: string }
+    { name: newName, imageUrl }: { name?: string; imageUrl?: string | null }
   ): boolean {
     const [name, item] = this.itemById(id);
     if (!item) {
@@ -105,7 +105,9 @@ export class TierListEditor {
       return false;
     }
 
-    item.imageUrl = imageUrl ?? item.imageUrl;
+    if (imageUrl !== undefined) {
+      item.imageUrl = imageUrl;
+    }
     if (newName) {
       delete this.tierList.items[name];
       this.tierList.items[newName] = item;
@@ -154,7 +156,7 @@ export class TierListEditor {
     return true;
   }
 
-  vote(userId: string, message: string): boolean {
+  vote(name: string, message: string): boolean {
     if (!this.tierList.isVoting || !message) return false;
 
     const choice = this.parse(message);
@@ -168,7 +170,7 @@ export class TierListEditor {
     const votes = this.tierList.items[itemName]?.votes;
     if (!votes) return false;
 
-    votes[userId] = tierIdx;
+    votes[name] = tierIdx;
     this.requestToSave();
 
     return true;

@@ -1,9 +1,11 @@
 import type { FastifyPluginCallback } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
+import { nanoid } from 'nanoid';
 
 import { TierListEditor } from '@/modules/tierlist/shared/tierListEditor';
 import { TierListListener } from '@/modules/tierlist/shared/tierListListener';
 import { TierListStore } from '@/modules/tierlist/shared/tierListStore';
+import { TierList } from '@/modules/tierlist/tierlist.types';
 import { TwitchChatSubscriber } from '@/shared/twitch/twitchChatSubscriber';
 import { TwitchWebSocket } from '@/shared/twitch/twitchWebSocket';
 
@@ -18,13 +20,9 @@ declare module 'fastify' {
 
 const tierlist: FastifyPluginCallback = (fastify) => {
   const createEditor = async (channelId: string) => {
-    const tierList = (await fastify.repo.getTierList(channelId)) ?? {
-      tiers: [],
-      items: {},
-      isVoting: false,
-      focus: null,
-      version: Date.now(),
-    };
+    const tierList =
+      (await fastify.repo.getTierList(channelId)) ?? createDefaultTierList();
+
     return new TierListEditor(fastify.repo, channelId, tierList);
   };
   const store = new TierListStore(createEditor);
@@ -50,3 +48,16 @@ export default fastifyPlugin(tierlist, {
   },
   dependencies: ['twitch', 'repo'],
 });
+
+function createDefaultTierList(): TierList {
+  return {
+    tiers: ['S', 'A', 'B', 'C', 'D'].map((name) => ({
+      id: nanoid(),
+      name,
+    })),
+    items: {},
+    focus: null,
+    isVoting: false,
+    version: Date.now(),
+  };
+}

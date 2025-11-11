@@ -14,7 +14,7 @@ import type {
 } from '@/features/tierlist/types/tier-list';
 
 export default function TierListView() {
-  const { tierList, isLoading } = useTierList();
+  const { tierList, errorMessage, isLoading } = useTierList();
 
   const [detailedItemId, setDetailedItemId] = useState<string>();
   const detailedItem = detailedItemId
@@ -22,9 +22,9 @@ export default function TierListView() {
     : undefined;
 
   const { tieredItems, items } = useMemo(() => {
-    if (!tierList) return { tieredItems: [], items: [] };
+    if (!tierList?.items) return { tieredItems: [], items: [] };
     return groupByTier(tierList.items);
-  }, [tierList]);
+  }, [tierList?.items]);
 
   if (isLoading) {
     return (
@@ -35,12 +35,20 @@ export default function TierListView() {
     );
   }
 
+  if (errorMessage) {
+    return (
+      <div className="flex h-48 items-center justify-center">
+        <p className="text-lg font-bold">{errorMessage}</p>
+      </div>
+    );
+  }
+
   if (!tierList) {
     return (
       <div className="flex h-48 items-center justify-center">
-        <h1 className="text-lg font-bold">
+        <p className="text-lg font-bold">
           Failed to get tier list from server...
-        </h1>
+        </p>
       </div>
     );
   }
@@ -50,32 +58,33 @@ export default function TierListView() {
       <div className="bg-surface border-x-1 border-gray-950">
         <Toolbar />
 
-        <div className="mb-4 flex flex-col-reverse divide-gray-950 border-b-1 border-gray-950 md:flex-row md:divide-x-1">
-          <div className="flex flex-4 flex-col gap-px border-t-1 border-gray-950 bg-gray-950">
+        <div className="mb-4 flex flex-col-reverse divide-gray-950 border-y-1 border-gray-950 max-md:divide-y-1 md:flex-row md:divide-x-1">
+          <div className="flex flex-4 flex-col gap-px">
             {tierList.tiers.map((tier, tierIdx) => (
-              <TierRow
-                key={tier.id}
-                tier={tier}
-                items={tieredItems[tierIdx] ?? []}
-                setDetailedItemId={setDetailedItemId}
-              />
+              <div key={tier.id} className="border-b-1 border-gray-950">
+                <TierRow
+                  tier={tier}
+                  items={tieredItems[tierIdx] ?? []}
+                  setDetailedItemId={setDetailedItemId}
+                />
+              </div>
             ))}
           </div>
 
-          <div className="min-w-60 flex-2 border-t-1 border-gray-950">
+          <div className="min-w-60 flex-2">
             <div className="sticky top-0 max-h-screen overflow-y-auto">
               <ItemDetailView item={detailedItem} />
             </div>
           </div>
 
-          <div className="flex-1 border-t-1 border-gray-950 md:max-w-fit">
+          <div className="flex-1 md:max-w-fit">
             <div className="sticky top-0 max-h-screen overflow-y-auto">
               <VotingHelp />
             </div>
           </div>
         </div>
 
-        <div className="border-y-1 border-gray-950">
+        <div className="border-t-1 border-gray-950">
           <Pool items={items} setDetailedItemId={setDetailedItemId} />
         </div>
       </div>

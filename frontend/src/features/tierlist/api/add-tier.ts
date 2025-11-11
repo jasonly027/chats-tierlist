@@ -2,7 +2,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import type { TierList } from '@/features/tierlist/types/tier-list';
 import { useAddTier as useAddTierApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useAddTier() {
@@ -12,21 +11,22 @@ export function useAddTier() {
   return useAddTierApi({
     mutation: {
       onMutate() {
-        const list = client.getQueryData(queryKey);
-        if (!list) return;
-        const prevVersion = list.version;
+        const { tierList } = client.getQueryData(queryKey) ?? {};
+        if (!tierList) return;
+        const prevVersion = tierList.version;
 
         const nextVersion = Date.now();
-        client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;
-
             tierList.version = nextVersion;
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
 
         return { prevVersion, nextVersion };
       },
@@ -35,28 +35,37 @@ export function useAddTier() {
         if (!onMutateResult) return;
         const { prevVersion, nextVersion } = onMutateResult;
 
-        context.client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
+        context.client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;
-
             if (tierList.version === nextVersion) {
               tierList.version = prevVersion;
             }
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
       },
 
       onSuccess({ id }, { data: { name } }) {
-        const list = client.getQueryData(queryKey);
-        if (!list) return;
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            if (!tierList) return;
 
-        list.tiers.push({
-          id,
-          name,
-          idx: list.tiers.length,
+            tierList.tiers.push({
+              id,
+              name,
+              idx: tierList.tiers.length,
+            });
+          });
+
+          return {
+            ...prev,
+            tierList,
+          };
         });
       },
     },

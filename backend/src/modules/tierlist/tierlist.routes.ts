@@ -26,58 +26,54 @@ export default function (fastify: FastifyTypeBox) {
       schema: {
         params: ListenChannelParamsSchema,
       },
-      preHandler: [ListenChannelPreHandler],
       websocket: true,
     },
-    (socket, req) => {
-      // Attached by prehandler
-      const channel = (req as typeof req & { custom: Channel }).custom;
+    async (socket, req) => {
+      const { name } = req.params;
 
-      socket.once('pong', () => {
-        startSendingTierList(fastify.tierlist.store, socket, channel);
-        startListenKeepAlive(
-          fastify.tierlist.listener,
-          socket,
-          channel,
-          req.log
-        );
-      });
+      const search = await fastify.twitch.client.searchChannel(name);
+      if (!search) {
+        socket.send(JSON.stringify({ type: 'error', kind: 'missingChannel' }));
+        socket.close();
+        return;
+      }
+      const user = await fastify.repo.getUser(search.id);
+      if (!user) {
+        socket.send(JSON.stringify({ type: 'error', kind: 'missingUser' }));
+        socket.close();
+      }
+
+      // Check the socket is still okay after the async yield
+      if (socket.readyState !== WebSocket.OPEN) {
+        req.log.info('Socket was closed before context search completed');
+        return;
+      }
+
+      socket.on('close', () => req.log.info('Socket closed'));
+      socket.send(JSON.stringify({ type: 'channel', channel: search }));
+
+      const channel = new Channel(search);
+      startSendingTierList(fastify.tierlist.store, socket, channel.id());
+      startListenKeepAlive(fastify.tierlist.listener, socket, channel, req.log);
     }
   );
-
-  // Attaches the channel associated with name to req.custom.
-  async function ListenChannelPreHandler(
-    req: FastifyRequestTypeBox<{ params: typeof ListenChannelParamsSchema }>,
-    res: FastifyReplyTypeBox<{ params: typeof ListenChannelParamsSchema }>
-  ): Promise<void> {
-    const { name } = req.params;
-
-    const ch = await fastify.twitch.client.searchChannel(name);
-    if (!ch) {
-      return res.notFound();
-    }
-
-    (req as typeof req & { custom: Channel }).custom = new Channel(ch);
-  }
 
   // Starts periodically sending the tier list to the client.
   // Channel info is sent once as the first message.
   function startSendingTierList(
     store: TierListStore,
     socket: WebSocket,
-    channel: Channel
+    channelId: string
   ): void {
-    socket.send(JSON.stringify(channel.channel));
-
-    const sendTierList = async () => {
-      await store
-        .getEditor(channel.id())
+    const sendTierList = () => {
+      store
+        .getEditor(channelId)
         .then((editor) => {
-          const tierList = editor?.getTierList();
+          const tierList = editor.getTierList();
+
           socket.send(
             JSON.stringify({
               type: 'tierlist',
-              success: tierList !== undefined,
               tier_list: tierList,
             })
           );
@@ -86,11 +82,10 @@ export default function (fastify: FastifyTypeBox) {
           fastify.log.error({ err }, 'Failed to send tier list');
         });
     };
-    void sendTierList();
+    sendTierList();
 
-    const SEND_INTERVAL = 3 * 1000; // 3 secs
-    const intervalId = setInterval(() => void sendTierList(), SEND_INTERVAL);
-
+    const INTERVAL_SECS = 3 * 1000; // 3 secs
+    const intervalId = setInterval(sendTierList, INTERVAL_SECS);
     socket.on('close', () => clearInterval(intervalId));
   }
 
@@ -103,8 +98,8 @@ export default function (fastify: FastifyTypeBox) {
     channel: Channel,
     logger: FastifyBaseLogger
   ): void {
-    const reportKeepAlive = async () => {
-      await listener
+    const reportKeepAlive = () => {
+      listener
         .listen(channel)
         .then((success) => {
           const status = success ? 'ok' : 'full';
@@ -115,15 +110,14 @@ export default function (fastify: FastifyTypeBox) {
           socket.send(JSON.stringify({ type: 'listen', status: 'error' }));
         });
     };
-    void reportKeepAlive();
+    reportKeepAlive();
 
-    const ALIVE_INTERVAL = 10 * 1000; // 10 secs
-    const intervalId = setInterval(() => void reportKeepAlive, ALIVE_INTERVAL);
-
+    const INTERVAL_SECS = 10 * 1000; // 10 secs
+    const intervalId = setInterval(reportKeepAlive, INTERVAL_SECS);
     socket.on('close', () => clearInterval(intervalId));
   }
 
-  registerAuthRoutes(fastify);
+  fastify.register(registerAuthRoutes);
 }
 
 function registerAuthRoutes(fastify: FastifyTypeBox) {
@@ -250,7 +244,8 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const success = editor.updateTier(req.params.id, req.body);
+      const { name } = req.body;
+      const success = editor.updateTier(req.params.id, { name });
       if (!success) {
         return res
           .code(409)
@@ -314,7 +309,11 @@ function registerAuthRoutes(fastify: FastifyTypeBox) {
         return res.internalServerError();
       }
 
-      const success = editor.updateItem(req.params.id, req.body);
+      const { name, image_url } = req.body;
+      const success = editor.updateItem(req.params.id, {
+        name,
+        imageUrl: image_url,
+      });
       if (!success) {
         return res
           .code(409)

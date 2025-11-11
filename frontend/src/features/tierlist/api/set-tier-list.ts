@@ -3,7 +3,6 @@ import { produce } from 'immer';
 
 import { dtoToTierList } from '@/features/tierlist/api/get-tier-list';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import type { TierList } from '@/features/tierlist/types/tier-list';
 import { useSetTierList as useSetTierListApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useSetTierList() {
@@ -13,22 +12,23 @@ export function useSetTierList() {
   return useSetTierListApi({
     mutation: {
       onMutate(_variables, { client }) {
-        const list = client.getQueryData(queryKey);
-        if (!list) throw new ReferenceError('Missing Tier List');
+        const { tierList } = client.getQueryData(queryKey) ?? {};
+        if (!tierList) throw new ReferenceError('Missing Tier List');
 
-        const prevVersion = list.version;
+        const prevVersion = tierList.version;
         const nextVersion = Date.now();
 
-        client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;
-
             tierList.version = nextVersion;
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
 
         return { prevVersion, nextVersion };
       },
@@ -37,22 +37,26 @@ export function useSetTierList() {
         if (!onMutateResult) return;
         const { prevVersion, nextVersion } = onMutateResult;
 
-        context.client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
+        context.client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;
-
             if (tierList.version === nextVersion) {
               tierList.version = prevVersion;
             }
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
       },
 
       onSuccess({ tier_list }) {
-        client.setQueryData(queryKey, dtoToTierList(tier_list));
+        client.setQueryData(queryKey, (prev) => ({
+          ...prev,
+          tierList: dtoToTierList(tier_list),
+        }));
       },
     },
   });

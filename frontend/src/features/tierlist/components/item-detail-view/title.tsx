@@ -2,8 +2,8 @@ import { Label } from '@radix-ui/react-label';
 import { useEffect, useRef, useState } from 'react';
 
 import Pencil from '@/components/ui/pencil';
-import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import { useUpdateItem } from '@/features/tierlist/api/update-item';
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import type { Item } from '@/features/tierlist/types/tier-list';
 import { useStaticToast } from '@/hooks/use-static-toast';
 
@@ -14,7 +14,7 @@ export interface TitleProps {
 export default function Title({ item }: TitleProps) {
   const [name, setName, canOverwrite] = useDeferredText(item.name);
 
-  const { tierList } = useTierList();
+  const { tierList, isOwner } = useTierList();
 
   const { mutate } = useUpdateItem();
 
@@ -63,15 +63,18 @@ export default function Title({ item }: TitleProps) {
 
           clearToast();
         }}
+        disabled={!isOwner}
         className="ml-7 flex-1 text-center text-lg font-bold text-ellipsis"
       />
-      <Label
-        htmlFor="itemName"
-        className="hover:bg-surface-light cursor-pointer rounded-full p-1 transition-colors duration-300"
-      >
-        <Pencil />
-        <span className="sr-only">Edit Item Name</span>
-      </Label>
+      {isOwner && (
+        <Label
+          htmlFor="itemName"
+          className="hover:bg-surface-light cursor-pointer rounded-full p-1 transition-colors duration-300"
+        >
+          <Pencil />
+          <span className="sr-only">Edit Item Name</span>
+        </Label>
+      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { produce } from 'immer';
 
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import type { TierList } from '@/features/tierlist/types/tier-list';
 import { useUpdateItem as useUpdateItemApi } from '@/lib/gen/endpoints/tier-list/tier-list';
 
 export function useUpdateItem() {
@@ -10,19 +9,16 @@ export function useUpdateItem() {
   return useUpdateItemApi({
     mutation: {
       onMutate({ id, data }, { client }) {
-        const list = client.getQueryData(queryKey);
-        const prevItem = list?.items[id];
-        if (!list || !prevItem) throw new ReferenceError('Item not found');
-        const prevVersion = list.version;
+        const { tierList } = client.getQueryData(queryKey) ?? {};
+        const prevItem = tierList?.items[id];
+        if (!tierList || !prevItem) throw new ReferenceError('Item not found');
+        const prevVersion = tierList.version;
 
         const nextVersion = Date.now();
-        client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
-            if (!tierList) return;
-
-            const item = tierList.items[id];
-            if (!item) return;
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            const item = tierList?.items[id];
+            if (!tierList || !item) return;
 
             if (data.name !== undefined) {
               item.name = data.name;
@@ -31,10 +27,13 @@ export function useUpdateItem() {
               item.imageUrl = data.image_url;
             }
             tierList.version = nextVersion;
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
 
         return { prevItem, prevVersion, nextVersion };
       },
@@ -43,13 +42,10 @@ export function useUpdateItem() {
         if (!onMutateResult) return;
         const { prevItem, prevVersion, nextVersion } = onMutateResult;
 
-        context.client.setQueryData(
-          queryKey,
-          produce((tierList: TierList | undefined) => {
-            if (!tierList) return;
-
-            const item = tierList.items[prevItem.id];
-            if (!item) return;
+        context.client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            const item = tierList?.items[prevItem.id];
+            if (!tierList || !item) return;
 
             if (data.name !== undefined) {
               item.name = prevItem.name;
@@ -60,10 +56,13 @@ export function useUpdateItem() {
             if (tierList.version === nextVersion) {
               tierList.version = prevVersion;
             }
+          });
 
-            return tierList;
-          })
-        );
+          return {
+            ...prev,
+            tierList,
+          };
+        });
       },
     },
   });

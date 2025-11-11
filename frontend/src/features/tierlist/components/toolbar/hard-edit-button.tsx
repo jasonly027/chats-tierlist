@@ -172,7 +172,7 @@ export default function HardEditButton() {
                     items: items.reduce<TierListRequest['items']>(
                       (items, { name, imageUrl }) => {
                         items[name] = {
-                          image_url: imageUrl,
+                          image_url: imageUrl !== '' ? imageUrl : undefined,
                         };
                         return items;
                       },

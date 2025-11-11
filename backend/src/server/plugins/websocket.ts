@@ -17,13 +17,11 @@ const websocket: FastifyPluginAsync = async (fastify) => {
     socket.on('pong', function (this: WebSocketWithAlive) {
       this.isAlive = true;
     });
-
-    socket.ping();
   });
 
   // On each check, close clients that did not pong
   // the ping from the last check.
-  const PING_CHECK = 30 * 1000; // 30 secs
+  const PING_CHECK = 10 * 1000; // 10 secs
   const pingInterval = setInterval(() => {
     for (const client of wss.clients) {
       const socket: WebSocketWithAlive = client;

@@ -10,9 +10,9 @@ import {
 } from 'react';
 import ContentEditable from 'react-contenteditable';
 
+import { useUpdateTier } from '@/features/tierlist/api/update-tier';
 import ItemThumb from '@/features/tierlist/components/item-thumb';
 import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
-import { useUpdateTier } from '@/features/tierlist/api/update-tier';
 import type { Tier, TieredItem } from '@/features/tierlist/types/tier-list';
 import { getTierColor } from '@/features/tierlist/utils/get-tier-color';
 import { useStaticToast } from '@/hooks/use-static-toast';
@@ -54,7 +54,7 @@ function TierName({ tier }: TierNameProps) {
   const { htmlText, setHtmlText, canOverwrite } = useDeferredText(tier.name);
   const contentRef = useRef<HTMLDivElement>(undefined!);
 
-  const { tierList } = useTierList();
+  const { tierList, isOwner } = useTierList();
   const { mutate } = useUpdateTier();
 
   const { setToast, clearToast } = useStaticToast('error');
@@ -104,6 +104,7 @@ function TierName({ tier }: TierNameProps) {
         backgroundColor: getTierColor(tier.idx),
         caretColor: htmlText ? 'auto' : 'transparent',
       }}
+      disabled={!isOwner}
       className="text-surface flex min-h-24 w-24 items-center justify-center border-r-1 border-gray-950 text-center font-semibold wrap-anywhere"
     />
   );

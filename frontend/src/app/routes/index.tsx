@@ -22,9 +22,9 @@ function IndexComponent() {
           <h1 className="text-center font-[Lexend_Deca,_Arial] text-6xl font-semibold sm:text-7xl md:text-8xl">
             Chat's TierList
           </h1>
-          <h2 className="text-center max-sm:mx-13 sm:text-lg md:text-xl">
+          <p className="text-center max-sm:mx-13 sm:text-lg md:text-xl">
             Create a tier list for your Twitch chat to vote on!
-          </h2>
+          </p>
         </article>
         <article className="flex flex-col items-center">
           <EditTierListButton />

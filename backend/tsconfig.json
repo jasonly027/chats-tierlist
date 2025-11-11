@@ -6,6 +6,7 @@
   ],
   "compilerOptions": {
     "verbatimModuleSyntax": false,
+    "exactOptionalPropertyTypes": false,
 
     "paths": {
       "@/*": ["./src/*"]
