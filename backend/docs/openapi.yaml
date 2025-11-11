@@ -7,7 +7,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: sessionId
+      name: chatsTierListSessionId
   schemas:
     def-0:
       type: object
@@ -22,15 +22,9 @@ components:
           type: string
       title: HttpError
 paths:
-  /login:
-    get:
-      tags:
-        - Auth
-      responses:
-        "200":
-          description: Default Response
   /tierlist:
     put:
+      operationId: setTierList
       summary: Overwrite entire tier list
       tags:
         - Tier List
@@ -51,32 +45,97 @@ paths:
                     tiers:
                       type: object
                       maxProperties: 50
+                      description: Max 50 tiers
                       additionalProperties:
                         type: object
-                        required:
-                          - color
-                        properties:
-                          color:
-                            type: string
-                            minLength: 1
-                            description: Background color of the tier
+                        properties: {}
                     items:
                       type: object
                       maxProperties: 500
+                      description: Max 500 items
                       additionalProperties:
                         type: object
                         properties:
                           image_url:
                             type: string
                             minLength: 1
-                            description: An optional image URL
+                            maxLength: 255
+                            description: Image URL
         required: true
       security:
         - cookieAuth: []
       responses:
-        "204":
-          description: Successfully overwrote tier list
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - tier_list
+                properties:
+                  tier_list:
+                    type: object
+                    required:
+                      - tiers
+                      - items
+                      - isVoting
+                      - focus
+                      - version
+                    properties:
+                      tiers:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - id
+                            - name
+                          properties:
+                            id:
+                              type: string
+                              description: Entity's id
+                            name:
+                              type: string
+                              minLength: 1
+                              maxLength: 255
+                              description: Name of the tier
+                      items:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          required:
+                            - id
+                            - imageUrl
+                            - votes
+                          properties:
+                            id:
+                              type: string
+                              description: Entity's id
+                            imageUrl:
+                              anyOf:
+                                - type: string
+                                  minLength: 1
+                                  maxLength: 255
+                                - type: "null"
+                              description: Image URL
+                            votes:
+                              type: object
+                              additionalProperties:
+                                type: number
+                                description: Tier index
+                      isVoting:
+                        type: boolean
+                        description: Whether votes should be parsed or ignored
+                      focus:
+                        anyOf:
+                          - type: string
+                          - type: "null"
+                        description: Name of the item to focus
+                      version:
+                        type: number
+                        description: Version number of the list
     patch:
+      operationId: updateTierList
       summary: Update settings on the tier list
       tags:
         - Tier List
@@ -87,9 +146,12 @@ paths:
               type: object
               properties:
                 focus:
-                  type: string
-                  minLength: 1
-                  description: Name of the item to focus
+                  anyOf:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Name of the item to focus
+                    - type: "null"
                 is_voting:
                   type: boolean
                   description: Determine whether votes should be parsed or ignored
@@ -112,6 +174,7 @@ paths:
                 description: Focus target does not exist
   /tierlist/tier:
     post:
+      operationId: addTier
       summary: Add a new tier
       tags:
         - Tier List
@@ -122,22 +185,29 @@ paths:
               type: object
               required:
                 - name
-                - color
               properties:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the tier
-                color:
-                  type: string
-                  minLength: 1
-                  description: Background color of the tier
         required: true
       security:
         - cookieAuth: []
       responses:
         "201":
-          description: Successfully added tier
+          description: Entity's id
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Entity's id
+                description: Entity's id
         "409":
           description: Conflict
           content:
@@ -150,8 +220,9 @@ paths:
                   message:
                     type: string
                 description: Conflict
-  /tierlist/tier/{name}:
+  /tierlist/tier/{id}:
     patch:
+      operationId: updateTier
       summary: Update an existing tier
       tags:
         - Tier List
@@ -164,19 +235,15 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the tier
-                color:
-                  type: string
-                  minLength: 1
-                  description: Background color of the tier
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the tier
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:
@@ -196,6 +263,7 @@ paths:
                 description: Conflict
   /tierlist/item:
     post:
+      operationId: addItem
       summary: Adds a new item
       tags:
         - Tier List
@@ -210,17 +278,32 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the item
                 image_url:
-                  type: string
-                  minLength: 1
-                  description: Image url of the item
+                  anyOf:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Image url of the item
+                    - type: "null"
         required: true
       security:
         - cookieAuth: []
       responses:
         "201":
-          description: Successfully added item
+          description: Entity's id
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    description: Entity's id
+                description: Entity's id
         "409":
           description: Conflict
           content:
@@ -233,8 +316,9 @@ paths:
                   message:
                     type: string
                 description: Conflict
-  /tierlist/item/{name}:
+  /tierlist/item/{id}:
     patch:
+      operationId: updateItem
       summary: Updates an item
       tags:
         - Tier List
@@ -247,19 +331,22 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 255
                   description: Name of the item
                 image_url:
-                  type: string
-                  minLength: 1
-                  description: Image url of the item
+                  anyOf:
+                    - type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Image url of the item
+                    - type: "null"
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the item
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:
@@ -278,37 +365,66 @@ paths:
                     type: string
                 description: Conflict
     delete:
+      operationId: deleteItem
       summary: Deletes an item
       tags:
         - Tier List
       parameters:
         - schema:
             type: string
-            minLength: 1
           in: path
-          name: name
+          name: id
           required: true
-          description: Name of the item
+          description: Entity's id
       security:
         - cookieAuth: []
       responses:
         "204":
           description: Successfully deleted item
-  /login/callback:
-    get:
-      tags:
-        - Auth
-      responses:
-        "200":
-          description: Default Response
   /logout:
-    get:
+    post:
+      operationId: logOutUser
       summary: Signs out the user
       tags:
         - Auth
       responses:
         "200":
           description: Successfully logged out
+  /auth/me:
+    get:
+      operationId: getUserProfile
+      summary: Gets the authenticated user's profile
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - twitch_id
+                      - name
+                      - display_name
+                      - profile_image_url
+                    properties:
+                      twitch_id:
+                        type: string
+                      name:
+                        type: string
+                      display_name:
+                        type: string
+                      profile_image_url:
+                        type: string
+                        format: url
 servers:
   - url: http://localhost:3000
     description: Development server

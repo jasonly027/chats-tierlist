@@ -35,6 +35,7 @@ declare module 'fastify' {
 export interface SessionProfile {
   twitch_id: string;
   name: string;
+  displayName: string;
   profileImageUrl: string;
 }
 
@@ -58,7 +59,7 @@ const auth: FastifyPluginAsync = async (fastify) => {
       cookie: {
         maxAge: SESSION_TTL,
         secure: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         domain: env.COOKIE_DOMAIN,
       },
     });
@@ -91,7 +92,9 @@ const auth: FastifyPluginAsync = async (fastify) => {
     startRedirectPath: '/login',
     callbackUri: env.TWITCH_CALLBACK_URL,
 
-    tags: ['Auth'],
+    schema: {
+      hide: true,
+    },
 
     cookie: {
       secure: true,

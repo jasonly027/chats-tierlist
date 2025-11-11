@@ -40,7 +40,7 @@ export class TierListListener {
           this.store
             .getEditor(channel.id())
             .then((editor) => {
-              editor?.vote(msg.event.chatter_user_id, msg.event.message.text);
+              editor?.vote(msg.event.chatter_user_name, msg.event.message.text);
             })
             .catch((err: unknown) => {
               logger.error({ err }, 'Failed to save chatter vote');

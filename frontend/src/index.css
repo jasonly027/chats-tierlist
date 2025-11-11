@@ -6,16 +6,37 @@
   font-display: swap;
 }
 
+@theme {
+  --color-accent: oklch(54.1% 0.281 293.009);
+  --color-accent-light: oklch(60.6% 0.25 292.717);
+  --color-surface: oklch(27.9% 0.041 260.031);
+  --color-surface-light: oklch(37.3% 0.034 259.733);
+  --color-muted: oklch(70.7% 0.022 261.325);
+  --color-danger: oklch(35.21% 0.108 20.33);
+  --color-danger-light: oklch(38.33% 0.142 22.66);
+
+  --animate-fadeIn: fadeIn 150ms ease-in-out;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 100;
+    }
+  }
+}
+
 body {
-  @apply bg-gray-900 text-gray-50 selection:bg-violet-400;
+  @apply bg-gray-900 text-gray-50 selection:bg-violet-500;
 }
 
 button {
   cursor: pointer;
 }
 
-button, input {
-    user-select: none;
+button,
+input {
+  user-select: none;
 }
 
 .redBall {
@@ -33,7 +54,6 @@ button, input {
   box-shadow: 0 0 50vh min(30vw, 30vh) yellow;
 }
 
-
 .redBall,
 .greenBall,
 .yellowBall {
@@ -43,8 +63,12 @@ button, input {
 }
 
 @keyframes moveRight {
-  0% { left: 0; }
-  100% { left: 80vw; } /* adjust distance as needed */
+  0% {
+    left: 0;
+  }
+  100% {
+    left: 80vw;
+  } /* adjust distance as needed */
 }
 
 .ballsContainer {

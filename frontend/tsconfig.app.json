@@ -17,11 +17,11 @@
 
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": false,
 
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "exclude": ["dist"]
 }
-

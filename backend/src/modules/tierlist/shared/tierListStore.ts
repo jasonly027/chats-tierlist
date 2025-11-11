@@ -7,6 +7,8 @@ export class TierListStore {
 
   constructor(createEditor: (channelId: string) => Promise<TierListEditor>) {
     this.cache = new LRUCache({
+      ignoreFetchAbort: true,
+
       maxSize: 100,
       sizeCalculation: () => {
         return 1;
@@ -22,7 +24,7 @@ export class TierListStore {
     });
   }
 
-  getEditor(channelId: string): Promise<TierListEditor | undefined> {
-    return this.cache.fetch(channelId);
+  getEditor(channelId: string): Promise<TierListEditor> {
+    return this.cache.forceFetch(channelId);
   }
 }

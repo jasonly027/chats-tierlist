@@ -1,6 +1,14 @@
 import escapeStringRegexp from 'escape-string-regexp';
+import { nanoid } from 'nanoid';
 
-import type { TierList } from '@/modules/tierlist/tierlist.types';
+import {
+  Tier,
+  type FreshTierList,
+  type TierList,
+  type Item,
+  MAX_ITEMS,
+  MAX_TIERS,
+} from '@/modules/tierlist/tierlist.types';
 import type { Repository } from '@/shared/db/repository';
 import { baseLogger } from '@/shared/util';
 
@@ -26,8 +34,8 @@ export class TierListEditor {
     return this.tierList;
   }
 
-  setTierList(tierList: TierList): boolean {
-    this.tierList = tierList;
+  setTierList(fresh: FreshTierList): boolean {
+    this.tierList = tierListFromFreshTierList(fresh);
     this.update();
     return true;
   }
@@ -37,47 +45,73 @@ export class TierListEditor {
   }
 
   setFocus(name: string | null): boolean {
-    if (name !== null && !this.tierList.items[name]) return false;
+    if (name !== null && !this.tierList.items[name]) {
+      return false;
+    }
 
     this.tierList.focus = name;
     return true;
   }
 
-  addItem(name: string, imageUrl: string | null = null): boolean {
-    if (!name || this.tierList.items[name]) return false;
+  addItem(name: string, imageUrl: string | null = null): string | null {
+    if (
+      !name ||
+      this.tierList.items[name] ||
+      Object.values(this.tierList.items).length === MAX_ITEMS
+    ) {
+      return null;
+    }
 
+    const id = nanoid();
     this.tierList.items[name] = {
+      id,
       imageUrl,
       votes: {},
     };
     this.update();
 
-    return true;
+    return id;
   }
 
-  removeItem(name: string): void {
+  removeItem(id: string): boolean {
+    const [name] = this.itemById(id);
+    if (!name) {
+      return false;
+    }
+
     delete this.tierList.items[name];
     if (this.tierList.focus === name) {
       this.tierList.focus = null;
     }
+
     this.update();
+    return true;
   }
 
   updateItem(
-    oldName: string,
-    { newName, imageUrl }: { newName?: string; imageUrl?: string }
+    id: string,
+    { name: newName, imageUrl }: { name?: string; imageUrl?: string | null }
   ): boolean {
-    const item = this.tierList.items[oldName];
-    if (!item || newName === '' || (newName && this.tierList.items[newName])) {
+    const [name, item] = this.itemById(id);
+    if (!item) {
+      return false;
+    }
+    if (
+      // Empty name
+      newName === '' ||
+      // Naming collision
+      (newName !== undefined && this.tierList.items[newName])
+    ) {
       return false;
     }
 
-    item.imageUrl = imageUrl ?? item.imageUrl;
-
+    if (imageUrl !== undefined) {
+      item.imageUrl = imageUrl;
+    }
     if (newName) {
-      delete this.tierList.items[oldName];
+      delete this.tierList.items[name];
       this.tierList.items[newName] = item;
-      if (this.tierList.focus === oldName) {
+      if (this.tierList.focus === name) {
         this.tierList.focus = newName;
       }
     }
@@ -86,38 +120,43 @@ export class TierListEditor {
     return true;
   }
 
-  addTier(name: string, color: string): boolean {
-    if (!name || this.tierList.tiers.find((t) => t.name === name)) {
-      return false;
+  addTier(name: string): string | null {
+    if (
+      !name ||
+      this.tierList.tiers.find((t) => t.name === name) ||
+      this.tierList.tiers.length === MAX_TIERS
+    ) {
+      return null;
     }
 
-    this.tierList.tiers.push({ name, color });
+    const id = nanoid();
+    this.tierList.tiers.push({ id, name });
     this.update();
 
-    return true;
+    return id;
   }
 
-  updateTier(
-    oldName: string,
-    { newName, color }: { newName?: string; color?: string }
-  ): boolean {
-    const tier = this.tierList.tiers.find((t) => t.name === oldName);
+  updateTier(id: string, { name }: { name?: string }): boolean {
+    const tier = this.tierById(id);
+    if (!tier) {
+      return false;
+    }
     if (
-      !tier ||
-      newName === '' ||
-      this.tierList.tiers.find((t) => t.name === newName)
+      // Empty name
+      name === '' ||
+      // Naming collision
+      this.tierList.tiers.find((t) => t.name === name)
     ) {
       return false;
     }
 
-    tier.name = newName ?? tier.name;
-    tier.color = color ?? tier.color;
+    tier.name = name ?? tier.name;
     this.update();
 
     return true;
   }
 
-  vote(userId: string, message: string): boolean {
+  vote(name: string, message: string): boolean {
     if (!this.tierList.isVoting || !message) return false;
 
     const choice = this.parse(message);
@@ -131,8 +170,8 @@ export class TierListEditor {
     const votes = this.tierList.items[itemName]?.votes;
     if (!votes) return false;
 
-    votes[userId] = tierIdx;
-    this.update();
+    votes[name] = tierIdx;
+    this.requestToSave();
 
     return true;
   }
@@ -146,6 +185,20 @@ export class TierListEditor {
       .catch((err: unknown) => {
         logger.error({ err }, 'Failed to save tier list');
       });
+  }
+
+  private tierById(id: string): Tier | undefined {
+    return this.tierList.tiers.find((t) => t.id === id);
+  }
+
+  private itemById(id: string): [string, Item] | [undefined, undefined] {
+    const entry = Object.entries(this.tierList.items).find(
+      ([, value]) => value.id === id
+    );
+    if (!entry) {
+      return [undefined, undefined];
+    }
+    return entry;
   }
 
   // Tries to parse `message` as [item name, tier index]
@@ -198,4 +251,31 @@ export class TierListEditor {
 
     return new RegExp(`^(${itemsPattern}) (${tiersPattern})$`);
   }
+}
+
+function tierListFromFreshTierList(list: FreshTierList): TierList {
+  const tiers = Object.entries(list.tiers).map<Tier>(([name]) => ({
+    id: nanoid(),
+    name,
+  }));
+
+  const items = Object.entries(list.items).reduce<Record<string, Item>>(
+    (prev, [name, { image_url }]) => ({
+      ...prev,
+      [name]: {
+        id: nanoid(),
+        imageUrl: image_url ?? null,
+        votes: {},
+      },
+    }),
+    {}
+  );
+
+  return {
+    tiers,
+    items,
+    isVoting: false,
+    focus: null,
+    version: Date.now(),
+  };
 }

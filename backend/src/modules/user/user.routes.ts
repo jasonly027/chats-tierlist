@@ -13,7 +13,7 @@ import {
 export default function (fastify: FastifyTypeBox) {
   fastify.get(
     '/login/callback',
-    { schema: { tags: ['Auth'] } },
+    { schema: { hide: true } },
     async (req, res) => {
       const tw = fastify.twitchOAuth2;
       const { token } = await tw.getAccessTokenFromAuthorizationCodeFlow(req);
@@ -27,13 +27,14 @@ export default function (fastify: FastifyTypeBox) {
       const createUser = fastify.repo.createUserIfNotExists(user.id);
       req.session.set('user', {
         twitch_id: user.id,
-        name: user.display_name,
+        name: user.login,
+        displayName: user.display_name,
         profileImageUrl: user.profile_image_url,
       });
       const createSession = req.session.save();
 
       return Promise.all([createUser, createSession]).then(() =>
-        res.redirect(env.LOGIN_REDIRECT_URL)
+        res.redirect(env.FRONTEND_URL)
       );
     }
   );
@@ -67,12 +68,13 @@ export default function (fastify: FastifyTypeBox) {
     );
   }
 
-  fastify.get(
+  fastify.post(
     '/logout',
     {
       schema: {
         summary: 'Signs out the user',
         tags: ['Auth'],
+        operationId: 'logOutUser',
         response: {
           200: nullSchema('Successfully logged out'),
         },
@@ -91,18 +93,21 @@ export default function (fastify: FastifyTypeBox) {
       schema: {
         summary: "Gets the authenticated user's profile",
         tags: ['Auth'],
+        operationId: 'getUserProfile',
         response: {
           200: UserProfileResponse,
         },
+        security: [{ cookieAuth: [] }],
       },
     },
     async (req, res) => {
-      const { twitch_id, name, profileImageUrl } = req.user;
+      const { twitch_id, name, displayName, profileImageUrl } = req.user;
 
       return res.code(200).send({
         data: {
           twitch_id,
-          display_name: name,
+          name,
+          display_name: displayName,
           profile_image_url: profileImageUrl,
         },
       });

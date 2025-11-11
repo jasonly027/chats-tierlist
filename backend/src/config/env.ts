@@ -21,7 +21,7 @@ const schema = T.Object({
 
   // For Auth
   TWITCH_CALLBACK_URL: T.String(),
-  LOGIN_REDIRECT_URL: T.String(),
+  FRONTEND_URL: T.String(),
   COOKIE_DOMAIN: T.String(),
   SESSION_SECRET: T.String(),
 });

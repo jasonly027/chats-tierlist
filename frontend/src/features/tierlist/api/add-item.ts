@@ -1,0 +1,74 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { produce } from 'immer';
+
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
+import type { Item } from '@/features/tierlist/types/tier-list';
+import { useAddItem as useAddItemApi } from '@/lib/gen/endpoints/tier-list/tier-list';
+
+export function useAddItem() {
+  const { queryKey } = useTierList();
+  const client = useQueryClient();
+
+  return useAddItemApi({
+    mutation: {
+      onMutate(_variables, { client }) {
+        const { tierList } = client.getQueryData(queryKey) ?? {};
+        if (!tierList) return;
+        const prevVersion = tierList.version;
+
+        const nextVersion = Date.now();
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            if (!tierList) return;
+            tierList.version = nextVersion;
+          });
+
+          return {
+            ...prev,
+            tierList,
+          };
+        });
+
+        return { prevVersion, nextVersion };
+      },
+
+      onError(_error, _variables, onMutateResult, context) {
+        if (!onMutateResult) return;
+        const { prevVersion, nextVersion } = onMutateResult;
+
+        context.client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            if (!tierList) return;
+            if (tierList.version === nextVersion) {
+              tierList.version = prevVersion;
+            }
+          });
+
+          return {
+            ...prev,
+            tierList,
+          };
+        });
+      },
+
+      onSuccess({ id }, { data: { name, image_url } }) {
+        client.setQueryData(queryKey, (prev) => {
+          const tierList = produce(prev?.tierList, (tierList) => {
+            if (!tierList) return;
+
+            tierList.items[id] = {
+              id,
+              name,
+              imageUrl: image_url ?? null,
+            } satisfies Item;
+          });
+
+          return {
+            ...prev,
+            tierList,
+          };
+        });
+      },
+    },
+  });
+}
