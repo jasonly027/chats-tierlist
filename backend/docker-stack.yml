@@ -1,0 +1,57 @@
+services:
+  app:
+    image: jasonly027/chatstierlist
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+      - REDIS_URL=redis://redis:6379
+      - TWITCH_CLIENT_ID=55ifugiw9sit4if65wzc562diipv1t
+      - TWITCH_CALLBACK_URL=https://chatstierlist-api.jsonis.me/login/callback
+      - FRONTEND_URL=https://chatstierlist.jsonis.me
+      - COOKIE_DOMAIN=jsonis.me
+      - SESSION_SECRET_FILE=/run/secrets/chatstierlist_session
+      - TWITCH_CLIENT_SECRET_FILE=/run/secrets/chatstierlist_twitch_client_secret
+      - TWITCH_REFRESH_TOKEN_FILE=/run/secrets/chatstierlist_twitch_refresh_token
+    secrets:
+      - chatstierlist_session
+      - chatstierlist_twitch_client_secret
+      - chatstierlist_twitch_refresh_token
+    deploy:
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.chatstierlist.rule=Host(`chatstierlist-api.jsonis.me`)'
+        - 'traefik.http.services.chatstierlist.loadbalancer.server.port=3000'
+        - 'traefik.http.routers.chatstierlist.entrypoints=websecure'
+        - 'traefik.http.routers.chatstierlist.tls.certresolver=myresolver'
+    networks:
+      - default
+      - traefik-net
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres:17.6-alpine3.22
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes:
+      - /srv/chatstierlist:/var/lib/postgresql/data
+  redis:
+    image: redis:8.2.1-alpine
+    ports:
+      - '6379:6379'
+
+secrets:
+  chatstierlist_session:
+    external: true
+  chatstierlist_twitch_client_secret:
+    external: true
+  chatstierlist_twitch_refresh_token:
+    external: true
+
+networks:
+  default:
+  traefik-net:
+    external: true
