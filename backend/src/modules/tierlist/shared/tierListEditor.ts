@@ -42,6 +42,7 @@ export class TierListEditor {
 
   setVoting(isVoting: boolean): void {
     this.tierList.isVoting = isVoting;
+    this.update();
   }
 
   setFocus(name: string | null): boolean {
@@ -50,6 +51,8 @@ export class TierListEditor {
     }
 
     this.tierList.focus = name;
+    this.update();
+
     return true;
   }
 

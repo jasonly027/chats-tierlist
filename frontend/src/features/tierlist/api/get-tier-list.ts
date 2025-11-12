@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 import { env } from '@/config/env';
@@ -47,11 +47,15 @@ class Listener {
   private socket_?: WebSocket;
   private closeHandler?: (ev: WebSocketEventMap['close']) => void | null;
 
-  private data_: Partial<ServerData> = {};
+  private client_: QueryClient;
   private waiting_: {
     resolve: (arg?: never) => void;
     reject: (reason: Error) => void;
   }[] = [];
+
+  constructor(client: QueryClient) {
+    this.client_ = client;
+  }
 
   async getInitial(name: string): Promise<Partial<ServerData>> {
     if (name !== this.name_) {
@@ -59,15 +63,16 @@ class Listener {
     }
 
     // Wait for server data if channel and tier list
-    // haven't been set, unless error has been set.
-    if ((this.data_.channel && this.data_.tierList) || this.data_.error) {
-      return this.data_;
+    // haven't been set, unless error has already been set.
+    const initial = this.getData();
+    if ((initial.channel && initial.tierList) || initial?.error) {
+      return initial;
     } else {
       await new Promise((resolve, reject) =>
         this.waiting_.push({ resolve, reject })
       );
     }
-    return this.data_;
+    return this.getData();
   }
 
   private init(name: string) {
@@ -106,11 +111,17 @@ class Listener {
         const msg = JSON.parse(data) as SocketMessage;
 
         if (msg.type === 'channel') {
-          this.data_.channel = dtoToUser(msg.channel);
+          this.setData((prev) => ({
+            ...prev,
+            channel: dtoToUser(msg.channel),
+          }));
 
           this.setSocketState('update');
         } else if (msg.type === 'error') {
-          this.data_.error = msg.kind;
+          this.setData((prev) => ({
+            ...prev,
+            error: msg.kind,
+          }));
 
           this.handleWaiting('ok');
           if (this.closeHandler) {
@@ -126,17 +137,17 @@ class Listener {
 
         if (msg.type === 'tierlist') {
           const newTierList = dtoToTierList(msg.tier_list);
+          const currentData = this.getData();
 
           // Ignore in-transit updates before a schema change
           if (
-            this.data_.tierList === undefined ||
-            newTierList.version >= this.data_.tierList.version
+            currentData.tierList === undefined ||
+            newTierList.version >= currentData.tierList.version
           ) {
-            this.data_.tierList = dtoToTierList(msg.tier_list);
-            queryClient.setQueryData(
-              getTierListOptions(this.name_!).queryKey,
-              (prev) => ({ ...prev, tierList: this.data_.tierList })
-            );
+            this.setData((prev) => ({
+              ...prev,
+              tierList: newTierList,
+            }));
             this.handleWaiting('ok');
           }
         } else if (msg.type === 'listen') {
@@ -152,12 +163,29 @@ class Listener {
     }
   }
 
+  private getData() {
+    if (!this.name_) return {};
+    return (
+      this.client_.getQueryData(getTierListOptions(this.name_).queryKey) ?? {}
+    );
+  }
+
+  private setData(
+    updater: Parameters<
+      typeof this.client_.setQueryData<
+        Awaited<ReturnType<typeof this.getInitial>>
+      >
+    >[1]
+  ) {
+    if (!this.name_) return;
+    this.client_.setQueryData(getTierListOptions(this.name_).queryKey, updater);
+  }
+
   private reset() {
     if (this.closeHandler) {
       this.socket_?.removeEventListener('close', this.closeHandler);
     }
     this.socket_?.close(1000, 'Switching to different channel');
-    this.data_ = {};
   }
 
   private handleWaiting(result: 'ok' | Error) {
@@ -170,7 +198,7 @@ class Listener {
   }
 }
 
-const listener = new Listener();
+const listener = new Listener(queryClient);
 
 function dtoToUser(dto: ChannelDto): User {
   return {

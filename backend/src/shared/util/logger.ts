@@ -1,8 +1,10 @@
 import { AxiosError } from 'axios';
 import pino, { stdSerializers } from 'pino';
 
+import { env } from '@/config';
+
 const baseLogger = pino({
-  level: 'debug',
+  level: env.LOG_LEVEL,
   serializers: {
     err(err) {
       if (err instanceof AxiosError) {
