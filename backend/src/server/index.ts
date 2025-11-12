@@ -17,7 +17,7 @@ const serverPlugin: FastifyPluginCallback = (fastify) => {
   fastify.register(autoLoad, {
     dir: path.join(__dirname, '..', 'modules'),
     dirNameRoutePrefix: false,
-    matchFilter: (path) => path.endsWith('.module.ts'),
+    matchFilter: (path) => /\.module\.(js|ts)$/.test(path),
   });
 };
 
