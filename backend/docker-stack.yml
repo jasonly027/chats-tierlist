@@ -19,11 +19,12 @@ services:
       - chatstierlist_twitch_refresh_token
     deploy:
       labels:
-        - 'traefik.enable=true'
-        - 'traefik.http.routers.chatstierlist.rule=Host(`chatstierlist-api.jsonis.me`)'
-        - 'traefik.http.services.chatstierlist.loadbalancer.server.port=3000'
-        - 'traefik.http.routers.chatstierlist.entrypoints=websecure'
-        - 'traefik.http.routers.chatstierlist.tls.certresolver=myresolver'
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-net"
+        - "traefik.http.routers.chatstierlist.rule=Host(`chatstierlist-api.jsonis.me`)"
+        - "traefik.http.services.chatstierlist.loadbalancer.server.port=3000"
+        - "traefik.http.routers.chatstierlist.entrypoints=websecure"
+        - "traefik.http.routers.chatstierlist.tls.certresolver=myresolver"
     networks:
       - default
       - traefik-net
@@ -35,13 +36,13 @@ services:
     environment:
       - POSTGRES_PASSWORD=password
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - /srv/chatstierlist:/var/lib/postgresql/data
   redis:
     image: redis:8.2.1-alpine
     ports:
-      - '6379:6379'
+      - "6379:6379"
 
 secrets:
   chatstierlist_session:
@@ -52,6 +53,5 @@ secrets:
     external: true
 
 networks:
-  default:
   traefik-net:
     external: true
