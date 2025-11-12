@@ -1,6 +1,6 @@
 import Button from '@/components/ui/button';
-import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import { useUpdateTierList } from '@/features/tierlist/api/update-tier-list';
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
 export interface FocusButtonProps {
   itemName: string;

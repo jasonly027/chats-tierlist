@@ -2,8 +2,8 @@ import { Label } from '@radix-ui/react-label';
 
 import Button from '@/components/ui/button';
 import Cross from '@/components/ui/cross';
-import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 import { useUpdateTierList } from '@/features/tierlist/api/update-tier-list';
+import { useTierList } from '@/features/tierlist/hooks/use-tier-list';
 
 export default function FocusStatus() {
   const { tierList } = useTierList();

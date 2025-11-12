@@ -31,11 +31,7 @@ export function UserProvider({ children }: UserProviderProps) {
       },
 
       logOut() {
-        logOutMutation.mutate(undefined, {
-          onSuccess() {
-            window.location.href = '/';
-          },
-        });
+        logOutMutation.mutate();
       },
     }),
     [user, isLoading, logOutMutation]
