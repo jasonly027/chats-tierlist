@@ -7,6 +7,7 @@ import {
   ItemNameSchema,
 } from '@/modules/tierlist/tierlist.types';
 import { TextSchema } from '@/shared/api/text.schema';
+import { UrlSchema } from '@/shared/api/url.schema';
 
 export const ListenChannelParamsSchema = T.Object({
   name: T.String({ minLength: 1 }),
@@ -43,7 +44,7 @@ export const UpdateTierRequest = T.Object({
 });
 
 export const ItemImageUrlSchema = T.Union([
-  TextSchema({
+  UrlSchema({
     description: 'Image url of the item',
   }),
   T.Null(),

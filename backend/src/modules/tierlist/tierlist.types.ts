@@ -2,6 +2,7 @@ import { Static, Type as T } from 'typebox';
 
 import { idSchema } from '@/shared/api/id.response';
 import { TextSchema } from '@/shared/api/text.schema';
+import { UrlSchema } from '@/shared/api/url.schema';
 
 export const TierNameSchema = TextSchema({ description: 'Name of the tier' });
 export const ItemNameSchema = TextSchema({ description: 'Name of the item' });
@@ -14,7 +15,7 @@ export type Tier = Static<typeof TierListTierSchema>;
 
 export const ItemSchema = T.Object({
   id: idSchema,
-  imageUrl: T.Union([TextSchema(), T.Null()], { description: 'Image URL' }),
+  imageUrl: T.Union([UrlSchema(), T.Null()], { description: 'Image URL' }),
   votes: T.Record(
     T.String({ description: 'Name of the voter' }),
     T.Number({ description: 'Tier index' })
