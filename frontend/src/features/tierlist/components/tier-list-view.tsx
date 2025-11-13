@@ -58,7 +58,7 @@ export default function TierListView() {
       <div className="bg-surface border-x-1 border-gray-950">
         <Toolbar />
 
-        <div className="mb-4 flex flex-col-reverse divide-gray-950 border-y-1 border-gray-950 max-md:divide-y-1 md:flex-row md:divide-x-1">
+        <div className="mb-4 flex flex-col divide-gray-950 border-y-1 border-gray-950 max-md:divide-y-1 md:flex-row md:divide-x-1">
           <div className="flex flex-4 flex-col gap-px">
             {tierList.tiers.map((tier, tierIdx) => (
               <div key={tier.id} className="border-b-1 border-gray-950">
