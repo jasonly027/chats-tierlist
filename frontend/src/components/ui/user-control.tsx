@@ -53,6 +53,7 @@ function User({ user }: UserProps) {
     <div className="flex flex-row items-center justify-center gap-2 font-semibold">
       <img
         src={user.imageUrl}
+        alt="User Icon"
         className="size-7 rounded-full select-none"
         draggable="false"
       />
