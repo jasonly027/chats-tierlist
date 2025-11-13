@@ -35,14 +35,10 @@ services:
     image: postgres:17.6-alpine3.22
     environment:
       - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
     volumes:
       - /srv/chatstierlist:/var/lib/postgresql/data
   redis:
     image: redis:8.2.1-alpine
-    ports:
-      - "6379:6379"
 
 secrets:
   chatstierlist_session:
