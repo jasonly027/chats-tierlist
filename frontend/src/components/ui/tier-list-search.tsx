@@ -24,7 +24,7 @@ export default function TierListSearchBar({
     <form
       onSubmit={onSubmit}
       className={cn(
-        'focus-within:border-accent group flex w-full items-center rounded-sm border-1 border-current transition-colors duration-300',
+        'focus-within:border-accent group flex w-full items-center rounded-sm border-1 border-current transition-colors duration-200',
         className
       )}
     >
@@ -38,14 +38,14 @@ export default function TierListSearchBar({
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <div className="group-focus-within:bg-accent w-px self-stretch bg-current duration-300" />
+      <div className="group-focus-within:bg-accent w-px self-stretch bg-current duration-200" />
       <button type="submit">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          className="group-focus-within:stroke-accent m-1 size-6 stroke-2 duration-300"
+          className="group-focus-within:stroke-accent m-1 size-6 stroke-2 duration-200"
         >
           <path
             strokeLinecap="round"

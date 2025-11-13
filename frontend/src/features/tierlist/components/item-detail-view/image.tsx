@@ -60,7 +60,7 @@ function EditDialog({ item }: { item: Item }) {
         <DialogTrigger asChild>
           <button
             type="button"
-            className="hover:bg-surface-light/50 bg-surface/50 absolute top-1 right-1 rounded-full p-1 transition-colors duration-300"
+            className="hover:bg-surface-light/50 bg-surface/50 absolute top-1 right-1 rounded-full p-1"
           >
             <Pencil />
             <span className="sr-only">Edit Image URL</span>

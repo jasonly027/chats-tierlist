@@ -23,7 +23,7 @@ export default function VotingSwitch() {
         id="isVoting"
         checked={tierList.isVoting}
         onCheckedChange={(checked) => mutate({ data: { is_voting: checked } })}
-        className="data-[state=checked]:bg-accent-light data-[state=unchecked]:bg-danger-light h-[1.75em] w-[45px] rounded-full border-2 border-gray-900 bg-slate-700 transition-colors duration-300"
+        className="data-[state=checked]:bg-accent data-[state=unchecked]:bg-danger-light h-[1.75em] w-[45px] rounded-full border-2 border-gray-900 bg-slate-700 transition-colors duration-300"
       >
         <Switch.Thumb className="box-border block size-[18px] translate-x-1 rounded-full border-2 border-current transition-transform will-change-transform data-[state=checked]:translate-x-[20px]" />
       </Switch.Root>

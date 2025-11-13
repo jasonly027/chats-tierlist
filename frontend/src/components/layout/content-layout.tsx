@@ -28,7 +28,7 @@ function NavigationBar() {
       <div className="flex flex-1 items-center gap-4">
         <Link
           to={'/'}
-          className="bg-surface hover:bg-surface-light flex items-center gap-2 rounded-sm border-1 border-gray-950 px-2.5 py-1.5 transition-colors duration-300"
+          className="bg-surface hover:bg-surface-light flex items-center gap-2 rounded-sm border-1 border-gray-950 px-2.5 py-1.5"
         >
           <Logo size="sm" />
 

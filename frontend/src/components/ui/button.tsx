@@ -11,7 +11,7 @@ export default function Button({
     <button
       type={type}
       className={cn(
-        'rounded-sm border-2 border-gray-900 bg-slate-700 px-2.5 py-1.5 font-semibold text-nowrap transition-colors duration-300 hover:bg-slate-600',
+        'rounded-sm border-2 border-gray-900 bg-slate-700 px-2.5 py-1.5 font-semibold text-nowrap hover:bg-slate-600',
         className
       )}
       {...props}

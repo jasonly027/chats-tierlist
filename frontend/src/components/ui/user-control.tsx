@@ -59,11 +59,7 @@ function User({ user }: UserProps) {
       />
       <div>{user.displayName}</div>
       <div className="w-px self-stretch bg-current select-none" />
-      <button
-        type="button"
-        onClick={logOut}
-        className="hover:text-accent transition-colors duration-300"
-      >
+      <button type="button" onClick={logOut} className="hover:text-accent">
         Log Out
       </button>
     </div>

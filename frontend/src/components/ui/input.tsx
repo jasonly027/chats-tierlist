@@ -10,7 +10,7 @@ export default function Input({
     <input
       size={1}
       className={cn(
-        'focus:border-accent rounded-sm border-1 px-2 py-1 transition-colors duration-300 focus:outline-0',
+        'focus:border-accent rounded-sm border-1 px-2 py-1 transition-colors duration-200 focus:outline-0',
         className
       )}
       {...props}

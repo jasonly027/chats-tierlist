@@ -69,7 +69,7 @@ export default function Title({ item }: TitleProps) {
       {isOwner && (
         <Label
           htmlFor="itemName"
-          className="hover:bg-surface-light cursor-pointer rounded-full p-1 transition-colors duration-300"
+          className="hover:bg-surface-light cursor-pointer rounded-full p-1"
         >
           <Pencil />
           <span className="sr-only">Edit Item Name</span>

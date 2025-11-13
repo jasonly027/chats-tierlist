@@ -76,7 +76,7 @@ export function DialogContent({
 
           <DialogClose
             disabled={disableClose}
-            className="hover:bg-surface-light absolute top-2 right-2 rounded-full p-px transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="hover:bg-surface-light absolute top-2 right-2 rounded-full p-px disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Cross />
             <span className="sr-only">Close Window</span>

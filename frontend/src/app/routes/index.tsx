@@ -59,7 +59,7 @@ function EditTierListButton() {
           logIn();
         }
       }}
-      className="bg-accent hover:text-accent w-[18ch] rounded-xs p-4 text-xl font-semibold transition-colors duration-300 hover:bg-gray-50"
+      className="bg-accent hover:text-accent w-[18ch] rounded-xs p-4 text-xl font-semibold hover:bg-gray-50"
     >
       {isLoading ? 'Loading...' : 'Edit Your TierList'}
     </button>
