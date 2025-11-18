@@ -149,6 +149,12 @@ class Listener {
               tierList: newTierList,
             }));
             this.handleWaiting('ok');
+          } else {
+            console.log(
+              'Received stale',
+              currentData.tierList.version,
+              newTierList.version
+            );
           }
         } else if (msg.type === 'listen') {
           if (msg.status === 'full') {
