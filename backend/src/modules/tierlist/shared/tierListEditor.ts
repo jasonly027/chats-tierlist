@@ -35,7 +35,10 @@ export class TierListEditor {
   }
 
   setTierList(fresh: FreshTierList): boolean {
-    this.tierList = tierListFromFreshTierList(fresh);
+    this.tierList = {
+      ...tierListFromFreshTierList(fresh),
+      isVoting: this.tierList.isVoting,
+    };
     this.update();
     return true;
   }

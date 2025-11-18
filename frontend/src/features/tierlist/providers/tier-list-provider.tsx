@@ -27,7 +27,7 @@ export interface TierListContextValues {
 export function TierListProvider({ name, children }: TierListProviderProps) {
   const { user } = useUser();
 
-  const { data, isLoading } = useGetTierList({ name });
+  const { data, isFetching: isLoading } = useGetTierList({ name });
   const channel = data?.channel;
   const tierList = data?.tierList;
 
@@ -46,11 +46,7 @@ export function TierListProvider({ name, children }: TierListProviderProps) {
       errorMessage,
       isLoading,
       queryKey: getTierListOptions(name).queryKey,
-      isOwner:
-        user !== undefined &&
-        user !== null &&
-        channel !== undefined &&
-        user.name === channel.name,
+      isOwner: !!(user && channel && user.name === channel.name),
     }),
     [name, channel, tierList, errorMessage, isLoading, user]
   );

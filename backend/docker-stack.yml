@@ -1,6 +1,6 @@
 services:
   app:
-    image: jasonly027/chatstierlist
+    image: jasonly027/chatstierlist:0.1.0
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=info
