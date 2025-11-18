@@ -16,7 +16,7 @@ export function useSetTierList() {
         if (!tierList) throw new ReferenceError('Missing Tier List');
 
         const prevVersion = tierList.version;
-        const nextVersion = Date.now();
+        const nextVersion = prevVersion + 1;
 
         client.setQueryData(queryKey, (prev) => {
           const tierList = produce(prev?.tierList, (tierList) => {

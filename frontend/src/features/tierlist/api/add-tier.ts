@@ -15,7 +15,7 @@ export function useAddTier() {
         if (!tierList) return;
         const prevVersion = tierList.version;
 
-        const nextVersion = Date.now();
+        const nextVersion = prevVersion + 1;
         client.setQueryData(queryKey, (prev) => {
           const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;

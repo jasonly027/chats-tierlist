@@ -14,7 +14,7 @@ export function useUpdateTier() {
         if (!list || !prevTier) throw new ReferenceError('Tier not found');
         const prevVersion = list.version;
 
-        const nextVersion = Date.now();
+        const nextVersion = prevVersion + 1;
         client.setQueryData(queryKey, (prev) => {
           const tierList = produce(prev?.tierList, (list) => {
             const tier = list?.tiers.find((t) => t.id === id);

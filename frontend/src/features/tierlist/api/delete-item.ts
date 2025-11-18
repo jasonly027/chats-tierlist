@@ -14,7 +14,7 @@ export function useDeleteItem() {
         if (!tierList || !prevItem) throw new ReferenceError('Item not found');
         const prevVersion = tierList.version;
 
-        const nextVersion = Date.now();
+        const nextVersion = prevVersion + 1;
         client.setQueryData(queryKey, (prev) => {
           const tierList = produce(prev?.tierList, (tierList) => {
             if (!tierList) return;
